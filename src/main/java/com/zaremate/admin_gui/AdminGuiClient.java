@@ -767,10 +767,31 @@ public final class AdminGuiClient {
         }
 
         private void drawCreateCard(GuiGraphics g, int x, int y, int width, int height) {
-            g.fill(x, y, x + width, y + height, 0xD94B3625);
-            g.fill(x, y, x + width, y + 1, 0xFFB2763F);
-            g.fill(x, y + 1, x + 1, y + height, 0xFF574534);
-            g.fill(x + width - 1, y + 1, x + width, y + height, 0xFF574534);
+            // Keep the dark brass casing on the OUTSIDE of each module.
+            // The interior is left clear so the post-it widgets sit cleanly
+            // inside the frame instead of disappearing into a solid brown box.
+            int shadow = 0x7A2D2118;
+            int darkBrass = 0xFF5B412B;
+            int brass = 0xFFC1844B;
+            int highlight = 0xFFE0A15F;
+
+            // Outside shadow.
+            g.fill(x + 3, y + 3, x + width + 3, y + height + 3, shadow);
+
+            // Dark brass outer casing.
+            g.fill(x, y, x + width, y + height, darkBrass);
+            g.fill(x + 1, y + 1, x + width - 1, y + height - 1, brass);
+
+            // Cut the centre back out so only the casing remains visible.
+            g.fill(x + 5, y + 5, x + width - 5, y + height - 5, 0x00101010);
+
+            // Brass highlight/shadow rails.
+            g.fill(x + 5, y + 2, x + width - 5, y + 4, highlight);
+            g.fill(x + 2, y + 4, x + 4, y + height - 4, 0xFF8C623C);
+            g.fill(x + width - 4, y + 4, x + width - 2, y + height - 4, 0xFF6C4B30);
+            g.fill(x + 5, y + height - 4, x + width - 5, y + height - 2, 0xFF6C4B30);
+
+            // Rivets belong to the outer casing only.
             drawRivet(g, x + 4, y + 4);
             drawRivet(g, x + width - 7, y + 4);
         }
