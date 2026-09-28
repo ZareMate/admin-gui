@@ -74,7 +74,7 @@ final class AdminGuiDetailWidgets {
 
         int notesY = top + 331;
         header(result, x + 8 + CARD_INSET, notesY + 7, "ADMIN NOTES", font);
-        notes(result, detail, x + 8 + CARD_INSET, notesY + 28, font, noteScroll);
+        notes(result, detail, x + 20, notesY + 28, font, noteScroll);
         return result;
     }
 
@@ -242,8 +242,8 @@ final class AdminGuiDetailWidgets {
             String author = text(note, "author", "");
             if (author.isBlank()) author = "System";
             String value = text(note, "text", "");
-            String display = fit(author + " — " + value, 405, font);
-            add(out, x, y + i * 36, 425, 26, display, 0xFF3A2B20,
+            String display = fit(author + " — " + value, 385, font);
+            add(out, x, y + i * 34, 405, 26, display, 0xFFF0E2C8,
                     "Click to copy the full note.\n\n" + author + " — " + value,
                     () -> copy(value), font);
         }
