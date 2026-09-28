@@ -55,6 +55,7 @@ public final class AdminGuiData {
 
         root.add("tsa", tsa(uuid));
         root.add("ass", ass(uuid));
+        root.addProperty("notesAvailable", classAvailable("com.zaremate.admin_notes.AdminNotesAPI"));
         root.add("notes", notes(uuid));
         root.add("teams", teams(uuid));
         root.add("discord", discord(uuid));
@@ -164,6 +165,10 @@ public final class AdminGuiData {
             o.addProperty("available", true);
         } catch (Throwable ignored) {}
         return o;
+    }
+
+    private static boolean classAvailable(String name) {
+        try { Class.forName(name); return true; } catch (Throwable ignored) { return false; }
     }
 
     private static JsonArray notes(UUID uuid) {
