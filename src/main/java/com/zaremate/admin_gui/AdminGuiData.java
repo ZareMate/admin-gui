@@ -328,6 +328,10 @@ public final class AdminGuiData {
         for (String method : methods) {
             try {
                 Object v = target.getClass().getMethod(method).invoke(target);
+                if (v instanceof net.minecraft.network.chat.Component component) {
+                    String text = component.getString();
+                    if (!text.isBlank()) return text;
+                }
                 if (v != null && !v.toString().isBlank()) return v.toString();
             } catch (Throwable ignored) {}
         }
