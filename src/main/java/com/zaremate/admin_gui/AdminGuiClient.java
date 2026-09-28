@@ -35,6 +35,7 @@ public final class AdminGuiClient {
     public static final class AdminGuiScreen extends Screen {
         private final List<PlayerRef> players = new ArrayList<>();
         private final List<Button> playerButtons = new ArrayList<>();
+        private final List<Button> noteButtons = new ArrayList<>();
         private String selectedUuid;
         private JsonObject detail;
         private EditBox search;
@@ -95,6 +96,7 @@ public final class AdminGuiClient {
                     .bounds(left + 805, top + 456, 80, 20).build());
 
             rebuildPlayerButtons();
+            rebuildNoteButtons();
         }
 
         private void rebuildPlayerButtons() {
@@ -268,12 +270,6 @@ public final class AdminGuiClient {
                 g.drawString(font, author.isBlank() ? "System" : author, x, row, 0xFF858C97);
                 g.drawString(font, line, x, row + 12, 0xFFE1E4E8);
 
-                Button edit = Button.builder(Component.literal("Edit"), b -> editNote(n))
-                        .bounds(x + 390, row - 4, 45, 18).build();
-                Button remove = Button.builder(Component.literal("X"), b -> removeNote(n))
-                        .bounds(x + 440, row - 4, 20, 18).build();
-                addRenderableWidget(edit);
-                addRenderableWidget(remove);
             }
             if (notes.size() > shown) {
                 g.drawString(font, "+" + (notes.size() - shown) + " more notes", x, y + 28 + shown * 36, 0xFF666D78);
