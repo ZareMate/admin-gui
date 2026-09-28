@@ -328,7 +328,7 @@ public final class AdminGuiClient {
             int left = baseLeft();
             int top = baseTop();
 
-            if (logicalX >= left + 4 && logicalX <= left + 284
+            if (logicalX >= left + 10 && logicalX <= left + 290
                     && logicalY >= top + 20 && logicalY <= top + 395) {
                 int max = Math.max(0, filteredCount() - 10);
                 playerScroll = clampScroll(
