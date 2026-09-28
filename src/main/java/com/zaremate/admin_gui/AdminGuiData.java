@@ -97,6 +97,10 @@ public final class AdminGuiData {
         return result;
     }
 
+    private static MinecraftServer serverForReflection() {
+        return net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer();
+    }
+
     private static String resolveName(MinecraftServer server, UUID uuid) {
         ServerPlayer online = server.getPlayerList().getPlayer(uuid);
         if (online != null) return online.getGameProfile().getName();
@@ -207,7 +211,49 @@ public final class AdminGuiData {
             o.addProperty("name", firstString(team, "getName", "getTeamName"));
             JsonArray members = new JsonArray();
             Object raw = firstObject(team, "getMembers");
-            if (raw instanceof Iterable<?> it) for (Object x : it) members.add(String.valueOf(x));
+            if (raw instanceof Iterable<?> it) {
+                for (Object value : it) {
+                    if (!(value instanceof UUID memberUuid)) {
+                        continue;
+                    }
+
+                    JsonObject member = new JsonObject();
+                    member.addProperty("uuid", memberUuid.toString());
+
+                    String memberName = resolveName(serverForReflection(), memberUuid);
+                    member.addProperty("name", memberName);
+
+                    try {
+                        Object rank = team.getClass()
+                                .getMethod("getRankForPlayer", UUID.class)
+                                .invoke(team, memberUuid);
+
+                        String rankName = rank == null ? "NONE" : String.valueOf(rank);
+                        String rankDisplay = rankName;
+
+                        if (rank != null) {
+                            try {
+                                Object display = rank.getClass()
+                                        .getMethod("getDisplayName")
+                                        .invoke(rank);
+                                if (display instanceof net.minecraft.network.chat.Component component) {
+                                    rankDisplay = component.getString();
+                                }
+                            } catch (Throwable ignored) {
+                                // Fall back to the enum name.
+                            }
+                        }
+
+                        member.addProperty("rank", rankName);
+                        member.addProperty("rankDisplay", rankDisplay);
+                    } catch (Throwable ignored) {
+                        member.addProperty("rank", "NONE");
+                        member.addProperty("rankDisplay", "None");
+                    }
+
+                    members.add(member);
+                }
+            }
             o.add("members", members);
         } catch (Throwable ignored) {}
         return o;
