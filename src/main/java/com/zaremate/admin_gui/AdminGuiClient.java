@@ -354,17 +354,18 @@ public final class AdminGuiClient {
             g.pose().scale((float) scale, (float) scale, 1.0F);
             g.pose().translate(-centerX, -centerY, 0);
 
-            // Create-inspired industrial backdrop.
-            g.fill(left - 3, top - 3, right + 3, bottom + 3, 0xFF765336);
-            g.fill(left - 1, top - 1, right + 1, bottom + 1, 0xFF0E100F);
-            g.fill(left, top, right, bottom, 0xFF202322);
+            // Create-inspired kraft/cardboard surface.
+            g.fill(left - 3, top - 3, right + 3, bottom + 3, 0xFF6A482D);
+            g.fill(left - 1, top - 1, right + 1, bottom + 1, 0xFF8D603C);
+            drawCardboard(g, left, top, WIDTH, HEIGHT);
 
             // Header.
-            g.fill(left, top, right, top + 27, 0xFF191B1A);
+            g.fill(left, top, right, top + 27, 0xFF30251C);
             g.fill(left, top + 25, right, top + 27, 0xFFB2763F);
 
             // Player divider.
-            g.fill(left + 280, top + 27, left + 282, bottom, 0xFF8D6946);
+            g.fill(left + 280, top + 27, left + 282, bottom, 0xFF6E4B31);
+            g.fill(left + 3, top + 55, left + 276, bottom - 8, 0x1AFFF0D0);
 
             // Search field.
             drawBrassFrame(g, left + 11, top + 31, 257, 22);
@@ -382,17 +383,16 @@ public final class AdminGuiClient {
                         && logicalMouseY >= rowY && logicalMouseY <= rowY + 25;
                 boolean selected = p.uuid().equals(selectedUuid);
 
-                int plate = selected ? 0xFF4B3B29
-                        : hovered ? 0xFF30332F
-                        : 0xFF242725;
-
-                g.fill(left + 12, rowY, left + 267, rowY + 25, plate);
-                g.fill(left + 12, rowY + 24, left + 267, rowY + 25,
-                        selected || hovered ? 0xFFC1844B : 0xFF454844);
-
-                if (selected) {
-                    g.fill(left + 12, rowY, left + 15, rowY + 25, 0xFFE0A15F);
-                }
+                drawPostIt(
+                        g,
+                        left + 12,
+                        rowY,
+                        255,
+                        25,
+                        selected,
+                        hovered,
+                        i
+                );
             }
 
             // Detail panels.
@@ -427,6 +427,22 @@ public final class AdminGuiClient {
             }
 
             for (PlainTextButton widget : infoWidgets) {
+                if (widget.visible && widget.getY() >= top + 90 && widget.getWidth() <= 260) {
+                    boolean hovered = logicalMouseX >= widget.getX()
+                            && logicalMouseX <= widget.getX() + widget.getWidth()
+                            && logicalMouseY >= widget.getY()
+                            && logicalMouseY <= widget.getY() + widget.getHeight();
+                    drawPostIt(
+                            g,
+                            widget.getX(),
+                            widget.getY(),
+                            widget.getWidth(),
+                            widget.getHeight(),
+                            false,
+                            hovered,
+                            widget.getY()
+                    );
+                }
                 renderWidgetIfVisible(g, widget, logicalMouseX, logicalMouseY, partialTick);
             }
 
@@ -464,8 +480,98 @@ public final class AdminGuiClient {
                     .toList();
         }
 
+        private void drawCardboard(GuiGraphics g, int x, int y, int width, int height) {
+            g.fill(x, y, x + width, y + height, 0xFFB77A45);
+
+            // Deterministic low-frequency fibers/grain. It is deliberately
+            // sparse so the texture stays cheap to render every frame.
+            for (int yy = y; yy < y + height; yy += 8) {
+                for (int xx = x; xx < x + width; xx += 12) {
+                    int seed = grainSeed(xx, yy);
+                    int fiber = 0x22000000 | (0x18 + (seed & 0x10)) << 24;
+                    int shade = switch ((seed >>> 8) & 3) {
+                        case 0 -> 0x182C180A;
+                        case 1 -> 0x181F1208;
+                        case 2 -> 0x141C1007;
+                        default -> 0x10160D06;
+                    };
+
+                    int w = 2 + ((seed >>> 12) & 3);
+                    int h = 1 + ((seed >>> 14) & 1);
+                    g.fill(xx + 1, yy + 2, Math.min(xx + 1 + w, x + width), Math.min(yy + 2 + h, y + height), shade);
+
+                    if ((seed & 7) == 0) {
+                        g.fill(
+                                Math.min(xx + 5, x + width - 1),
+                                yy + 5,
+                                Math.min(xx + 8, x + width),
+                                Math.min(yy + 6, y + height),
+                                fiber
+                        );
+                    }
+                }
+            }
+
+            // Broad paper fibers add the recognizable kraft-cardboard look.
+            for (int yy = y + 3; yy < y + height; yy += 27) {
+                g.fill(x, yy, x + width, Math.min(yy + 1, y + height), 0x141F1208);
+            }
+
+            for (int xx = x + 9; xx < x + width; xx += 41) {
+                g.fill(xx, y, Math.min(xx + 1, x + width), y + height, 0x0DFFF0D0);
+            }
+        }
+
+        private int grainSeed(int x, int y) {
+            int v = x * 0x45d9f3b + y * 0x119de1f3;
+            v ^= v >>> 16;
+            v *= 0x45d9f3b;
+            v ^= v >>> 16;
+            return v;
+        }
+
+        private void drawPostIt(
+                GuiGraphics g,
+                int x,
+                int y,
+                int width,
+                int height,
+                boolean selected,
+                boolean hovered,
+                int variant
+        ) {
+            int palette = Math.floorMod(variant, 5);
+            int note = switch (palette) {
+                case 0 -> 0xFFF2D978;
+                case 1 -> 0xFFE9CF72;
+                case 2 -> 0xFFF0D88E;
+                case 3 -> 0xFFE6CA69;
+                default -> 0xFFF1D47B;
+            };
+
+            if (hovered) {
+                note = 0xFFF7E49A;
+            }
+            if (selected) {
+                note = 0xFFFFE99B;
+            }
+
+            // Soft paper shadow.
+            g.fill(x + 2, y + 2, x + width + 2, y + height + 3, 0x30000000);
+            g.fill(x, y, x + width, y + height, note);
+
+            // Slightly darker lower/side edges make it read as a loose paper note.
+            g.fill(x, y + height - 1, x + width - 3, y + height, 0x24000000);
+            g.fill(x + width - 1, y + 3, x + width, y + height, 0x18000000);
+
+            // Folded lower-right corner.
+            int fold = Math.min(7, Math.max(4, height / 3));
+            g.fill(x + width - fold, y + height - fold, x + width, y + height, 0x30000000);
+            g.fill(x + width - fold, y + height - fold, x + width - 1, y + height - fold + 1, 0x50000000);
+        }
+
         private void drawCreateCard(GuiGraphics g, int x, int y, int width, int height) {
-            g.fill(x, y, x + width, y + height, 0xFF1B1E1D);
+            g.fill(x, y, x + width, y + height, 0xD94B3625);
             g.fill(x, y, x + width, y + 1, 0xFFB2763F);
             g.fill(x, y + 1, x + 1, y + height, 0xFF574534);
             g.fill(x + width - 1, y + 1, x + width, y + height, 0xFF574534);
