@@ -558,10 +558,12 @@ public final class AdminGuiClient {
                     CREATE_CLIPBOARD_TEXTURE,
                     x,
                     y,
-                    0,
-                    0,
                     width,
                     height,
+                    0,
+                    0,
+                    256,
+                    256,
                     256,
                     256
             );
