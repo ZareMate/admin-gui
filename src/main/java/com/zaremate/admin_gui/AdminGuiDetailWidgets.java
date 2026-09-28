@@ -224,7 +224,9 @@ final class AdminGuiDetailWidgets {
             if (author.isBlank()) author = "System";
             String value = text(note, "text", "");
             String preview = value.length() > 58 ? value.substring(0, 55) + "..." : value;
-            add(out, x, y + i * 36, 425, 18, author + ": " + preview, 0xFFE5DED0,
+            Component noteText = Component.literal(author + ": " + preview)
+                    .withStyle(s -> s.withColor(0xFF3A2B20));
+            add(out, x, y + i * 36, 425, 26, noteText.getString(), 0xFF3A2B20,
                     "Click to copy the full note.\n\n" + value, () -> copy(value), font);
         }
         if (notes.size() > shown) {
