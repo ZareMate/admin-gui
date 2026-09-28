@@ -4,7 +4,6 @@ import com.google.gson.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.PlainTextButton;
 import net.minecraft.client.gui.components.Tooltip;
@@ -416,16 +415,17 @@ public final class AdminGuiClient {
             // Cardboard is the actual dashboard surface. Keep the supplied
             // clipboard texture unchanged, but place a rounded brass trim
             // behind it so the brass sits on the outside of the wooden border.
-            drawRoundedBrassOuterFrame(g, left, top, WIDTH, HEIGHT);
             drawCardboardTextureScaled2x(g, left, top, WIDTH, HEIGHT);
-            drawClipboardFrame(g, left + 4, top + 4, WIDTH - 8, HEIGHT - 8);
+            drawTexturePanel(g, BORDER_TEXTURE, left, top, WIDTH, HEIGHT);
+
+            // Dedicated top/header surface.
+            drawTexturePanel(g, HEADER_TEXTURE, left + 12, top + 4, WIDTH - 24, 24);
 
             // Player divider.
             g.fill(left + 280, top + 27, left + 282, bottom, 0xFF704B2E);
 
             // Search field.
-            drawBrassFrame(g, left + 11, top + 31, 257, 22);
-            drawTexturePanel(g, INPUT_TEXTURE, left + 13, top + 33, 253, 18);
+            drawTexturePanel(g, INPUT_TEXTURE, left + 11, top + 31, 257, 22);
 
             // Player rows.
             List<PlayerRef> filtered = filteredPlayers();
@@ -485,8 +485,7 @@ public final class AdminGuiClient {
                 );
 
                 if (noteInput != null && noteInput.visible) {
-                    drawBrassFrame(g, left + 521, top + 453, 254, 26);
-                    drawTexturePanel(g, INPUT_TEXTURE, left + 523, top + 455, 250, 20);
+                    drawTexturePanel(g, INPUT_TEXTURE, left + 521, top + 453, 254, 26);
                     drawCopperButtonFrame(
                             g,
                             left + 777,
@@ -560,82 +559,6 @@ public final class AdminGuiClient {
             }
         }
 
-        private void drawRoundedBrassOuterFrame(
-                GuiGraphics g,
-                int x,
-                int y,
-                int width,
-                int height
-        ) {
-            // Four-pixel brass trim with stepped corners. The corners are
-            // deliberately masked so the rounding affects only the outside
-            // border and never the cardboard/dashboard surface.
-            final int thickness = 4;
-            final int radius = 8;
-
-            g.fill(x + radius, y, x + width - radius, y + thickness, 0xFFC58A4D);
-            g.fill(x + radius, y + height - thickness, x + width - radius, y + height, 0xFF72502F);
-            g.fill(x, y + radius, x + thickness, y + height - radius, 0xFF8F6842);
-            g.fill(x + width - thickness, y + radius, x + width, y + height - radius, 0xFF8F6842);
-
-            // Stepped corner sections give the outer silhouette rounded corners.
-            g.fill(x + 3, y + 3, x + radius, y + thickness, 0xFFC58A4D);
-            g.fill(x + width - radius, y + 3, x + width - 3, y + thickness, 0xFFC58A4D);
-            g.fill(x + 3, y + height - thickness, x + radius, y + height - 3, 0xFF72502F);
-            g.fill(x + width - radius, y + height - thickness, x + width - 3, y + height - 3, 0xFF72502F);
-
-            g.fill(x + 3, y + 3, x + thickness, y + radius, 0xFF8F6842);
-            g.fill(x + width - thickness, y + 3, x + width - 3, y + radius, 0xFF8F6842);
-            g.fill(x + 3, y + height - radius, x + thickness, y + height - 3, 0xFF6A4A2C);
-            g.fill(x + width - thickness, y + height - radius, x + width - 3, y + height - 3, 0xFF6A4A2C);
-
-            // Small highlight/shadow on the brass edge.
-            g.fill(x + radius, y + 1, x + width - radius, y + 2, 0xFFE2AE69);
-            g.fill(x + 1, y + radius, x + 2, y + height - radius, 0xFFB47B46);
-            g.fill(x + radius, y + height - 2, x + width - radius, y + height - 1, 0xFF4E351F);
-            g.fill(x + width - 2, y + radius, x + width - 1, y + height - radius, 0xFF5B3E23);
-        }
-
-        private void drawClipboardFrame(
-                GuiGraphics g,
-                int x,
-                int y,
-                int width,
-                int height
-        ) {
-            // The supplied Create-style wood texture is a 16x16 tile.
-            // Repeat it around the outside instead of stretching it across
-            // the whole GUI.
-            final int border = 12;
-            final int tile = 16;
-
-            for (int px = x; px < x + width; px += tile) {
-                int w = Math.min(tile, x + width - px);
-                g.blit(BORDER_TEXTURE, px, y, w, border,
-                        0, 0, w, border, tile, tile);
-                g.blit(BORDER_TEXTURE, px, y + height - border, w, border,
-                        0, tile - border, w, border, tile, tile);
-            }
-
-            for (int py = y + border; py < y + height - border; py += tile) {
-                int h = Math.min(tile, y + height - border - py);
-                g.blit(BORDER_TEXTURE, x, py, border, h,
-                        0, 0, border, h, tile, tile);
-                g.blit(BORDER_TEXTURE, x + width - border, py, border, h,
-                        tile - border, 0, border, h, tile, tile);
-            }
-
-            // Subtle inner edge to separate the wood frame from the cardboard.
-            g.fill(x + border, y + border, x + width - border, y + border + 1, 0xAA2A1A10);
-            g.fill(x + border, y + height - border - 1, x + width - border, y + height - border, 0x662A1A10);
-            g.fill(x + border, y + border, x + border + 1, y + height - border, 0xAA2A1A10);
-            g.fill(x + width - border - 1, y + border, x + width - border, y + height - border, 0x662A1A10);
-        }
-
-        private ResourceLocation cardboardTexture() {
-            return BACKGROUND_TEXTURE;
-        }
-
         private boolean canEditNote(JsonObject note) {
             if (note == null || !note.has("authorUuid")) {
                 return false;
@@ -661,6 +584,7 @@ public final class AdminGuiClient {
                 int width,
                 int height
         ) {
+            final int tile = 32;
             int textureAreaWidth = (width + 1) / 2;
             int textureAreaHeight = (height + 1) / 2;
 
@@ -668,10 +592,10 @@ public final class AdminGuiClient {
             g.pose().translate(x, y, 0);
             g.pose().scale(2.0F, 2.0F, 1.0F);
 
-            for (int yy = 0; yy < textureAreaHeight; yy += 16) {
-                for (int xx = 0; xx < textureAreaWidth; xx += 16) {
-                    int drawWidth = Math.min(16, textureAreaWidth - xx);
-                    int drawHeight = Math.min(16, textureAreaHeight - yy);
+            for (int yy = 0; yy < textureAreaHeight; yy += tile) {
+                for (int xx = 0; xx < textureAreaWidth; xx += tile) {
+                    int drawWidth = Math.min(tile, textureAreaWidth - xx);
+                    int drawHeight = Math.min(tile, textureAreaHeight - yy);
 
                     g.blit(
                             BACKGROUND_TEXTURE,
@@ -681,8 +605,8 @@ public final class AdminGuiClient {
                             0,
                             drawWidth,
                             drawHeight,
-                            16,
-                            16
+                            tile,
+                            tile
                     );
                 }
             }
@@ -758,23 +682,21 @@ public final class AdminGuiClient {
             }
 
             int trackX = x + 3;
-            int trackWidth = 4;
-            drawTexturePanel(g, SCROLLBAR_TEXTURE, trackX - 1, y, 6, height);
+            int trackWidth = 6;
+            drawTiledTexture(g, SCROLLBAR_TEXTURE, trackX - 1, y, trackWidth, height, 8, 32);
 
             int maxOffset = total - visible;
             int thumbHeight = Math.max(10, height * visible / total);
             int travel = height - thumbHeight;
             int thumbY = y + (travel * clampScroll(offset, maxOffset) / maxOffset);
 
-            drawTexturePanel(g, SCROLLBAR_TEXTURE, trackX - 1, thumbY, 6, thumbHeight);
+            drawTiledTexture(g, SCROLLBAR_TEXTURE, trackX - 1, thumbY, trackWidth, thumbHeight, 8, 32);
         }
 
         private void drawCreateCard(GuiGraphics g, int x, int y, int width, int height) {
-            // The module backing is texture-pack driven too. The supplied
-            // clipboard texture acts as the dark industrial casing.
+            // Complete panel frame is one 9-slice texture, just like a
+            // vanilla-style GUI component. Its center is transparent.
             drawTexturePanel(g, WIDGET_FRAME_TEXTURE, x, y, width, height);
-            drawRivet(g, x + 4, y + 4);
-            drawRivet(g, x + width - 7, y + 4);
         }
 
         private void drawTexturePanel(
@@ -785,38 +707,71 @@ public final class AdminGuiClient {
                 int width,
                 int height
         ) {
-            // Both shipped GUI textures are intentionally tiny tiles. Tiling
-            // keeps their pixels crisp and makes resource-pack replacements
-            // automatically fill every widget size.
-            final int textureSize = 16;
+            // All normal GUI components use a 32x32 nine-slice texture.
+            // Corners remain native-size; edges and center adapt to the
+            // destination size. This gives us full component textures instead
+            // of a 16x16 pattern being stamped over the whole widget.
+            final int size = 32;
+            final int slice = 6;
+            int centerW = Math.max(0, width - slice * 2);
+            int centerH = Math.max(0, height - slice * 2);
+            int sourceCenter = size - slice * 2;
 
-            for (int yy = 0; yy < height; yy += textureSize) {
-                for (int xx = 0; xx < width; xx += textureSize) {
-                    int drawWidth = Math.min(textureSize, width - xx);
-                    int drawHeight = Math.min(textureSize, height - yy);
+            // Center.
+            if (centerW > 0 && centerH > 0) {
+                g.blit(texture, x + slice, y + slice, centerW, centerH,
+                        slice, slice, sourceCenter, sourceCenter, size, size);
+            }
 
-                    g.blit(
-                            texture,
-                            x + xx,
-                            y + yy,
-                            drawWidth,
-                            drawHeight,
-                            0,
-                            0,
-                            drawWidth,
-                            drawHeight,
-                            textureSize,
-                            textureSize
-                    );
+            // Top / bottom.
+            if (centerW > 0) {
+                g.blit(texture, x + slice, y, centerW, slice,
+                        slice, 0, sourceCenter, slice, size, size);
+                g.blit(texture, x + slice, y + height - slice, centerW, slice,
+                        slice, size - slice, sourceCenter, slice, size, size);
+            }
+
+            // Left / right.
+            if (centerH > 0) {
+                g.blit(texture, x, y + slice, slice, centerH,
+                        0, slice, slice, sourceCenter, size, size);
+                g.blit(texture, x + width - slice, y + slice, slice, centerH,
+                        size - slice, slice, slice, sourceCenter, size, size);
+            }
+
+            // Corners.
+            g.blit(texture, x, y, slice, slice,
+                    0, 0, slice, slice, size, size);
+            g.blit(texture, x + width - slice, y, slice, slice,
+                    size - slice, 0, slice, slice, size, size);
+            g.blit(texture, x, y + height - slice, slice, slice,
+                    0, size - slice, slice, slice, size, size);
+            g.blit(texture, x + width - slice, y + height - slice, slice, slice,
+                    size - slice, size - slice, slice, slice, size, size);
+        }
+
+        private void drawTiledTexture(
+                GuiGraphics g,
+                ResourceLocation texture,
+                int x,
+                int y,
+                int width,
+                int height,
+                int textureWidth,
+                int textureHeight
+        ) {
+            for (int yy = 0; yy < height; yy += textureHeight) {
+                for (int xx = 0; xx < width; xx += textureWidth) {
+                    int w = Math.min(textureWidth, width - xx);
+                    int h = Math.min(textureHeight, height - yy);
+                    g.blit(texture, x + xx, y + yy, w, h,
+                            0, 0, w, h, textureWidth, textureHeight);
                 }
             }
         }
 
         private void drawBrassFrame(GuiGraphics g, int x, int y, int width, int height) {
-            g.fill(x, y, x + width, y + 1, 0xFFC1844B);
-            g.fill(x, y + height - 1, x + width, y + height, 0xFF65472F);
-            g.fill(x, y, x + 1, y + height, 0xFF8D6946);
-            g.fill(x + width - 1, y, x + width, y + height, 0xFF8D6946);
+            drawTexturePanel(g, INPUT_TEXTURE, x, y, width, height);
         }
 
         private void drawCopperButtonFrame(
