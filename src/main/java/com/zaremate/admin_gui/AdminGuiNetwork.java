@@ -48,7 +48,7 @@ public final class AdminGuiNetwork {
             );
 
     public static void register(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("1");
+        PayloadRegistrar registrar = event.registrar("1").optional();
         registrar.playToClient(OPEN_TYPE, OPEN_CODEC, (payload, context) ->
                 AdminGuiClientBridge.open(payload.data()));
         registrar.playToClient(DETAIL_TYPE, DETAIL_CODEC, (payload, context) ->
