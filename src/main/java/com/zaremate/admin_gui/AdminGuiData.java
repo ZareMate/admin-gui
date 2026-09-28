@@ -39,6 +39,14 @@ public final class AdminGuiData {
     }
 
     public static String buildPlayerDetail(MinecraftServer server, UUID uuid) {
+        return buildPlayerDetail(server, uuid, null);
+    }
+
+    public static String buildPlayerDetail(
+            MinecraftServer server,
+            UUID uuid,
+            UUID viewerUuid
+    ) {
         JsonObject root = new JsonObject();
         root.addProperty("uuid", uuid.toString());
 
@@ -56,7 +64,7 @@ public final class AdminGuiData {
         root.add("tsa", tsa(uuid));
         root.add("ass", ass(uuid));
         root.addProperty("notesAvailable", classAvailable("com.zaremate.admin_notes.AdminNotesAPI"));
-        root.add("notes", notes(uuid));
+        root.add("notes", notes(uuid, viewerUuid));
         root.add("teams", teams(uuid));
         root.add("discord", discord(uuid));
         root.add("clockin", clockin(uuid));
@@ -175,7 +183,7 @@ public final class AdminGuiData {
         try { Class.forName(name); return true; } catch (Throwable ignored) { return false; }
     }
 
-    private static JsonArray notes(UUID uuid) {
+    private static JsonArray notes(UUID uuid, UUID viewerUuid) {
         JsonArray result = new JsonArray();
         try {
             Class<?> c = Class.forName("com.zaremate.admin_notes.AdminNotesAPI");
@@ -185,8 +193,15 @@ public final class AdminGuiData {
                 for (Object note : it) {
                     JsonObject n = new JsonObject();
                     n.addProperty("id", recordString(note, "id"));
-                    n.addProperty("authorUuid", recordString(note, "authorUuid"));
+                    String authorUuid = recordString(note, "authorUuid");
+                    n.addProperty("authorUuid", authorUuid);
                     n.addProperty("author", recordString(note, "author"));
+                    n.addProperty(
+                            "canEdit",
+                            viewerUuid != null
+                                    && viewerUuid.toString().equalsIgnoreCase(authorUuid)
+                                    && !Boolean.TRUE.equals(recordAccessor(note, "isSystem"))
+                    );
                     n.addProperty("text", recordString(note, "text"));
                     n.addProperty("createdAt", recordLong(note, "createdAt"));
                     n.addProperty("system", Boolean.TRUE.equals(recordAccessor(note, "isSystem")));
@@ -195,6 +210,38 @@ public final class AdminGuiData {
             }
         } catch (Throwable ignored) {}
         return result;
+    }
+
+    static boolean canEditNote(UUID playerUuid, UUID noteId) {
+        if (playerUuid == null || noteId == null) {
+            return false;
+        }
+
+        try {
+            Class<?> c = Class.forName("com.zaremate.admin_notes.AdminNotesAPI");
+            Method m = c.getMethod("getNote", UUID.class, UUID.class);
+            Object value = m.invoke(null, playerUuid, noteId);
+
+            if (!(value instanceof Optional<?> optional) || optional.isEmpty()) {
+                return false;
+            }
+
+            Object note = optional.get();
+            if (Boolean.TRUE.equals(recordAccessor(note, "isSystem"))) {
+                return false;
+            }
+
+            Object owner = recordAccessor(note, "authorUuid");
+            return owner instanceof UUID ownerUuid
+                    && ownerUuid.equals(
+                            serverForReflection() != null
+                                    && serverForReflection().getPlayerList().getPlayer(playerUuid) != null
+                                    ? serverForReflection().getPlayerList().getPlayer(playerUuid).getUUID()
+                                    : playerUuid
+                    );
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     private static JsonObject teams(UUID uuid) {
