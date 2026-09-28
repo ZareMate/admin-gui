@@ -116,7 +116,7 @@ final class AdminGuiDetailWidgets {
         String stats = "Status: " + status + "  Checks: " + num(o, "totalChecks")
                 + "  Detected: " + num(o, "detectedChecks") + "  Clean: " + num(o, "cleanChecks");
         add(out, x, y, CARD_CONTENT_WIDTH, 18, stats,
-                status.equalsIgnoreCase("DETECTED") ? 0xFFD96B4A : 0xFFB8BEC8,
+                status.equalsIgnoreCase("DETECTED") ? 0xFFE35A4F : 0xFFB8BEC8,
                 "Click to copy ASS statistics.", () -> copy(stats), font);
         JsonObject dates = o.getAsJsonObject("detectionDates");
         String state = "Cleared: " + text(o, "clearedDate", "-")
