@@ -136,6 +136,39 @@ public final class AdminGuiClient {
             }
         }
 
+        private void rebuildNoteButtons() {
+            for (Button b : noteButtons) removeWidget(b);
+            noteButtons.clear();
+
+            if (detail == null || !detail.has("notesAvailable")
+                    || !detail.get("notesAvailable").getAsBoolean()
+                    || !detail.has("notes")) {
+                return;
+            }
+
+            JsonArray notes = detail.getAsJsonArray("notes");
+            int shown = Math.min(notes.size(), 5);
+            int x = (width - WIDTH) / 2 + 305;
+            int y = (height - HEIGHT) / 2 + 42 + 255 + 20;
+
+            for (int i = 0; i < shown; i++) {
+                JsonObject note = notes.get(i).getAsJsonObject();
+                int row = y + i * 36;
+
+                Button edit = Button.builder(Component.literal("Edit"), b -> editNote(note))
+                        .bounds(x + 390, row - 4, 45, 18)
+                        .build();
+                Button remove = Button.builder(Component.literal("X"), b -> removeNote(note))
+                        .bounds(x + 440, row - 4, 20, 18)
+                        .build();
+
+                noteButtons.add(edit);
+                noteButtons.add(remove);
+                addRenderableWidget(edit);
+                addRenderableWidget(remove);
+            }
+        }
+
         private void selectPlayer(String uuid) {
             selectedUuid = uuid;
             AdminGuiNetworkSelect.send(uuid);
