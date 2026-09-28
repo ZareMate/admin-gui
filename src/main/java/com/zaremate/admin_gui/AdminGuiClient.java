@@ -51,10 +51,30 @@ public final class AdminGuiClient {
         private static final int HEIGHT = 520;
         private static final int MIN_MARGIN = 12;
         private static final double MAX_SCALE = 2.0;
-        private static final ResourceLocation CARDBOARD_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/cardboard.png");
-        private static final ResourceLocation CLIPBOARD_FRAME_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/clipboard_frame.png");
+        // Each major GUI component has its own texture so resource packs can
+        // reskin the interface independently.
+        private static final ResourceLocation BACKGROUND_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/background.png");
+        private static final ResourceLocation BORDER_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/border.png");
+        private static final ResourceLocation PLAYER_ITEM_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/player_item.png");
+        private static final ResourceLocation PLAYER_ITEM_SELECTED_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/player_item_selected.png");
+        private static final ResourceLocation WIDGET_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/widget.png");
+        private static final ResourceLocation WIDGET_FRAME_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/widget_frame.png");
+        private static final ResourceLocation NOTE_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/note.png");
+        private static final ResourceLocation BUTTON_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/button.png");
+        private static final ResourceLocation BUTTON_HOVER_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/button_hover.png");
+        private static final ResourceLocation INPUT_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/input.png");
+        private static final ResourceLocation SCROLLBAR_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/scrollbar.png");
 
         public AdminGuiScreen(String data) {
             super(Component.literal("Admin GUI"));
@@ -405,7 +425,7 @@ public final class AdminGuiClient {
 
             // Search field.
             drawBrassFrame(g, left + 11, top + 31, 257, 22);
-            drawTexturePanel(g, CLIPBOARD_FRAME_TEXTURE, left + 13, top + 33, 253, 18);
+            drawTexturePanel(g, INPUT_TEXTURE, left + 13, top + 33, 253, 18);
 
             // Player rows.
             List<PlayerRef> filtered = filteredPlayers();
@@ -466,6 +486,7 @@ public final class AdminGuiClient {
 
                 if (noteInput != null && noteInput.visible) {
                     drawBrassFrame(g, left + 521, top + 453, 254, 26);
+                    drawTexturePanel(g, INPUT_TEXTURE, left + 523, top + 455, 250, 20);
                     drawCopperButtonFrame(
                             g,
                             left + 777,
@@ -494,15 +515,13 @@ public final class AdminGuiClient {
                             && logicalMouseY <= widget.getY() + widget.getHeight();
 
                     if (widget.getWidth() <= 260) {
-                        drawPostIt(
+                        drawTexturePanel(
                                 g,
+                                WIDGET_TEXTURE,
                                 widget.getX(),
                                 widget.getY(),
                                 widget.getWidth(),
-                                widget.getHeight(),
-                                false,
-                                hovered,
-                                widget.getY()
+                                widget.getHeight()
                         );
                     } else if (widget.getY() >= top + 350 && widget.getWidth() >= 400) {
                         drawAdminNote(
@@ -592,17 +611,17 @@ public final class AdminGuiClient {
 
             for (int px = x; px < x + width; px += tile) {
                 int w = Math.min(tile, x + width - px);
-                g.blit(CLIPBOARD_FRAME_TEXTURE, px, y, w, border,
+                g.blit(BORDER_TEXTURE, px, y, w, border,
                         0, 0, w, border, tile, tile);
-                g.blit(CLIPBOARD_FRAME_TEXTURE, px, y + height - border, w, border,
+                g.blit(BORDER_TEXTURE, px, y + height - border, w, border,
                         0, tile - border, w, border, tile, tile);
             }
 
             for (int py = y + border; py < y + height - border; py += tile) {
                 int h = Math.min(tile, y + height - border - py);
-                g.blit(CLIPBOARD_FRAME_TEXTURE, x, py, border, h,
+                g.blit(BORDER_TEXTURE, x, py, border, h,
                         0, 0, border, h, tile, tile);
-                g.blit(CLIPBOARD_FRAME_TEXTURE, x + width - border, py, border, h,
+                g.blit(BORDER_TEXTURE, x + width - border, py, border, h,
                         tile - border, 0, border, h, tile, tile);
             }
 
@@ -614,7 +633,7 @@ public final class AdminGuiClient {
         }
 
         private ResourceLocation cardboardTexture() {
-            return CARDBOARD_TEXTURE;
+            return BACKGROUND_TEXTURE;
         }
 
         private boolean canEditNote(JsonObject note) {
@@ -655,7 +674,7 @@ public final class AdminGuiClient {
                     int drawHeight = Math.min(16, textureAreaHeight - yy);
 
                     g.blit(
-                            CARDBOARD_TEXTURE,
+                            BACKGROUND_TEXTURE,
                             xx,
                             yy,
                             0,
@@ -681,15 +700,19 @@ public final class AdminGuiClient {
                 boolean hovered,
                 int variant
         ) {
-            // Entire surface is texture-pack driven. Hover/selection is shown
-            // by the existing widget text state rather than a color override,
-            // so replacing cardboard.png changes the appearance everywhere.
-            drawTexturePanel(g, CARDBOARD_TEXTURE, x, y, width, height);
+            // Player rows have their own texture. Hover uses the same base
+            // texture so there is no hard-coded recolour to fight a resource pack.
+            drawTexturePanel(
+                    g,
+                    selected ? PLAYER_ITEM_SELECTED_TEXTURE : PLAYER_ITEM_TEXTURE,
+                    x,
+                    y,
+                    width,
+                    height
+            );
 
-            // Keep only a very small positional shadow so adjacent textured
-            // rows remain visually separated.
-            if (selected) {
-                g.fill(x - 2, y, x, y + height, 0xFFB2763F);
+            if (hovered) {
+                g.fill(x, y, x + width, y + 1, 0x28FFFFFF);
             }
         }
 
@@ -702,9 +725,11 @@ public final class AdminGuiClient {
                 boolean hovered,
                 int variant
         ) {
-            // Notes deliberately use the dark clipboard texture so they stay
-            // readable against the light cardboard dashboard.
-            drawTexturePanel(g, CLIPBOARD_FRAME_TEXTURE, x, y, width, height);
+            drawTexturePanel(g, NOTE_TEXTURE, x, y, width, height);
+
+            if (hovered) {
+                g.fill(x, y, x + width, y + 1, 0x26FFFFFF);
+            }
         }
 
         private List<PlayerRef> filteredPlayers() {
@@ -734,22 +759,20 @@ public final class AdminGuiClient {
 
             int trackX = x + 3;
             int trackWidth = 4;
-            g.fill(trackX, y, trackX + trackWidth, y + height, 0x553D2A1B);
+            drawTexturePanel(g, SCROLLBAR_TEXTURE, trackX - 1, y, 6, height);
 
             int maxOffset = total - visible;
             int thumbHeight = Math.max(10, height * visible / total);
             int travel = height - thumbHeight;
             int thumbY = y + (travel * clampScroll(offset, maxOffset) / maxOffset);
 
-            g.fill(trackX - 1, thumbY, trackX + trackWidth + 1, thumbY + thumbHeight, 0xB36B4A2F);
-            g.fill(trackX, thumbY, trackX + trackWidth, thumbY + 1, 0xD6B77A52);
-            g.fill(trackX, thumbY + thumbHeight - 1, trackX + trackWidth, thumbY + thumbHeight, 0x6A3B2818);
+            drawTexturePanel(g, SCROLLBAR_TEXTURE, trackX - 1, thumbY, 6, thumbHeight);
         }
 
         private void drawCreateCard(GuiGraphics g, int x, int y, int width, int height) {
             // The module backing is texture-pack driven too. The supplied
             // clipboard texture acts as the dark industrial casing.
-            drawTexturePanel(g, CLIPBOARD_FRAME_TEXTURE, x, y, width, height);
+            drawTexturePanel(g, WIDGET_FRAME_TEXTURE, x, y, width, height);
             drawRivet(g, x + 4, y + 4);
             drawRivet(g, x + width - 7, y + 4);
         }
@@ -804,11 +827,14 @@ public final class AdminGuiClient {
                 int height,
                 boolean hovered
         ) {
-            int edge = hovered ? 0xFFE3A866 : 0xFFB2763F;
-            g.fill(x, y, x + width, y + 1, edge);
-            g.fill(x, y + height - 1, x + width, y + height, 0xFF65472F);
-            g.fill(x, y, x + 1, y + height, 0xFF8D6946);
-            g.fill(x + width - 1, y, x + width, y + height, 0xFF8D6946);
+            drawTexturePanel(
+                    g,
+                    hovered ? BUTTON_HOVER_TEXTURE : BUTTON_TEXTURE,
+                    x,
+                    y,
+                    width,
+                    height
+            );
         }
 
         private void drawRivet(GuiGraphics g, int x, int y) {
