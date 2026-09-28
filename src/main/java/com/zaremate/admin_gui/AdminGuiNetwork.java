@@ -112,7 +112,7 @@ public final class AdminGuiNetwork {
                 AdminGuiData.editNote(target, note, payload.text());
             } else if (action.equals("remove")) {
                 UUID note = parseUuid(payload.noteId());
-                if (note == null || !AdminGuiData.canEditNote(player.getUUID(), note)) {
+                if (note == null || !AdminGuiData.canEditNote(target, note, player.getUUID())) {
                     return;
                 }
                 AdminGuiData.removeNote(target, note);
