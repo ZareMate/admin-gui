@@ -53,11 +53,8 @@ public final class AdminGuiClient {
         private static final double MAX_SCALE = 2.0;
         private static final ResourceLocation CARDBOARD_TEXTURE =
                 ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/cardboard.png");
-        // Use Create's original clipboard GUI texture instead of maintaining a
-        // copied/converted image in this mod. Create's 1.21.1 clipboard GUI
-        // texture is 256x256 and is rendered by ClipboardScreen as-is.
-        private static final ResourceLocation CREATE_CLIPBOARD_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("create", "textures/gui/clipboard.png");
+        private static final ResourceLocation CLIPBOARD_FRAME_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/clipboard_frame.png");
 
         public AdminGuiScreen(String data) {
             super(Component.literal("Admin GUI"));
@@ -400,7 +397,7 @@ public final class AdminGuiClient {
             // frame is taken directly from Create's original texture so its
             // wood, paper edge and metal clip stay pixel-identical to Create.
             drawCardboardTextureScaled2x(g, left, top, WIDTH, HEIGHT);
-            drawCreateClipboardFrame(g, left, top, WIDTH, HEIGHT);
+            drawClipboardFrame(g, left, top, WIDTH, HEIGHT);
 
             // Player divider.
             g.fill(left + 280, top + 27, left + 282, bottom, 0xFF704B2E);
@@ -543,19 +540,15 @@ public final class AdminGuiClient {
             }
         }
 
-        private void drawCreateClipboardFrame(
+        private void drawClipboardFrame(
                 GuiGraphics g,
                 int x,
                 int y,
                 int width,
                 int height
         ) {
-            // Create's AllGuiTextures.CLIPBOARD is 256x256. We draw the
-            // original texture as the outer frame, then paint the large center
-            // back over with cardboard so only the parts we actually need
-            // (border + top clip) remain visible.
             g.blit(
-                    CREATE_CLIPBOARD_TEXTURE,
+                    CLIPBOARD_FRAME_TEXTURE,
                     x,
                     y,
                     width,
@@ -567,24 +560,6 @@ public final class AdminGuiClient {
                     256,
                     256
             );
-
-            // The Create clipboard's inner paper starts roughly 20-25 px from
-            // the sides and ~40 px below the clip. Cover that paper area with
-            // our dashboard cardboard rather than tinting or recreating it.
-            int innerLeft = x + 24;
-            int innerTop = y + 43;
-            int innerRight = x + width - 24;
-            int innerBottom = y + height - 12;
-
-            if (innerRight > innerLeft && innerBottom > innerTop) {
-                drawCardboardTextureScaled2x(
-                        g,
-                        innerLeft,
-                        innerTop,
-                        innerRight - innerLeft,
-                        innerBottom - innerTop
-                );
-            }
         }
 
         private ResourceLocation cardboardTexture() {
