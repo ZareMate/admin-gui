@@ -544,6 +544,62 @@ public final class AdminGuiClient {
             }
         }
 
+        private void drawPostIt(
+                GuiGraphics g,
+                int x,
+                int y,
+                int width,
+                int height,
+                boolean selected,
+                boolean hovered,
+                int variant
+        ) {
+            int note = switch (Math.floorMod(variant, 3)) {
+                case 0 -> 0xFFF5DE79;
+                case 1 -> 0xFFF1D978;
+                default -> 0xFFEBD17A;
+            };
+            if (hovered) note = 0xFFFFE99E;
+            if (selected) note = 0xFFFFEDAA;
+
+            g.fill(x + 3, y + 3, x + width + 2, y + height + 3, 0x36000000);
+            g.fill(x, y, x + width, y + height, note);
+            g.fill(x, y, x + width - 3, y + 1, 0x42FFFFFF);
+            g.fill(x, y + height - 1, x + width - 3, y + height, 0x22000000);
+            g.fill(x + width - 1, y + 3, x + width, y + height - 2, 0x18000000);
+
+            int fold = Math.min(8, Math.max(4, height / 3));
+            g.fill(x + width - fold, y + height - fold, x + width, y + height, 0x2A000000);
+            g.fill(x + width - fold, y + height - fold, x + width - 1, y + height - fold + 1, 0x48000000);
+        }
+
+        private void drawAdminNote(
+                GuiGraphics g,
+                int x,
+                int y,
+                int width,
+                int height,
+                boolean hovered,
+                int variant
+        ) {
+            int note = (Math.floorMod(variant / 36, 2) == 0) ? 0xFFFFE58A : 0xFFF6D778;
+            if (hovered) note = 0xFFFFEDA5;
+
+            g.fill(x + 4, y + 4, x + width + 3, y + height + 4, 0x42000000);
+            g.fill(x, y, x + width, y + height, note);
+            g.fill(x, y, x + width, y + 2, 0x48FFFFFF);
+            g.fill(x + 2, y + height - 2, x + width - 6, y + height, 0x22000000);
+
+            int tapeWidth = Math.min(96, Math.max(56, width / 7));
+            int tapeX = x + (width - tapeWidth) / 2;
+            g.fill(tapeX, y - 2, tapeX + tapeWidth, y + 4, 0x32FFF9D8);
+            g.fill(tapeX + 2, y - 1, tapeX + tapeWidth - 2, y + 3, 0x24FFF4B5);
+
+            int fold = Math.min(14, Math.max(8, height / 5));
+            g.fill(x + width - fold, y + height - fold, x + width, y + height, 0x2A000000);
+            g.fill(x + width - fold, y + height - fold, x + width - 1, y + height - fold + 1, 0x4A000000);
+        }
+
         private List<PlayerRef> filteredPlayers() {
             if (search == null) {
                 return players;
