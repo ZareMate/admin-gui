@@ -134,6 +134,8 @@ public final class AdminGuiClient {
                                 .withStyle(p.online() ? ChatFormatting.GREEN : ChatFormatting.GRAY),
                         btn -> selectPlayer(p.uuid())
                 ).bounds(left + 12, y, 255, 25).build();
+                b.setTooltip(Tooltip.create(Component.literal(
+                        p.online() ? "Online — click to view administration data." : "Offline — click to view stored administration data.")));
                 playerButtons.add(b);
                 addRenderableWidget(b);
             }
@@ -178,7 +180,7 @@ public final class AdminGuiClient {
                 removeWidget(widget);
             }
             infoWidgets.clear();
-            AdminGuiDetailWidgets.build(detail, (width - WIDTH) / 2, (height - HEIGHT) / 2, font)
+            AdminGuiDetailWidgets.build(detail, players.size(), (width - WIDTH) / 2, (height - HEIGHT) / 2, font)
                     .forEach(widget -> {
                         infoWidgets.add(widget);
                         addRenderableWidget(widget);
