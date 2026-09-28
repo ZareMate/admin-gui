@@ -547,19 +547,33 @@ public final class AdminGuiClient {
                 int width,
                 int height
         ) {
-            g.blit(
-                    CLIPBOARD_FRAME_TEXTURE,
-                    x,
-                    y,
-                    width,
-                    height,
-                    0,
-                    0,
-                    256,
-                    256,
-                    256,
-                    256
-            );
+            // The supplied Create-style wood texture is a 16x16 tile.
+            // Repeat it around the outside instead of stretching it across
+            // the whole GUI.
+            final int border = 12;
+            final int tile = 16;
+
+            for (int px = x; px < x + width; px += tile) {
+                int w = Math.min(tile, x + width - px);
+                g.blit(CLIPBOARD_FRAME_TEXTURE, px, y, w, border,
+                        0, 0, w, border, tile, tile);
+                g.blit(CLIPBOARD_FRAME_TEXTURE, px, y + height - border, w, border,
+                        0, tile - border, w, border, tile, tile);
+            }
+
+            for (int py = y + border; py < y + height - border; py += tile) {
+                int h = Math.min(tile, y + height - border - py);
+                g.blit(CLIPBOARD_FRAME_TEXTURE, x, py, border, h,
+                        0, 0, border, h, tile, tile);
+                g.blit(CLIPBOARD_FRAME_TEXTURE, x + width - border, py, border, h,
+                        tile - border, 0, border, h, tile, tile);
+            }
+
+            // Subtle inner edge to separate the wood frame from the cardboard.
+            g.fill(x + border, y + border, x + width - border, y + border + 1, 0xAA2A1A10);
+            g.fill(x + border, y + height - border - 1, x + width - border, y + height - border, 0x662A1A10);
+            g.fill(x + border, y + border, x + border + 1, y + height - border, 0xAA2A1A10);
+            g.fill(x + width - border - 1, y + border, x + width - border, y + height - border, 0x662A1A10);
         }
 
         private ResourceLocation cardboardTexture() {
