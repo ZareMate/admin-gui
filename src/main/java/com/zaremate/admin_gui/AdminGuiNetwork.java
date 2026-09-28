@@ -106,7 +106,7 @@ public final class AdminGuiNetwork {
             } else if (action.equals("edit")) {
                 UUID note = parseUuid(payload.noteId());
                 if (note == null || payload.text().isBlank()
-                        || !AdminGuiData.canEditNote(player.getUUID(), note)) {
+                        || !AdminGuiData.canEditNote(target, note, player.getUUID())) {
                     return;
                 }
                 AdminGuiData.editNote(target, note, payload.text());
