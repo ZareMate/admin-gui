@@ -248,7 +248,6 @@ public final class AdminGuiClient {
         }
 
         @Override
-        @Override
         public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
             double logicalX = logicalMouseX(mouseX);
             double logicalY = logicalMouseY(mouseY);
@@ -444,8 +443,8 @@ public final class AdminGuiClient {
         private void renderWidgetIfVisible(
                 GuiGraphics g,
                 net.minecraft.client.gui.components.AbstractWidget widget,
-                int mouseX,
-                int mouseY,
+                double mouseX,
+                double mouseY,
                 float partialTick
         ) {
             if (widget != null && widget.visible) {
