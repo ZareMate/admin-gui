@@ -150,7 +150,7 @@ public final class AdminGuiClient {
             int shown = Math.min(notes.size(), 3);
 
             int x = (width - WIDTH) / 2 + 305;
-            int y = (height - HEIGHT) / 2 + 42 + 285;
+            int y = (height - HEIGHT) / 2 + 42 + 260;
 
             for (int i = 0; i < shown; i++) {
                 JsonObject note = notes.get(i).getAsJsonObject();
@@ -275,7 +275,7 @@ public final class AdminGuiClient {
             cardY += 69;
             drawCard(g, "CLOCK IN", detail.getAsJsonObject("clockin"), x, cardY, 278, 45);
 
-            renderNotes(g, x, y + 286);
+            renderNotes(g, x, y + 260);
         }
 
         private void drawCard(GuiGraphics g, String title, JsonObject o, int x, int y, int width, int height) {
@@ -361,7 +361,7 @@ public final class AdminGuiClient {
         private void renderNotes(GuiGraphics g, int x, int y) {
             int right = x + 570;
 
-            g.fill(x, y, right, y + 155, 0xAA191D24);
+            g.fill(x, y, right, y + 145, 0xAA191D24);
             g.fill(x, y, right, y + 1, 0xFF3A404A);
             g.drawString(font, "ADMIN NOTES", x + 8, y + 8, 0xFFD5A84A);
 
