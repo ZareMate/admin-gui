@@ -138,12 +138,12 @@ public final class AdminGuiClient {
 
             for (int i = start; i < end; i++) {
                 PlayerRef p = filtered.get(i);
-                int y = top + 62 + (i - start) * 29;
+                int y = top + 64 + (i - start) * 29;
                 Component label = Component.literal((p.online() ? "● " : "○ ") + p.name())
                         .withStyle(s -> s.withColor(p.online() ? 0xFF72C96B : 0xFF9A9A91));
 
                 PlainTextButton b = new PlainTextButton(
-                        left + 12, y, 255, 25, label,
+                        left + 14, y, 251, 21, label,
                         btn -> selectPlayer(p.uuid()),
                         font
                 );
@@ -184,7 +184,7 @@ public final class AdminGuiClient {
             int left = (width - WIDTH) / 2;
             int top = (height - HEIGHT) / 2;
             int x = left + 305;
-            int y = top + 298 + 28;
+            int y = top + 331 + 28;
 
             for (int i = 0; i < shown; i++) {
                 JsonObject note = notes.get(i).getAsJsonObject();
@@ -397,12 +397,12 @@ public final class AdminGuiClient {
 
             // Detail panels.
             if (detail != null) {
-                drawCreateCard(g, left + 313, top + 94, 270, 80);
-                drawCreateCard(g, left + 605, top + 94, 270, 80);
-                drawCreateCard(g, left + 313, top + 182, 270, 62);
-                drawCreateCard(g, left + 605, top + 182, 270, 62);
-                drawCreateCard(g, left + 313, top + 252, 270, 45);
-                drawCreateCard(g, left + 313, top + 298, 562, 145);
+                drawCreateCard(g, left + 313, top + 94, 270, 88);
+                drawCreateCard(g, left + 605, top + 94, 270, 88);
+                drawCreateCard(g, left + 313, top + 190, 270, 80);
+                drawCreateCard(g, left + 605, top + 190, 270, 80);
+                drawCreateCard(g, left + 313, top + 278, 270, 45);
+                drawCreateCard(g, left + 313, top + 331, 562, 112);
 
                 if (noteInput != null && noteInput.visible) {
                     drawBrassFrame(g, left + 552, top + 453, 251, 26);
