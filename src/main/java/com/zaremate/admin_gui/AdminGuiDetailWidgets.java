@@ -19,7 +19,14 @@ final class AdminGuiDetailWidgets {
 
     private AdminGuiDetailWidgets() {}
 
-    static List<PlainTextButton> build(JsonObject detail, int playerCount, int left, int top, Font font) {
+    static List<PlainTextButton> build(
+            JsonObject detail,
+            int playerCount,
+            int left,
+            int top,
+            Font font,
+            int noteScroll
+    ) {
         List<PlainTextButton> result = new ArrayList<>();
         int x = left + 305;
 
@@ -66,7 +73,7 @@ final class AdminGuiDetailWidgets {
 
         int notesY = top + 331;
         header(result, x + 8 + CARD_INSET, notesY + 7, "ADMIN NOTES", font);
-        notes(result, detail, x + 8 + CARD_INSET, notesY + 28, font);
+        notes(result, detail, x + 8 + CARD_INSET, notesY + 28, font, noteScroll);
         return result;
     }
 
@@ -207,7 +214,14 @@ final class AdminGuiDetailWidgets {
                 "Click to copy total ClockIn seconds.", () -> copy(String.valueOf(seconds)), font);
     }
 
-    private static void notes(List<PlainTextButton> out, JsonObject detail, int x, int y, Font font) {
+    private static void notes(
+            List<PlainTextButton> out,
+            JsonObject detail,
+            int x,
+            int y,
+            Font font,
+            int noteScroll
+    ) {
         if (!detail.has("notesAvailable") || !detail.get("notesAvailable").getAsBoolean()) {
             add(out, x, y, 430, 18, "Admin Notes is not installed.", 0xFF666D78, null, null, font);
             return;
@@ -218,8 +232,9 @@ final class AdminGuiDetailWidgets {
             return;
         }
         int shown = Math.min(notes.size(), 3);
+        int start = Math.min(noteScroll, Math.max(0, notes.size() - shown));
         for (int i = 0; i < shown; i++) {
-            JsonObject note = notes.get(i).getAsJsonObject();
+            JsonObject note = notes.get(start + i).getAsJsonObject();
             String author = text(note, "author", "");
             if (author.isBlank()) author = "System";
             String value = text(note, "text", "");
@@ -229,10 +244,7 @@ final class AdminGuiDetailWidgets {
             add(out, x, y + i * 36, 425, 26, noteText.getString(), 0xFF3A2B20,
                     "Click to copy the full note.\n\n" + value, () -> copy(value), font);
         }
-        if (notes.size() > shown) {
-            add(out, x, y + shown * 36, 430, 18,
-                    "+" + (notes.size() - shown) + " more notes", 0xFF666D78, null, null, font);
-        }
+
     }
 
     private static void add(List<PlainTextButton> out, int x, int y, int width, int height,
