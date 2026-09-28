@@ -48,6 +48,8 @@ public final class AdminGuiClient {
 
         private static final int WIDTH = 900;
         private static final int HEIGHT = 520;
+        private static final int MIN_MARGIN = 12;
+        private static final double MAX_SCALE = 2.0;
 
         public AdminGuiScreen(String data) {
             super(Component.literal("Admin GUI"));
@@ -246,16 +248,82 @@ public final class AdminGuiClient {
         }
 
         @Override
+        @Override
         public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-            int left = (width - WIDTH) / 2;
-            int top = (height - HEIGHT) / 2;
-            if (mouseX >= left && mouseX <= left + 280 && mouseY >= top + 55 && mouseY <= top + 450) {
+            double logicalX = logicalMouseX(mouseX);
+            double logicalY = logicalMouseY(mouseY);
+            int left = baseLeft();
+            int top = baseTop();
+
+            if (logicalX >= left && logicalX <= left + 280
+                    && logicalY >= top + 55 && logicalY <= top + 450) {
                 int max = Math.max(0, filteredCount() - 14);
-                playerScroll = (int) Math.max(0, Math.min(max, playerScroll - Math.signum(scrollY)));
+                playerScroll = (int) Math.max(
+                        0,
+                        Math.min(max, playerScroll - Math.signum(scrollY))
+                );
                 rebuildPlayerButtons();
                 return true;
             }
-            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+
+            return super.mouseScrolled(logicalX, logicalY, scrollX, scrollY);
+        }
+
+        @Override
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            return super.mouseClicked(
+                    logicalMouseX(mouseX),
+                    logicalMouseY(mouseY),
+                    button
+            );
+        }
+
+        @Override
+        public boolean mouseReleased(double mouseX, double mouseY, int button) {
+            return super.mouseReleased(
+                    logicalMouseX(mouseX),
+                    logicalMouseY(mouseY),
+                    button
+            );
+        }
+
+        @Override
+        public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+            double scale = uiScale();
+            return super.mouseDragged(
+                    logicalMouseX(mouseX),
+                    logicalMouseY(mouseY),
+                    button,
+                    dragX / scale,
+                    dragY / scale
+            );
+        }
+
+        @Override
+        public void mouseMoved(double mouseX, double mouseY) {
+            super.mouseMoved(logicalMouseX(mouseX), logicalMouseY(mouseY));
+        }
+
+        private double uiScale() {
+            double horizontal = (width - MIN_MARGIN * 2.0) / WIDTH;
+            double vertical = (height - MIN_MARGIN * 2.0) / HEIGHT;
+            return Math.max(0.1, Math.min(MAX_SCALE, Math.min(horizontal, vertical)));
+        }
+
+        private double logicalMouseX(double mouseX) {
+            return width / 2.0 + (mouseX - width / 2.0) / uiScale();
+        }
+
+        private double logicalMouseY(double mouseY) {
+            return height / 2.0 + (mouseY - height / 2.0) / uiScale();
+        }
+
+        private int baseLeft() {
+            return (width - WIDTH) / 2;
+        }
+
+        private int baseTop() {
+            return (height - HEIGHT) / 2;
         }
 
         private int filteredCount() {
@@ -268,23 +336,26 @@ public final class AdminGuiClient {
 
         @Override
         public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-            // Fully opaque custom background: do not blur the world behind the GUI.
+            // Fully opaque background; no world blur.
             renderBackground(g, mouseX, mouseY, partialTick);
 
-            int left = (width - WIDTH) / 2;
-            int top = (height - HEIGHT) / 2;
+            double scale = uiScale();
+            int centerX = width / 2;
+            int centerY = height / 2;
+            int left = baseLeft();
+            int top = baseTop();
             int right = left + WIDTH;
             int bottom = top + HEIGHT;
 
+            double logicalMouseX = logicalMouseX(mouseX);
+            double logicalMouseY = logicalMouseY(mouseY);
+
+            g.pose().pushPose();
+            g.pose().translate(centerX, centerY, 0);
+            g.pose().scale((float) scale, (float) scale, 1.0F);
+            g.pose().translate(-centerX, -centerY, 0);
+
             // Create-inspired industrial backdrop.
-            g.fill(0, 0, width, height, 0xFF101210);
-
-            // Subtle horizontal panel bands.
-            for (int y = 0; y < height; y += 24) {
-                g.fill(0, y, width, y + 1, 0xFF171917);
-            }
-
-            // Main brass/steel frame.
             g.fill(left - 3, top - 3, right + 3, bottom + 3, 0xFF765336);
             g.fill(left - 1, top - 1, right + 1, bottom + 1, 0xFF0E100F);
             g.fill(left, top, right, bottom, 0xFF202322);
@@ -293,14 +364,14 @@ public final class AdminGuiClient {
             g.fill(left, top, right, top + 27, 0xFF191B1A);
             g.fill(left, top + 25, right, top + 27, 0xFFB2763F);
 
-            // Player panel divider.
+            // Player divider.
             g.fill(left + 280, top + 27, left + 282, bottom, 0xFF8D6946);
 
             // Search field.
             drawBrassFrame(g, left + 11, top + 31, 257, 22);
             g.fill(left + 13, top + 33, left + 266, top + 51, 0xFF0B0D0C);
 
-            // Player row plates behind the real widgets.
+            // Player rows.
             List<PlayerRef> filtered = filteredPlayers();
             int start = Math.min(playerScroll, Math.max(0, filtered.size() - 1));
             int end = Math.min(filtered.size(), start + 14);
@@ -308,8 +379,8 @@ public final class AdminGuiClient {
             for (int i = start; i < end; i++) {
                 PlayerRef p = filtered.get(i);
                 int rowY = top + 62 + (i - start) * 29;
-                boolean hovered = mouseX >= left + 12 && mouseX <= left + 267
-                        && mouseY >= rowY && mouseY <= rowY + 25;
+                boolean hovered = logicalMouseX >= left + 12 && logicalMouseX <= left + 267
+                        && logicalMouseY >= rowY && logicalMouseY <= rowY + 25;
                 boolean selected = p.uuid().equals(selectedUuid);
 
                 int plate = selected ? 0xFF4B3B29
@@ -347,19 +418,27 @@ public final class AdminGuiClient {
                 }
             }
 
-            // Render the actual interactive widgets last.
-            renderWidgetIfVisible(g, search, mouseX, mouseY, partialTick);
+            // All widgets use the logical/base coordinates above. Render them
+            // with inverse-transformed mouse coordinates so hover and tooltips
+            // continue to work at every window size.
+            renderWidgetIfVisible(g, search, logicalMouseX, logicalMouseY, partialTick);
+
             for (PlainTextButton button : playerButtons) {
-                renderWidgetIfVisible(g, button, mouseX, mouseY, partialTick);
+                renderWidgetIfVisible(g, button, logicalMouseX, logicalMouseY, partialTick);
             }
+
             for (PlainTextButton widget : infoWidgets) {
-                renderWidgetIfVisible(g, widget, mouseX, mouseY, partialTick);
+                renderWidgetIfVisible(g, widget, logicalMouseX, logicalMouseY, partialTick);
             }
+
             for (PlainTextButton button : noteButtons) {
-                renderWidgetIfVisible(g, button, mouseX, mouseY, partialTick);
+                renderWidgetIfVisible(g, button, logicalMouseX, logicalMouseY, partialTick);
             }
-            renderWidgetIfVisible(g, noteInput, mouseX, mouseY, partialTick);
-            renderWidgetIfVisible(g, addNoteButton, mouseX, mouseY, partialTick);
+
+            renderWidgetIfVisible(g, noteInput, logicalMouseX, logicalMouseY, partialTick);
+            renderWidgetIfVisible(g, addNoteButton, logicalMouseX, logicalMouseY, partialTick);
+
+            g.pose().popPose();
         }
 
         private void renderWidgetIfVisible(
