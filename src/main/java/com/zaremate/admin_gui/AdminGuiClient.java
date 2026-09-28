@@ -149,7 +149,7 @@ public final class AdminGuiClient {
             int left = (width - WIDTH) / 2;
             int top = (height - HEIGHT) / 2;
 
-            search = new EditBox(font, left + 19, top + 37, 250, 20, Component.literal("Search players"));
+            search = new EditBox(font, left + 19, top + 32, 250, 30, Component.literal("Search players"));
             search.setHint(Component.literal("Search online/offline players..."));
             search.setMaxLength(64);
             search.setBordered(false);
@@ -263,11 +263,11 @@ public final class AdminGuiClient {
                 int row = y + i * 34;
                 if (canEditNote(note)) {
                     PlainTextButton edit = new PlainTextButton(
-                            x + 440, row - 1, 45, 18,
+                            x + 415, row + 4, 45, 18,
                             Component.literal("EDIT").withStyle(s -> s.withColor(0xFF5A4028)),
                             b -> editNote(note), font);
                     PlainTextButton remove = new PlainTextButton(
-                            x + 490, row - 1, 20, 18,
+                            x + 465, row + 4, 20, 18,
                             Component.literal("×").withStyle(s -> s.withColor(0xFFC43E32)),
                             b -> removeNote(note), font);
                     edit.setTooltip(Tooltip.create(Component.literal("Edit your note.")));
