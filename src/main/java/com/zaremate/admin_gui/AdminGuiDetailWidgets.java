@@ -33,7 +33,7 @@ final class AdminGuiDetailWidgets {
         add(result, x, top + 8, 150, 18, "ADMINISTRATION", 0xFFF2D7A0, null, null, font);
         add(result, left + 205, top + 8, 80, 18,
                 playerCount + " players", 0xFFE7DDC9, null, null, font);
-        add(result, left + 16, top + 62, 180, 18, "PLAYERS", 0xFF3A291A, null, null, font);
+        add(result, left + 16, top + 48, 180, 18, "PLAYERS", 0xFF3A291A, null, null, font);
 
         if (detail == null) {
             add(result, x, top + 55, 260, 18, "Select a player", 0xFF5A4630, null, null, font);
@@ -44,12 +44,12 @@ final class AdminGuiDetailWidgets {
         String uuid = text(detail, "uuid", "");
         boolean online = bool(detail, "online");
 
-        add(result, x, top + 38, 390, 18, name, 0xFFF3E7D0,
+        add(result, x, top + 37, 390, 18, name, 0xFF352A20,
                 "Click to copy player name.", () -> copy(name), font);
         String uuidDisplay = fit("UUID: " + uuid, 500, font);
-        add(result, x, top + 58, 540, 18, uuidDisplay, 0xFF554839,
+        add(result, x, top + 56, 540, 18, uuidDisplay, 0xFF554839,
                 "Click to copy player UUID.\n\n" + uuid, () -> copy(uuid), font);
-        add(result, x + 430, top + 38, 130, 18,
+        add(result, x + 430, top + 37, 130, 18,
                 online ? "● ONLINE" : "○ OFFLINE",
                 online ? 0xFF5C9E52 : 0xFF6A5C4C, null, null, font);
 
@@ -57,16 +57,16 @@ final class AdminGuiDetailWidgets {
         int tsaX = x + 8 + CARD_INSET;
         int assX = x + 300 + CARD_INSET;
 
-        header(result, x + 8 + CARD_INSET, cardY + 7, "TSA ANTICHEAT", font);
-        header(result, x + 300 + CARD_INSET, cardY + 7, "AIRPORT SECURITY", font);
-        tsa(result, detail.getAsJsonObject("tsa"), tsaX, cardY + 27, font);
-        ass(result, detail.getAsJsonObject("ass"), assX, cardY + 27, font);
+        header(result, x + 8 + CARD_INSET, cardY + 12, "TSA ANTICHEAT", font);
+        header(result, x + 300 + CARD_INSET, cardY + 12, "AIRPORT SECURITY", font);
+        tsa(result, detail.getAsJsonObject("tsa"), tsaX, cardY + 33, font);
+        ass(result, detail.getAsJsonObject("ass"), assX, cardY + 33, font);
 
         cardY += 96;
-        header(result, x + 8 + CARD_INSET, cardY + 7, "FTB TEAM", font);
-        header(result, x + 300 + CARD_INSET, cardY + 7, "DISCORD", font);
-        team(result, detail.getAsJsonObject("teams"), tsaX, cardY + 27, font);
-        discord(result, detail.getAsJsonObject("discord"), assX, cardY + 27, font);
+        header(result, x + 8 + CARD_INSET, cardY + 12, "FTB TEAM", font);
+        header(result, x + 300 + CARD_INSET, cardY + 12, "DISCORD", font);
+        team(result, detail.getAsJsonObject("teams"), tsaX, cardY + 33, font);
+        discord(result, detail.getAsJsonObject("discord"), assX, cardY + 33, font);
 
         cardY += 88;
         header(result, x + 8 + CARD_INSET, cardY + 7, "CLOCK IN", font);
@@ -91,7 +91,7 @@ final class AdminGuiDetailWidgets {
                 + "  PASS: " + num(o, "packetPasses")
                 + "  Modified: " + num(o, "packetModified")
                 + "  Timeout: " + num(o, "packetTimeout");
-        add(out, x, y, CARD_CONTENT_WIDTH, 18, stats, 0xFF352A20,
+        add(out, x, y, CARD_CONTENT_WIDTH, 18, fit(stats, CARD_CONTENT_WIDTH, font), 0xFF352A20,
                 "Click to copy TSA packet statistics.", () -> copy(stats), font);
         String last = text(o, "lastPacketStatus", "");
         if (!last.isBlank()) {
@@ -123,13 +123,13 @@ final class AdminGuiDetailWidgets {
         String status = text(o, "status", "UNKNOWN");
         String stats = "Status: " + status + "  Checks: " + num(o, "totalChecks")
                 + "  Detected: " + num(o, "detectedChecks") + "  Clean: " + num(o, "cleanChecks");
-        add(out, x, y, CARD_CONTENT_WIDTH, 18, stats,
+        add(out, x, y, CARD_CONTENT_WIDTH, 18, fit(stats, CARD_CONTENT_WIDTH, font),
                 status.equalsIgnoreCase("DETECTED") ? 0xFFC53D30 : 0xFF352A20,
                 "Click to copy ASS statistics.", () -> copy(stats), font);
         JsonObject dates = o.getAsJsonObject("detectionDates");
         String state = "Cleared: " + text(o, "clearedDate", "-")
                 + "  Categories: " + (dates == null ? 0 : dates.entrySet().size());
-        add(out, x, y + 18, CARD_CONTENT_WIDTH, 18, state, 0xFF554839,
+        add(out, x, y + 18, CARD_CONTENT_WIDTH, 18, fit(state, CARD_CONTENT_WIDTH, font), 0xFF554839,
                 "Click to copy ASS offense state.", () -> copy(state), font);
     }
 
@@ -167,7 +167,8 @@ final class AdminGuiDetailWidgets {
 
             final String copiedLine = line;
             add(out, x, y + 18 + i * 18, CARD_CONTENT_WIDTH, 18,
-                    line, rank.equalsIgnoreCase("OWNER") ? 0xFF9B5E25 : 0xFF352A20,
+                    fit(line, CARD_CONTENT_WIDTH, font),
+                    rank.equalsIgnoreCase("OWNER") ? 0xFF9B5E25 : 0xFF352A20,
                     "Click to copy this member.\n\n" + line,
                     () -> copy(copiedLine), font);
         }
