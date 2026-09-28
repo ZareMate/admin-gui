@@ -616,6 +616,18 @@ public final class AdminGuiClient {
                     .equalsIgnoreCase(note.get("authorUuid").getAsString());
         }
 
+        private List<PlayerRef> filteredPlayers() {
+            if (search == null) {
+                return players;
+            }
+
+            String query = search.getValue().trim().toLowerCase(Locale.ROOT);
+            return players.stream()
+                    .filter(p -> query.isEmpty()
+                            || p.name().toLowerCase(Locale.ROOT).contains(query))
+                    .toList();
+        }
+
         private void drawPostIt(
                 GuiGraphics g,
                 int x,
