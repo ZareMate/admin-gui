@@ -146,7 +146,7 @@ final class AdminGuiDetailWidgets {
         }
 
         StringBuilder fullRoster = new StringBuilder();
-        int shown = Math.min(members.size(), 2);
+        int shown = Math.min(members.size(), 1);
         for (int i = 0; i < shown; i++) {
             JsonObject member = members.get(i).getAsJsonObject();
             String memberName = text(member, "name", text(member, "uuid", "Unknown"));
