@@ -157,7 +157,7 @@ public final class AdminGuiClient {
             search.setTextColorUneditable(0xFF77776F);
             addRenderableWidget(search);
 
-            noteInput = new EditBox(font, left + 325, top + 490, 254, 20, Component.literal("Note"));
+            noteInput = new EditBox(font, left + 325, top + 490, 254, 26, Component.literal("Note"));
             noteInput.setMaxLength(512);
             noteInput.setBordered(false);
             noteInput.setTextColor(0xFFE5DED0);
@@ -165,7 +165,7 @@ public final class AdminGuiClient {
             addRenderableWidget(noteInput);
 
             addNoteButton = new PlainTextButton(
-                    left + 585, top + 490, 84, 20,
+                    left + 585, top + 490, 84, 26,
                     Component.literal("ADD NOTE").withStyle(s -> s.withColor(0xFF3A291A)),
                     b -> saveNote(),
                     font
@@ -530,9 +530,9 @@ public final class AdminGuiClient {
                             && logicalY >= widget.getY()
                             && logicalY <= widget.getY() + widget.getHeight();
 
-                    boolean header = widget.getY() == top + 101
-                            || widget.getY() == top + 197
-                            || widget.getY() == top + 285
+                    boolean header = widget.getY() == top + 106
+                            || widget.getY() == top + 202
+                            || widget.getY() == top + 288
                             || widget.getY() == top + 344;
 
                     if (!header && widget.getWidth() == 405) {
