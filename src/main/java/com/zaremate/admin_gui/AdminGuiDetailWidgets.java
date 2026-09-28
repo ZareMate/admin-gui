@@ -15,13 +15,13 @@ import java.util.List;
 final class AdminGuiDetailWidgets {
     private AdminGuiDetailWidgets() {}
 
-    static List<PlainTextButton> build(JsonObject detail, int left, int top, Font font) {
+    static List<PlainTextButton> build(JsonObject detail, int playerCount, int left, int top, Font font) {
         List<PlainTextButton> result = new ArrayList<>();
         int x = left + 305;
 
         add(result, x, top + 8, 150, 18, "ADMIN GUI", 0xFFFFFFFF, null, null, font);
         add(result, left + 205, top + 8, 80, 18,
-                String.valueOf(detail == null ? 0 : 0) + " players", 0xFF8A9099, null, null, font);
+                playerCount + " players", 0xFF8A9099, null, null, font);
         add(result, left + 12, top + 58, 180, 18, "PLAYERS", 0xFFB8BEC8, null, null, font);
 
         if (detail == null) {
