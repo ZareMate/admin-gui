@@ -51,10 +51,8 @@ public final class AdminGuiClient {
         private static final int HEIGHT = 520;
         private static final int MIN_MARGIN = 12;
         private static final double MAX_SCALE = 2.0;
-        private static final ResourceLocation CARDBOARD_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/cardboard.png");
-        private static final ResourceLocation CLIPBOARD_FRAME_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/clipboard_frame.png");
+        private static final ResourceLocation CLIPBOARD_GUI_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/clipboard_gui.png");
 
         public AdminGuiScreen(String data) {
             super(Component.literal("Admin GUI"));
@@ -391,10 +389,19 @@ public final class AdminGuiClient {
             g.pose().scale((float) scale, (float) scale, 1.0F);
             g.pose().translate(-centerX, -centerY, 0);
 
-            // The cardboard is already rendered full-screen. The clipboard
-            // texture is transparent in the center, so only its wooden border
-            // and metal clip/top are drawn over the cardboard.
-            drawClipboardFrame(g, left, top, WIDTH, HEIGHT);
+            // Cardboard is baked at 2x pixel scale into the GUI surface;
+            // the clipboard border and top clip are part of the same texture.
+            g.blit(
+                    CLIPBOARD_GUI_TEXTURE,
+                    left,
+                    top,
+                    0,
+                    0,
+                    WIDTH,
+                    HEIGHT,
+                    WIDTH,
+                    HEIGHT
+            );
 
             // Player divider.
             g.fill(left + 280, top + 27, left + 282, bottom, 0xFF704B2E);
@@ -576,117 +583,6 @@ public final class AdminGuiClient {
             g.fill(trackX, thumbY + thumbHeight - 1, trackX + trackWidth, thumbY + thumbHeight, 0x6A3B2818);
         }
 
-        private void drawClipboardFrame(
-                GuiGraphics g,
-                int x,
-                int y,
-                int width,
-                int height
-        ) {
-            g.blit(
-                    CLIPBOARD_FRAME_TEXTURE,
-                    x,
-                    y,
-                    0,
-                    0,
-                    width,
-                    height,
-                    900,
-                    520
-            );
-        }
-
-        private void drawCardboardTexture(GuiGraphics g, int x, int y, int width, int height) {
-            for (int yy = y; yy < y + height; yy += 16) {
-                for (int xx = x; xx < x + width; xx += 16) {
-                    int drawWidth = Math.min(16, x + width - xx);
-                    int drawHeight = Math.min(16, y + height - yy);
-                    g.blit(
-                            CARDBOARD_TEXTURE,
-                            xx,
-                            yy,
-                            0,
-                            0,
-                            drawWidth,
-                            drawHeight,
-                            16,
-                            16
-                    );
-                }
-            }
-        }
-
-        private void drawPostIt(
-                GuiGraphics g,
-                int x,
-                int y,
-                int width,
-                int height,
-                boolean selected,
-                boolean hovered,
-                int variant
-        ) {
-            int palette = Math.floorMod(variant / 29, 4);
-            int note = switch (palette) {
-                case 0 -> 0xFFF5DE79;
-                case 1 -> 0xFFEFD57B;
-                case 2 -> 0xFFF2DCA0;
-                default -> 0xFFE9CC6D;
-            };
-
-            if (hovered) note = 0xFFFFE99E;
-            if (selected) note = 0xFFFFEB9E;
-
-            // Paper shadow and lifted edge.
-            g.fill(x + 2, y + 2, x + width + 2, y + height + 3, 0x38000000);
-            g.fill(x, y, x + width, y + height, note);
-            g.fill(x, y, x + width, y + 1, 0x28FFFFFF);
-            g.fill(x, y + height - 1, x + width, y + height, 0x22000000);
-            g.fill(x + width - 1, y + 2, x + width, y + height, 0x18000000);
-
-            // Small curled lower-right corner.
-            int fold = Math.min(8, Math.max(4, height / 3));
-            g.fill(x + width - fold, y + height - fold, x + width, y + height, 0x26000000);
-            g.fill(x + width - fold, y + height - fold, x + width - 1, y + height - fold + 1, 0x45000000);
-
-            // Tiny paper grain.
-            if (height >= 18) {
-                g.fill(x + 5, y + height - 4, x + Math.min(width - 6, 22), y + height - 3, 0x12000000);
-            }
-        }
-
-        private void drawAdminNote(
-                GuiGraphics g,
-                int x,
-                int y,
-                int width,
-                int height,
-                boolean hovered,
-                int variant
-        ) {
-            int note = (Math.floorMod(variant / 36, 2) == 0) ? 0xFFFFE58A : 0xFFF7D97A;
-            if (hovered) note = 0xFFFFEDA5;
-
-            // Larger offset shadow.
-            g.fill(x + 3, y + 3, x + width + 3, y + height + 4, 0x3E000000);
-            g.fill(x, y, x + width, y + height, note);
-
-            // Top highlight and warm bottom edge.
-            g.fill(x, y, x + width, y + 2, 0x42FFFFFF);
-            g.fill(x, y + height - 2, x + width - 4, y + height, 0x20000000);
-
-            // A strip of translucent tape across the top makes it read as a posted note.
-            int tapeWidth = Math.min(92, Math.max(54, width / 7));
-            int tapeX = x + (width - tapeWidth) / 2;
-            g.fill(tapeX, y - 2, tapeX + tapeWidth, y + 4, 0x35FFF7CF);
-            g.fill(tapeX + 2, y - 1, tapeX + tapeWidth - 2, y + 3, 0x22FFF4B0);
-
-            // Folded corner.
-            int fold = Math.min(13, Math.max(8, height / 5));
-            g.fill(x + width - fold, y + height - fold, x + width, y + height, 0x28000000);
-            g.fill(x + width - fold, y + height - fold, x + width - 1, y + height - fold + 1, 0x4A000000);
-        }
-
         private void drawCreateCard(GuiGraphics g, int x, int y, int width, int height) {
             g.fill(x, y, x + width, y + height, 0xD94B3625);
             g.fill(x, y, x + width, y + 1, 0xFFB2763F);
@@ -725,9 +621,8 @@ public final class AdminGuiClient {
 
         @Override
         public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-            // Tile the supplied cardboard texture across the entire screen.
-            // This keeps the GUI background cardboard even outside the clipboard frame.
-            drawCardboardTexture(g, 0, 0, width, height);
+            // Leave the world/background untouched outside the clipboard.
+            // The GUI surface itself is drawn inside render().
         }
 
         private static String text(JsonObject o, String k, String fallback) {
