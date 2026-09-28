@@ -19,13 +19,13 @@ final class AdminGuiDetailWidgets {
         List<PlainTextButton> result = new ArrayList<>();
         int x = left + 305;
 
-        add(result, x, top + 8, 150, 18, "ADMIN GUI", 0xFFFFFFFF, null, null, font);
+        add(result, x, top + 8, 150, 18, "ADMINISTRATION", 0xFFE5DED0, null, null, font);
         add(result, left + 205, top + 8, 80, 18,
-                playerCount + " players", 0xFF8A9099, null, null, font);
-        add(result, left + 12, top + 58, 180, 18, "PLAYERS", 0xFFB8BEC8, null, null, font);
+                playerCount + " players", 0xFF99958A, null, null, font);
+        add(result, left + 12, top + 58, 180, 18, "PLAYERS", 0xFFD1C7B7, null, null, font);
 
         if (detail == null) {
-            add(result, x, top + 55, 260, 18, "Select a player", 0xFF9AA0AA, null, null, font);
+            add(result, x, top + 55, 260, 18, "Select a player", 0xFFA9A49A, null, null, font);
             return result;
         }
 
@@ -39,7 +39,7 @@ final class AdminGuiDetailWidgets {
                 "Click to copy player UUID.", () -> copy(uuid), font);
         add(result, x + 430, top + 38, 130, 18,
                 online ? "● ONLINE" : "○ OFFLINE",
-                online ? 0xFF55DD77 : 0xFF888E98, null, null, font);
+                online ? 0xFF79B85F : 0xFF8F8E84, null, null, font);
 
         int cardY = top + 94;
         header(result, x + 8, cardY + 7, "TSA ANTICHEAT", font);
@@ -64,12 +64,12 @@ final class AdminGuiDetailWidgets {
     }
 
     private static void header(List<PlainTextButton> out, int x, int y, String text, Font font) {
-        add(out, x, y, 260, 18, text, 0xFFD5A84A, null, null, font);
+        add(out, x, y, 260, 18, text, 0xFFE0A15F, null, null, font);
     }
 
     private static void tsa(List<PlainTextButton> out, JsonObject o, int x, int y, Font font) {
         if (empty(o)) {
-            add(out, x, y, 260, 18, "Not installed / no data", 0xFF666D78, null, null, font);
+            add(out, x, y, 260, 18, "Not installed / no data", 0xFF77776F, null, null, font);
             return;
         }
         String stats = "Packets: " + num(o, "packetChecks")
@@ -81,14 +81,14 @@ final class AdminGuiDetailWidgets {
         String last = text(o, "lastPacketStatus", "");
         if (!last.isBlank()) {
             String result = "Last: " + last + " " + text(o, "lastPacketDate", "");
-            add(out, x, y + 19, 260, 18, result, 0xFF8E96A2,
+            add(out, x, y + 19, 260, 18, result, 0xFF9B978B,
                     "Click to copy the last TSA packet result.", () -> copy(result), font);
         }
         JsonArray detections = o.getAsJsonArray("detections");
         if (detections != null && !detections.isEmpty()) {
             String all = join(detections);
             add(out, x, y + 38, 260, 18, "Detections: " + detections.size(),
-                    0xFFE1B85A, "Click to copy the complete TSA detection history.\n\n" + all,
+                    0xFFD4A05B, "Click to copy the complete TSA detection history.\n\n" + all,
                     () -> copy(all), font);
         }
     }
@@ -102,7 +102,7 @@ final class AdminGuiDetailWidgets {
         String stats = "Status: " + status + "  Checks: " + num(o, "totalChecks")
                 + "  Detected: " + num(o, "detectedChecks") + "  Clean: " + num(o, "cleanChecks");
         add(out, x, y, 260, 18, stats,
-                status.equalsIgnoreCase("DETECTED") ? 0xFFFF6666 : 0xFFB8BEC8,
+                status.equalsIgnoreCase("DETECTED") ? 0xFFD96B4A : 0xFFB8BEC8,
                 "Click to copy ASS statistics.", () -> copy(stats), font);
         JsonObject dates = o.getAsJsonObject("detectionDates");
         String state = "Cleared: " + text(o, "clearedDate", "-")
@@ -173,7 +173,7 @@ final class AdminGuiDetailWidgets {
             if (author.isBlank()) author = "System";
             String value = text(note, "text", "");
             String preview = value.length() > 58 ? value.substring(0, 55) + "..." : value;
-            add(out, x, y + i * 36, 425, 18, author + ": " + preview, 0xFFE1E4E8,
+            add(out, x, y + i * 36, 425, 18, author + ": " + preview, 0xFFE5DED0,
                     "Click to copy the full note.\n\n" + value, () -> copy(value), font);
         }
         if (notes.size() > shown) {
