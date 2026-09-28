@@ -51,10 +51,8 @@ public final class AdminGuiClient {
         private static final int HEIGHT = 520;
         private static final int MIN_MARGIN = 12;
         private static final double MAX_SCALE = 2.0;
-        private static final ResourceLocation FALLBACK_CARDBOARD_TEXTURE =
+        private static final ResourceLocation CARDBOARD_TEXTURE =
                 ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/cardboard.png");
-        private static final ResourceLocation CREATE_CARDBOARD_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("create", "textures/block/cardboard_block_side.png");
         private static final ResourceLocation CLIPBOARD_FRAME_TEXTURE =
                 ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/clipboard_frame.png");
 
@@ -553,16 +551,10 @@ public final class AdminGuiClient {
         }
 
         private ResourceLocation cardboardTexture() {
-            try {
-                return Minecraft.getInstance()
-                        .getResourceManager()
-                        .getResource(CREATE_CARDBOARD_TEXTURE)
-                        .isPresent()
-                        ? CREATE_CARDBOARD_TEXTURE
-                        : FALLBACK_CARDBOARD_TEXTURE;
-            } catch (Throwable ignored) {
-                return FALLBACK_CARDBOARD_TEXTURE;
-            }
+            // Use the bundled, verified 16x16 cardboard texture directly.
+            // The previous optional Create texture lookup could resolve to a
+            // resource that GuiGraphics could not render, producing magenta.
+            return CARDBOARD_TEXTURE;
         }
 
         private boolean canEditNote(JsonObject note) {
@@ -603,7 +595,7 @@ public final class AdminGuiClient {
                     int drawHeight = Math.min(16, textureAreaHeight - yy);
 
                     g.blit(
-                            cardboardTexture(),
+                            CARDBOARD_TEXTURE,
                             xx,
                             yy,
                             0,
