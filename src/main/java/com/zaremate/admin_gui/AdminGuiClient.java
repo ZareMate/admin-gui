@@ -44,6 +44,7 @@ public final class AdminGuiClient {
         private PlainTextButton addNoteButton;
         private UUID editingNote;
         private int playerScroll;
+        private int noteScroll;
         private boolean suppressSearch;
 
         private static final int WIDTH = 900;
@@ -80,6 +81,7 @@ public final class AdminGuiClient {
             try {
                 detail = JsonParser.parseString(data).getAsJsonObject();
                 selectedUuid = detail.get("uuid").getAsString();
+                noteScroll = 0;
                 editingNote = null;
                 if (noteInput != null) noteInput.setValue("");
                 boolean notesAvailable = detail.has("notesAvailable") && detail.get("notesAvailable").getAsBoolean();
@@ -166,7 +168,14 @@ public final class AdminGuiClient {
                 removeWidget(widget);
             }
             infoWidgets.clear();
-            AdminGuiDetailWidgets.build(detail, players.size(), (width - WIDTH) / 2, (height - HEIGHT) / 2, font)
+            AdminGuiDetailWidgets.build(
+                    detail,
+                    players.size(),
+                    (width - WIDTH) / 2,
+                    (height - HEIGHT) / 2,
+                    font,
+                    noteScroll
+            )
                     .forEach(widget -> {
                         infoWidgets.add(widget);
                         addRenderableWidget(widget);
@@ -185,13 +194,14 @@ public final class AdminGuiClient {
 
             JsonArray notes = detail.getAsJsonArray("notes");
             int shown = Math.min(notes.size(), 3);
+            int start = Math.min(noteScroll, Math.max(0, notes.size() - shown));
             int left = (width - WIDTH) / 2;
             int top = (height - HEIGHT) / 2;
             int x = left + 305;
             int y = top + 331 + 28;
 
             for (int i = 0; i < shown; i++) {
-                JsonObject note = notes.get(i).getAsJsonObject();
+                JsonObject note = notes.get(start + i).getAsJsonObject();
                 int row = y + i * 36;
                 PlainTextButton edit = new PlainTextButton(
                         x + 440, row - 1, 45, 18,
@@ -258,14 +268,33 @@ public final class AdminGuiClient {
             int left = baseLeft();
             int top = baseTop();
 
+            // Scroll the player list independently.
             if (logicalX >= left && logicalX <= left + 280
                     && logicalY >= top + 55 && logicalY <= top + 450) {
                 int max = Math.max(0, filteredCount() - 14);
-                playerScroll = (int) Math.max(
-                        0,
-                        Math.min(max, playerScroll - Math.signum(scrollY))
+                playerScroll = clampScroll(
+                        playerScroll - (int) Math.signum(scrollY),
+                        max
                 );
                 rebuildPlayerButtons();
+                return true;
+            }
+
+            // Scroll admin notes independently.
+            if (detail != null
+                    && logicalX >= left + 305
+                    && logicalX <= left + 875
+                    && logicalY >= top + 331
+                    && logicalY <= top + 448) {
+                int noteCount = detail.has("notes")
+                        ? detail.getAsJsonArray("notes").size()
+                        : 0;
+                int max = Math.max(0, noteCount - 3);
+                noteScroll = clampScroll(
+                        noteScroll - (int) Math.signum(scrollY),
+                        max
+                );
+                rebuildInfoWidgets();
                 return true;
             }
 
@@ -327,6 +356,10 @@ public final class AdminGuiClient {
 
         private int baseTop() {
             return (height - HEIGHT) / 2;
+        }
+
+        private int clampScroll(int value, int max) {
+            return Math.max(0, Math.min(max, value));
         }
 
         private int filteredCount() {
@@ -406,6 +439,17 @@ public final class AdminGuiClient {
                 );
             }
 
+            // Player list scrollbar.
+            drawScrollBar(
+                    g,
+                    left + 271,
+                    top + 62,
+                    14 * 29 - 4,
+                    filtered.size(),
+                    14,
+                    playerScroll
+            );
+
             // Detail panels.
             if (detail != null) {
                 drawCreateCard(g, left + 313, top + 94, 270, 88);
@@ -414,6 +458,19 @@ public final class AdminGuiClient {
                 drawCreateCard(g, left + 605, top + 190, 270, 80);
                 drawCreateCard(g, left + 313, top + 278, 270, 45);
                 drawCreateCard(g, left + 313, top + 331, 562, 112);
+
+                int noteCount = detail.has("notes")
+                        ? detail.getAsJsonArray("notes").size()
+                        : 0;
+                drawScrollBar(
+                        g,
+                        left + 862,
+                        top + 359,
+                        78,
+                        noteCount,
+                        3,
+                        noteScroll
+                );
 
                 if (noteInput != null && noteInput.visible) {
                     drawBrassFrame(g, left + 552, top + 453, 251, 26);
@@ -502,6 +559,33 @@ public final class AdminGuiClient {
                     .filter(p -> query.isEmpty()
                             || p.name().toLowerCase(Locale.ROOT).contains(query))
                     .toList();
+        }
+
+        private void drawScrollBar(
+                GuiGraphics g,
+                int x,
+                int y,
+                int height,
+                int total,
+                int visible,
+                int offset
+        ) {
+            if (total <= visible || height <= 0) {
+                return;
+            }
+
+            int trackX = x + 3;
+            int trackWidth = 4;
+            g.fill(trackX, y, trackX + trackWidth, y + height, 0x553D2A1B);
+
+            int maxOffset = total - visible;
+            int thumbHeight = Math.max(10, height * visible / total);
+            int travel = height - thumbHeight;
+            int thumbY = y + (travel * clampScroll(offset, maxOffset) / maxOffset);
+
+            g.fill(trackX - 1, thumbY, trackX + trackWidth + 1, thumbY + thumbHeight, 0xB36B4A2F);
+            g.fill(trackX, thumbY, trackX + trackWidth, thumbY + 1, 0xD6B77A52);
+            g.fill(trackX, thumbY + thumbHeight - 1, trackX + trackWidth, thumbY + thumbHeight, 0x6A3B2818);
         }
 
         private void drawCardboardTexture(GuiGraphics g, int x, int y, int width, int height) {
