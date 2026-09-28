@@ -51,8 +51,10 @@ public final class AdminGuiClient {
         private static final int HEIGHT = 520;
         private static final int MIN_MARGIN = 12;
         private static final double MAX_SCALE = 2.0;
-        private static final ResourceLocation CARDBOARD_TEXTURE =
+        private static final ResourceLocation FALLBACK_CARDBOARD_TEXTURE =
                 ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/cardboard.png");
+        private static final ResourceLocation CREATE_CARDBOARD_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("create", "textures/block/cardboard_block_side.png");
         private static final ResourceLocation CLIPBOARD_FRAME_TEXTURE =
                 ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/clipboard_frame.png");
 
@@ -203,20 +205,22 @@ public final class AdminGuiClient {
             for (int i = 0; i < shown; i++) {
                 JsonObject note = notes.get(start + i).getAsJsonObject();
                 int row = y + i * 36;
-                PlainTextButton edit = new PlainTextButton(
-                        x + 440, row - 1, 45, 18,
-                        Component.literal("EDIT").withStyle(s -> s.withColor(0xFFE0B05A)),
-                        b -> editNote(note), font);
-                PlainTextButton remove = new PlainTextButton(
-                        x + 490, row - 1, 20, 18,
-                        Component.literal("×").withStyle(s -> s.withColor(0xFFC66A54)),
-                        b -> removeNote(note), font);
-                edit.setTooltip(Tooltip.create(Component.literal("Edit this note.")));
-                remove.setTooltip(Tooltip.create(Component.literal("Remove this note.")));
-                noteButtons.add(edit);
-                noteButtons.add(remove);
-                addRenderableWidget(edit);
-                addRenderableWidget(remove);
+                if (canEditNote(note)) {
+                    PlainTextButton edit = new PlainTextButton(
+                            x + 440, row - 1, 45, 18,
+                            Component.literal("EDIT").withStyle(s -> s.withColor(0xFF5A4028)),
+                            b -> editNote(note), font);
+                    PlainTextButton remove = new PlainTextButton(
+                            x + 490, row - 1, 20, 18,
+                            Component.literal("×").withStyle(s -> s.withColor(0xFFC43E32)),
+                            b -> removeNote(note), font);
+                    edit.setTooltip(Tooltip.create(Component.literal("Edit your note.")));
+                    remove.setTooltip(Tooltip.create(Component.literal("Remove your note.")));
+                    noteButtons.add(edit);
+                    noteButtons.add(remove);
+                    addRenderableWidget(edit);
+                    addRenderableWidget(remove);
+                }
             }
         }
 
@@ -548,6 +552,37 @@ public final class AdminGuiClient {
             }
         }
 
+        private ResourceLocation cardboardTexture() {
+            try {
+                return Minecraft.getInstance()
+                        .getResourceManager()
+                        .getResource(CREATE_CARDBOARD_TEXTURE)
+                        .isPresent()
+                        ? CREATE_CARDBOARD_TEXTURE
+                        : FALLBACK_CARDBOARD_TEXTURE;
+            } catch (Throwable ignored) {
+                return FALLBACK_CARDBOARD_TEXTURE;
+            }
+        }
+
+        private boolean canEditNote(JsonObject note) {
+            if (note == null || !note.has("authorUuid")) {
+                return false;
+            }
+
+            if (note.has("system") && note.get("system").getAsBoolean()) {
+                return false;
+            }
+
+            if (note.has("canEdit")) {
+                return note.get("canEdit").getAsBoolean();
+            }
+
+            return Minecraft.getInstance().player != null
+                    && Minecraft.getInstance().player.getUUID().toString()
+                    .equalsIgnoreCase(note.get("authorUuid").getAsString());
+        }
+
         private void drawCardboardTextureScaled2x(
                 GuiGraphics g,
                 int x,
@@ -568,7 +603,7 @@ public final class AdminGuiClient {
                     int drawHeight = Math.min(16, textureAreaHeight - yy);
 
                     g.blit(
-                            CARDBOARD_TEXTURE,
+                            cardboardTexture(),
                             xx,
                             yy,
                             0,
