@@ -191,7 +191,7 @@ public final class AdminGuiClient {
 
         @Override
         public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-            renderBackground(g);
+            renderBackground(g, mouseX, mouseY, partialTick);
             int left = (width - WIDTH) / 2;
             int top = (height - HEIGHT) / 2;
 
