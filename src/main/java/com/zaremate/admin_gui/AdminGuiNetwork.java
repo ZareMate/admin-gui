@@ -88,7 +88,10 @@ public final class AdminGuiNetwork {
 
     private static void sendDetail(ServerPlayer player, UUID uuid) {
         if (uuid == null) return;
-        PacketDistributor.sendToPlayer(player, new DetailPayload(AdminGuiData.buildPlayerDetail(player.server, uuid)));
+        PacketDistributor.sendToPlayer(
+                player,
+                new DetailPayload(AdminGuiData.buildPlayerDetail(player.server, uuid, player.getUUID()))
+        );
     }
 
     private static void handleNoteAction(ServerPlayer player, NoteActionPayload payload) {
