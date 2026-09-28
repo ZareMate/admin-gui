@@ -54,17 +54,17 @@ final class AdminGuiDetailWidgets {
         tsa(result, detail.getAsJsonObject("tsa"), tsaX, cardY + 27, font);
         ass(result, detail.getAsJsonObject("ass"), assX, cardY + 27, font);
 
-        cardY += 88;
+        cardY += 96;
         header(result, x + 8 + CARD_INSET, cardY + 7, "FTB TEAM", font);
         header(result, x + 300 + CARD_INSET, cardY + 7, "DISCORD", font);
         team(result, detail.getAsJsonObject("teams"), tsaX, cardY + 27, font);
         discord(result, detail.getAsJsonObject("discord"), assX, cardY + 27, font);
 
-        cardY += 70;
+        cardY += 88;
         header(result, x + 8 + CARD_INSET, cardY + 7, "CLOCK IN", font);
         clock(result, detail.getAsJsonObject("clockin"), tsaX, cardY + 27, font);
 
-        int notesY = top + 298;
+        int notesY = top + 331;
         header(result, x + 8 + CARD_INSET, notesY + 7, "ADMIN NOTES", font);
         notes(result, detail, x + 8 + CARD_INSET, notesY + 28, font);
         return result;
