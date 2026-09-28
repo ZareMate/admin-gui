@@ -64,3 +64,10 @@ type="optional"
 versionRange="[1,)"
 ordering="AFTER"
 side="SERVER"
+
+[[dependencies.${mod_id}]]
+modId="create"
+type="optional"
+versionRange="[6,)"
+ordering="AFTER"
+side="CLIENT"
