@@ -30,11 +30,9 @@ final class AdminGuiDetailWidgets {
         List<PlainTextButton> result = new ArrayList<>();
         int x = left + 305;
 
-        add(result, x, top + 8, 150, 18, "ADMINISTRATION", 0xFFF2D7A0, null, null, font);
+        add(result, x, top + 8, 150, 22, "ADMINISTRATION", 0xFFF2D7A0, null, null, font);
         add(result, left + 205, top + 8, 80, 18,
                 playerCount + " players", 0xFFE7DDC9, null, null, font);
-        add(result, left + 16, top + 48, 180, 18, "PLAYERS", 0xFF3A291A, null, null, font);
-
         if (detail == null) {
             add(result, x, top + 55, 260, 18, "Select a player", 0xFF5A4630, null, null, font);
             return result;
@@ -44,12 +42,12 @@ final class AdminGuiDetailWidgets {
         String uuid = text(detail, "uuid", "");
         boolean online = bool(detail, "online");
 
-        add(result, x, top + 37, 390, 18, name, 0xFF352A20,
+        add(result, x, top + 34, 390, 24, name, 0xFF352A20,
                 "Click to copy player name.", () -> copy(name), font);
         String uuidDisplay = fit("UUID: " + uuid, 500, font);
-        add(result, x, top + 56, 540, 18, uuidDisplay, 0xFF554839,
+        add(result, x, top + 54, 540, 24, uuidDisplay, 0xFF554839,
                 "Click to copy player UUID.\n\n" + uuid, () -> copy(uuid), font);
-        add(result, x + 430, top + 37, 130, 18,
+        add(result, x + 430, top + 34, 130, 24,
                 online ? "● ONLINE" : "○ OFFLINE",
                 online ? 0xFF5C9E52 : 0xFF6A5C4C, null, null, font);
 
@@ -57,29 +55,30 @@ final class AdminGuiDetailWidgets {
         int tsaX = x + 8 + CARD_INSET;
         int assX = x + 300 + CARD_INSET;
 
-        header(result, x + 8 + CARD_INSET, cardY + 12, "TSA ANTICHEAT", font);
-        header(result, x + 300 + CARD_INSET, cardY + 12, "AIRPORT SECURITY", font);
+        header(result, x + 8 + CARD_INSET, cardY + 10, "TSA ANTICHEAT", font);
+        header(result, x + 300 + CARD_INSET, cardY + 10, "AIRPORT SECURITY", font);
         tsa(result, detail.getAsJsonObject("tsa"), tsaX, cardY + 33, font);
         ass(result, detail.getAsJsonObject("ass"), assX, cardY + 33, font);
 
         cardY += 96;
-        header(result, x + 8 + CARD_INSET, cardY + 12, "FTB TEAM", font);
-        header(result, x + 300 + CARD_INSET, cardY + 12, "DISCORD", font);
+        header(result, x + 8 + CARD_INSET, cardY + 10, "FTB TEAM", font);
+        header(result, x + 300 + CARD_INSET, cardY + 10, "DISCORD", font);
         team(result, detail.getAsJsonObject("teams"), tsaX, cardY + 33, font);
         discord(result, detail.getAsJsonObject("discord"), assX, cardY + 33, font);
 
         cardY += 88;
-        header(result, x + 8 + CARD_INSET, cardY + 7, "CLOCK IN", font);
+        header(result, x + 8 + CARD_INSET, cardY + 10, "CLOCK IN", font);
         clock(result, detail.getAsJsonObject("clockin"), tsaX, cardY + 27, font);
 
         int notesY = top + 331;
-        header(result, x + 8 + CARD_INSET, notesY + 13, "ADMIN NOTES", font);
+        add(result, x + 8 + CARD_INSET, notesY + 12, CARD_CONTENT_WIDTH, 30,
+                "ADMIN NOTES", 0xFF3A291A, null, null, font);
         notes(result, detail, x + 20, notesY + 50, font, noteScroll);
         return result;
     }
 
     private static void header(List<PlainTextButton> out, int x, int y, String text, Font font) {
-        add(out, x, y, CARD_CONTENT_WIDTH, 18, text, 0xFF3A291A, null, null, font);
+        add(out, x, y, CARD_CONTENT_WIDTH, 22, text, 0xFF3A291A, null, null, font);
     }
 
     private static void tsa(List<PlainTextButton> out, JsonObject o, int x, int y, Font font) {
