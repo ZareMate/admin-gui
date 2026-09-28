@@ -1,7 +1,6 @@
 package com.zaremate.admin_gui;
 
 import com.google.gson.*;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -13,7 +12,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public final class AdminGuiClient {
@@ -36,14 +34,14 @@ public final class AdminGuiClient {
 
     public static final class AdminGuiScreen extends Screen {
         private final List<PlayerRef> players = new ArrayList<>();
-        private final List<Button> playerButtons = new ArrayList<>();
-        private final List<Button> noteButtons = new ArrayList<>();
+        private final List<PlainTextButton> playerButtons = new ArrayList<>();
+        private final List<PlainTextButton> noteButtons = new ArrayList<>();
         private final List<PlainTextButton> infoWidgets = new ArrayList<>();
         private String selectedUuid;
         private JsonObject detail;
         private EditBox search;
         private EditBox noteInput;
-        private Button addNoteButton;
+        private PlainTextButton addNoteButton;
         private UUID editingNote;
         private int playerScroll;
         private boolean suppressSearch;
@@ -94,14 +92,20 @@ public final class AdminGuiClient {
             search = new EditBox(font, left + 12, top + 32, 255, 20, Component.literal("Search players"));
             search.setHint(Component.literal("Search online/offline players..."));
             search.setMaxLength(64);
+            search.setBordered(false);
             addRenderableWidget(search);
 
             noteInput = new EditBox(font, left + 555, top + 456, 245, 20, Component.literal("Note"));
             noteInput.setMaxLength(512);
+            noteInput.setBordered(false);
             addRenderableWidget(noteInput);
 
-            addNoteButton = Button.builder(Component.literal("Add note"), b -> saveNote())
-                    .bounds(left + 805, top + 456, 80, 20).build();
+            addNoteButton = new PlainTextButton(
+                    left + 805, top + 456, 80, 20,
+                    Component.literal("ADD NOTE").withStyle(s -> s.withColor(0xFFE0B05A)),
+                    b -> saveNote(),
+                    font
+            );
             addRenderableWidget(addNoteButton);
             noteInput.visible = false;
             addNoteButton.visible = false;
@@ -111,7 +115,7 @@ public final class AdminGuiClient {
         }
 
         private void rebuildPlayerButtons() {
-            for (Button b : playerButtons) removeWidget(b);
+            for (PlainTextButton b : playerButtons) removeWidget(b);
             playerButtons.clear();
 
             if (search == null) return;
@@ -129,49 +133,21 @@ public final class AdminGuiClient {
             for (int i = start; i < end; i++) {
                 PlayerRef p = filtered.get(i);
                 int y = top + 62 + (i - start) * 29;
-                Button b = Button.builder(
-                        Component.literal((p.online() ? "● " : "○ ") + p.name())
-                                .withStyle(p.online() ? ChatFormatting.GREEN : ChatFormatting.GRAY),
-                        btn -> selectPlayer(p.uuid())
-                ).bounds(left + 12, y, 255, 25).build();
+                Component label = Component.literal((p.online() ? "● " : "○ ") + p.name())
+                        .withStyle(s -> s.withColor(p.online() ? 0xFF72C96B : 0xFF9A9A91));
+
+                PlainTextButton b = new PlainTextButton(
+                        left + 12, y, 255, 25, label,
+                        btn -> selectPlayer(p.uuid()),
+                        font
+                );
                 b.setTooltip(Tooltip.create(Component.literal(
-                        p.online() ? "Online — click to view administration data." : "Offline — click to view stored administration data.")));
+                        p.online()
+                                ? "Online — click to inspect this player."
+                                : "Offline — click to inspect stored player data."
+                )));
                 playerButtons.add(b);
                 addRenderableWidget(b);
-            }
-        }
-
-        private void rebuildNoteButtons() {
-            for (Button b : noteButtons) removeWidget(b);
-            noteButtons.clear();
-
-            if (detail == null || !detail.has("notesAvailable")
-                    || !detail.get("notesAvailable").getAsBoolean()
-                    || !detail.has("notes")) {
-                return;
-            }
-
-            JsonArray notes = detail.getAsJsonArray("notes");
-            int shown = Math.min(notes.size(), 3);
-
-            int x = (width - WIDTH) / 2 + 305;
-            int y = (height - HEIGHT) / 2 + 42 + 260;
-
-            for (int i = 0; i < shown; i++) {
-                JsonObject note = notes.get(i).getAsJsonObject();
-                int row = y + i * 44;
-
-                Button edit = Button.builder(Component.literal("Edit"), b -> editNote(note))
-                        .bounds(x + 450, row - 2, 45, 18)
-                        .build();
-                Button remove = Button.builder(Component.literal("X"), b -> removeNote(note))
-                        .bounds(x + 500, row - 2, 20, 18)
-                        .build();
-
-                noteButtons.add(edit);
-                noteButtons.add(remove);
-                addRenderableWidget(edit);
-                addRenderableWidget(remove);
             }
         }
 
@@ -186,7 +162,7 @@ public final class AdminGuiClient {
                         addRenderableWidget(widget);
                     });
 
-            for (Button button : noteButtons) {
+            for (PlainTextButton button : noteButtons) {
                 removeWidget(button);
             }
             noteButtons.clear();
@@ -207,10 +183,14 @@ public final class AdminGuiClient {
             for (int i = 0; i < shown; i++) {
                 JsonObject note = notes.get(i).getAsJsonObject();
                 int row = y + i * 36;
-                Button edit = Button.builder(Component.literal("Edit"), b -> editNote(note))
-                        .bounds(x + 440, row - 1, 45, 18).build();
-                Button remove = Button.builder(Component.literal("X"), b -> removeNote(note))
-                        .bounds(x + 490, row - 1, 20, 18).build();
+                PlainTextButton edit = new PlainTextButton(
+                        x + 440, row - 1, 45, 18,
+                        Component.literal("EDIT").withStyle(s -> s.withColor(0xFFE0B05A)),
+                        b -> editNote(note), font);
+                PlainTextButton remove = new PlainTextButton(
+                        x + 490, row - 1, 20, 18,
+                        Component.literal("×").withStyle(s -> s.withColor(0xFFC66A54)),
+                        b -> removeNote(note), font);
                 edit.setTooltip(Tooltip.create(Component.literal("Edit this note.")));
                 remove.setTooltip(Tooltip.create(Component.literal("Remove this note.")));
                 noteButtons.add(edit);
@@ -232,13 +212,13 @@ public final class AdminGuiClient {
             AdminGuiNetworkNote.send(action, detail.get("uuid").getAsString(), noteId, noteInput.getValue());
             editingNote = null;
             noteInput.setValue("");
-            if (addNoteButton != null) addNoteButton.setMessage(Component.literal("Add note"));
+            if (addNoteButton != null) addNoteButton.setMessage(Component.literal("ADD NOTE").withStyle(s -> s.withColor(0xFFE0B05A)));
         }
 
         private void editNote(JsonObject note) {
             editingNote = UUID.fromString(note.get("id").getAsString());
             noteInput.setValue(note.get("text").getAsString());
-            if (addNoteButton != null) addNoteButton.setMessage(Component.literal("Update"));
+            if (addNoteButton != null) addNoteButton.setMessage(Component.literal("UPDATE").withStyle(s -> s.withColor(0xFFE0B05A)));
             noteInput.setFocused(true);
         }
 
@@ -288,27 +268,113 @@ public final class AdminGuiClient {
 
             int left = (width - WIDTH) / 2;
             int top = (height - HEIGHT) / 2;
+            int right = left + WIDTH;
+            int bottom = top + HEIGHT;
 
-            g.fill(left, top, left + WIDTH, top + HEIGHT, 0xEE111318);
-            g.fill(left, top, left + WIDTH, top + 26, 0xFF1C2028);
-            g.fill(left + 280, top + 26, left + 282, top + HEIGHT, 0xFF303640);
+            // Create-inspired industrial palette:
+            // zinc/andesite body, dark steel panels, brass frame and copper accents.
+            g.fill(0, 0, width, height, 0x55000000);
 
+            g.fill(left - 3, top - 3, right + 3, bottom + 3, 0xFF5B4630);
+            g.fill(left - 1, top - 1, right + 1, bottom + 1, 0xFF1A1C1C);
+            g.fill(left, top, right, bottom, 0xFF252827);
+
+            // Header.
+            g.fill(left, top, right, top + 27, 0xFF1B1D1C);
+            g.fill(left, top + 25, right, top + 27, 0xFFB2763F);
+            g.fill(left, top + 27, left + 2, bottom, 0xFF6B5845);
+
+            // Vertical divider.
+            g.fill(left + 280, top + 27, left + 282, bottom, 0xFF8D6946);
+
+            // Search frame.
+            drawBrassFrame(g, left + 11, top + 31, 257, 22);
+            g.fill(left + 13, top + 33, left + 266, top + 51, 0xFF111313);
+
+            // Player list rows.
+            drawPlayerRows(g, left, top, mouseX, mouseY, filteredPlayers());
+
+            // Detail card frames.
             if (detail != null) {
-                drawCardBackground(g, left + 313, top + 94, 270, 80);
-                drawCardBackground(g, left + 605, top + 94, 270, 80);
-                drawCardBackground(g, left + 313, top + 182, 270, 62);
-                drawCardBackground(g, left + 605, top + 182, 270, 62);
-                drawCardBackground(g, left + 313, top + 252, 270, 45);
-                drawCardBackground(g, left + 313, top + 298, 562, 145);
+                drawCreateCard(g, left + 313, top + 94, 270, 80);
+                drawCreateCard(g, left + 605, top + 94, 270, 80);
+                drawCreateCard(g, left + 313, top + 182, 270, 62);
+                drawCreateCard(g, left + 605, top + 182, 270, 62);
+                drawCreateCard(g, left + 313, top + 252, 270, 45);
+                drawCreateCard(g, left + 313, top + 298, 562, 145);
+
+                // Note editor frame.
+                if (noteInput != null && noteInput.visible) {
+                    drawBrassFrame(g, left + 552, top + 453, 251, 26);
+                    drawCopperButtonFrame(g, left + 803, top + 453, 84, 26,
+                            addNoteButton != null && addNoteButton.isHoveredOrFocused());
+                }
             }
 
             super.render(g, mouseX, mouseY, partialTick);
         }
 
-        private void drawCardBackground(GuiGraphics g, int x, int y, int width, int height) {
-            g.fill(x, y, x + width, y + height, 0xAA191D24);
-            g.fill(x, y, x + width, y + 1, 0xFF3A404A);
+        private List<PlayerRef> filteredPlayers() {
+            if (search == null) return players;
+            String query = search.getValue().trim().toLowerCase(Locale.ROOT);
+            return players.stream()
+                    .filter(p -> query.isEmpty() || p.name().toLowerCase(Locale.ROOT).contains(query))
+                    .toList();
         }
+
+        private void drawPlayerRows(GuiGraphics g, int left, int top, int mouseX, int mouseY, List<PlayerRef> filtered) {
+            int start = Math.min(playerScroll, Math.max(0, filtered.size() - 1));
+            int end = Math.min(filtered.size(), start + 14);
+
+            for (int i = start; i < end; i++) {
+                PlayerRef p = filtered.get(i);
+                int y = top + 62 + (i - start) * 29;
+                boolean hovered = mouseX >= left + 12 && mouseX <= left + 267
+                        && mouseY >= y && mouseY <= y + 25;
+                boolean selected = p.uuid().equals(selectedUuid);
+
+                int fill = selected ? 0xFF50412E : hovered ? 0xFF343936 : 0xFF2A2D2C;
+                g.fill(left + 12, y, left + 267, y + 25, fill);
+
+                if (selected) {
+                    g.fill(left + 12, y, left + 14, y + 25, 0xFFD08A4B);
+                }
+                g.fill(left + 12, y + 24, left + 267, y + 25,
+                        hovered || selected ? 0xFFB2763F : 0xFF4A4D49);
+            }
+        }
+
+        private void drawCreateCard(GuiGraphics g, int x, int y, int width, int height) {
+            g.fill(x, y, x + width, y + height, 0xFF202322);
+            g.fill(x, y, x + width, y + 1, 0xFFB2763F);
+            g.fill(x, y + 1, x + 1, y + height, 0xFF5E4937);
+            g.fill(x + width - 1, y + 1, x + width, y + height, 0xFF5E4937);
+
+            // Tiny rivets.
+            drawRivet(g, x + 4, y + 4);
+            drawRivet(g, x + width - 7, y + 4);
+        }
+
+        private void drawBrassFrame(GuiGraphics g, int x, int y, int width, int height) {
+            g.fill(x, y, x + width, y + 1, 0xFFB2763F);
+            g.fill(x, y + height - 1, x + width, y + height, 0xFF6B4C34);
+            g.fill(x, y, x + 1, y + height, 0xFF8D6946);
+            g.fill(x + width - 1, y, x + width, y + height, 0xFF8D6946);
+        }
+
+        private void drawCopperButtonFrame(GuiGraphics g, int x, int y, int width, int height, boolean hovered) {
+            int edge = hovered ? 0xFFE0A15F : 0xFFB2763F;
+            g.fill(x, y, x + width, y + 1, edge);
+            g.fill(x, y + height - 1, x + width, y + height, 0xFF6B4C34);
+            g.fill(x, y, x + 1, y + height, 0xFF8D6946);
+            g.fill(x + width - 1, y, x + width, y + height, 0xFF8D6946);
+        }
+
+        private void drawRivet(GuiGraphics g, int x, int y) {
+            g.fill(x, y, x + 3, y + 3, 0xFF9A9B91);
+            g.fill(x + 1, y + 1, x + 2, y + 2, 0xFF4D4F4C);
+        }
+
         private static String text(JsonObject o, String k, String fallback) {
             return o != null && o.has(k) ? o.get(k).getAsString() : fallback;
         }
