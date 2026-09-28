@@ -234,10 +234,15 @@ public final class AdminGuiClient {
 
         @Override
         public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-            renderBackground(g, mouseX, mouseY, partialTick);
+            // Screen.render() performs the background pass and renders the
+            // registered widgets. We draw the dashboard AFTER that pass so
+            // the background blur cannot blur the dashboard text.
+            super.render(g, mouseX, mouseY, partialTick);
+
             int left = (width - WIDTH) / 2;
             int top = (height - HEIGHT) / 2;
 
+            // Dashboard background and separators.
             g.fill(left, top, left + WIDTH, top + HEIGHT, 0xEE111318);
             g.fill(left, top, left + WIDTH, top + 26, 0xFF1C2028);
             g.fill(left + 280, top + 26, left + 282, top + HEIGHT, 0xFF303640);
@@ -252,7 +257,31 @@ public final class AdminGuiClient {
                 renderDetail(g, left + 305, top + 42);
             }
 
-            super.render(g, mouseX, mouseY, partialTick);
+            // The dashboard background is drawn over the widgets above, so
+            // render all widgets one final time to keep inputs/buttons sharp.
+            renderWidgetsOnTop(g, mouseX, mouseY, partialTick);
+        }
+
+        private void renderWidgetsOnTop(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+            if (search != null && search.visible) {
+                search.render(g, mouseX, mouseY, partialTick);
+            }
+
+            for (Button button : playerButtons) {
+                if (button.visible) button.render(g, mouseX, mouseY, partialTick);
+            }
+
+            if (noteInput != null && noteInput.visible) {
+                noteInput.render(g, mouseX, mouseY, partialTick);
+            }
+
+            if (addNoteButton != null && addNoteButton.visible) {
+                addNoteButton.render(g, mouseX, mouseY, partialTick);
+            }
+
+            for (Button button : noteButtons) {
+                if (button.visible) button.render(g, mouseX, mouseY, partialTick);
+            }
         }
 
         private void renderDetail(GuiGraphics g, int x, int y) {
