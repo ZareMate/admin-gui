@@ -56,6 +56,8 @@ public final class AdminGuiClient {
                 ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/background.png");
         private static final ResourceLocation BORDER_TEXTURE =
                 ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/border.png");
+        private static final ResourceLocation HEADER_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/header.png");
         private static final ResourceLocation PLAYER_ITEM_TEXTURE =
                 ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/player_item.png");
         private static final ResourceLocation PLAYER_ITEM_SELECTED_TEXTURE =
@@ -538,6 +540,20 @@ public final class AdminGuiClient {
             }
 
             for (PlainTextButton button : noteButtons) {
+                if (button.visible) {
+                    boolean hovered = logicalMouseX >= button.getX()
+                            && logicalMouseX <= button.getX() + button.getWidth()
+                            && logicalMouseY >= button.getY()
+                            && logicalMouseY <= button.getY() + button.getHeight();
+                    drawTexturePanel(
+                            g,
+                            hovered ? BUTTON_HOVER_TEXTURE : BUTTON_TEXTURE,
+                            button.getX(),
+                            button.getY(),
+                            button.getWidth(),
+                            button.getHeight()
+                    );
+                }
                 renderWidgetIfVisible(g, button, logicalMouseX, logicalMouseY, partialTick);
             }
 
