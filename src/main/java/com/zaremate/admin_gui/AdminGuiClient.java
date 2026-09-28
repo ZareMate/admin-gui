@@ -405,7 +405,7 @@ public final class AdminGuiClient {
 
             // Search field.
             drawBrassFrame(g, left + 11, top + 31, 257, 22);
-            g.fill(left + 13, top + 33, left + 266, top + 51, 0xFF0B0D0C);
+            drawTexturePanel(g, CLIPBOARD_FRAME_TEXTURE, left + 13, top + 33, 253, 18);
 
             // Player rows.
             List<PlayerRef> filtered = filteredPlayers();
@@ -681,23 +681,16 @@ public final class AdminGuiClient {
                 boolean hovered,
                 int variant
         ) {
-            int note = switch (Math.floorMod(variant, 3)) {
-                case 0 -> 0xFFF5DE79;
-                case 1 -> 0xFFF1D978;
-                default -> 0xFFEBD17A;
-            };
-            if (hovered) note = 0xFFFFE99E;
-            if (selected) note = 0xFFFFEDAA;
+            // Entire surface is texture-pack driven. Hover/selection is shown
+            // by the existing widget text state rather than a color override,
+            // so replacing cardboard.png changes the appearance everywhere.
+            drawTexturePanel(g, CARDBOARD_TEXTURE, x, y, width, height);
 
-            g.fill(x + 3, y + 3, x + width + 2, y + height + 3, 0x36000000);
-            g.fill(x, y, x + width, y + height, note);
-            g.fill(x, y, x + width - 3, y + 1, 0x42FFFFFF);
-            g.fill(x, y + height - 1, x + width - 3, y + height, 0x22000000);
-            g.fill(x + width - 1, y + 3, x + width, y + height - 2, 0x18000000);
-
-            int fold = Math.min(8, Math.max(4, height / 3));
-            g.fill(x + width - fold, y + height - fold, x + width, y + height, 0x2A000000);
-            g.fill(x + width - fold, y + height - fold, x + width - 1, y + height - fold + 1, 0x48000000);
+            // Keep only a very small positional shadow so adjacent textured
+            // rows remain visually separated.
+            if (selected) {
+                g.fill(x - 2, y, x, y + height, 0xFFB2763F);
+            }
         }
 
         private void drawAdminNote(
@@ -709,26 +702,9 @@ public final class AdminGuiClient {
                 boolean hovered,
                 int variant
         ) {
-            int note = (Math.floorMod(variant / 36, 2) == 0) ? 0xFF9A774F : 0xFF876642;
-            if (hovered) note = 0xFFB18A5B;
-
-            // Darker paper gives the black/cream UI text more contrast and
-            // separates each note from the bright cardboard underneath.
-            g.fill(x + 4, y + 4, x + width + 3, y + height + 4, 0x52000000);
-            g.fill(x, y, x + width, y + height, note);
-            g.fill(x, y, x + width, y + 1, 0x30FFF4D2);
-            g.fill(x + 1, y + height - 2, x + width - 6, y + height, 0x33000000);
-
-            // Small translucent tape strip, kept subtle so it doesn't compete
-            // with the note text or the action buttons.
-            int tapeWidth = Math.min(84, Math.max(52, width / 8));
-            int tapeX = x + (width - tapeWidth) / 2;
-            g.fill(tapeX, y - 2, tapeX + tapeWidth, y + 3, 0x2AFFF0C2);
-            g.fill(tapeX + 2, y - 1, tapeX + tapeWidth - 2, y + 2, 0x1CFFF8D9);
-
-            int fold = Math.min(12, Math.max(8, height / 5));
-            g.fill(x + width - fold, y + height - fold, x + width, y + height, 0x30000000);
-            g.fill(x + width - fold, y + height - fold, x + width - 1, y + height - fold + 1, 0x52000000);
+            // Notes deliberately use the dark clipboard texture so they stay
+            // readable against the light cardboard dashboard.
+            drawTexturePanel(g, CLIPBOARD_FRAME_TEXTURE, x, y, width, height);
         }
 
         private List<PlayerRef> filteredPlayers() {
@@ -771,33 +747,46 @@ public final class AdminGuiClient {
         }
 
         private void drawCreateCard(GuiGraphics g, int x, int y, int width, int height) {
-            // Keep the dark brass casing on the OUTSIDE of each module.
-            // The interior is left clear so the post-it widgets sit cleanly
-            // inside the frame instead of disappearing into a solid brown box.
-            int shadow = 0x7A2D2118;
-            int darkBrass = 0xFF5B412B;
-            int brass = 0xFFC1844B;
-            int highlight = 0xFFE0A15F;
-
-            // Outside shadow.
-            g.fill(x + 3, y + 3, x + width + 3, y + height + 3, shadow);
-
-            // Dark brass outer casing.
-            g.fill(x, y, x + width, y + height, darkBrass);
-            g.fill(x + 1, y + 1, x + width - 1, y + height - 1, brass);
-
-            // Cut the centre back out so only the casing remains visible.
-            g.fill(x + 5, y + 5, x + width - 5, y + height - 5, 0x00101010);
-
-            // Brass highlight/shadow rails.
-            g.fill(x + 5, y + 2, x + width - 5, y + 4, highlight);
-            g.fill(x + 2, y + 4, x + 4, y + height - 4, 0xFF8C623C);
-            g.fill(x + width - 4, y + 4, x + width - 2, y + height - 4, 0xFF6C4B30);
-            g.fill(x + 5, y + height - 4, x + width - 5, y + height - 2, 0xFF6C4B30);
-
-            // Rivets belong to the outer casing only.
+            // The module backing is texture-pack driven too. The supplied
+            // clipboard texture acts as the dark industrial casing.
+            drawTexturePanel(g, CLIPBOARD_FRAME_TEXTURE, x, y, width, height);
             drawRivet(g, x + 4, y + 4);
             drawRivet(g, x + width - 7, y + 4);
+        }
+
+        private void drawTexturePanel(
+                GuiGraphics g,
+                ResourceLocation texture,
+                int x,
+                int y,
+                int width,
+                int height
+        ) {
+            // Both shipped GUI textures are intentionally tiny tiles. Tiling
+            // keeps their pixels crisp and makes resource-pack replacements
+            // automatically fill every widget size.
+            final int textureSize = 16;
+
+            for (int yy = 0; yy < height; yy += textureSize) {
+                for (int xx = 0; xx < width; xx += textureSize) {
+                    int drawWidth = Math.min(textureSize, width - xx);
+                    int drawHeight = Math.min(textureSize, height - yy);
+
+                    g.blit(
+                            texture,
+                            x + xx,
+                            y + yy,
+                            drawWidth,
+                            drawHeight,
+                            0,
+                            0,
+                            drawWidth,
+                            drawHeight,
+                            textureSize,
+                            textureSize
+                    );
+                }
+            }
         }
 
         private void drawBrassFrame(GuiGraphics g, int x, int y, int width, int height) {
