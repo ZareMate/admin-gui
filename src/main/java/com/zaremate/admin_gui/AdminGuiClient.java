@@ -93,11 +93,15 @@ public final class AdminGuiClient {
             search.setHint(Component.literal("Search online/offline players..."));
             search.setMaxLength(64);
             search.setBordered(false);
+            search.setTextColor(0xFFE5DED0);
+            search.setTextColorUneditable(0xFF77776F);
             addRenderableWidget(search);
 
             noteInput = new EditBox(font, left + 555, top + 456, 245, 20, Component.literal("Note"));
             noteInput.setMaxLength(512);
             noteInput.setBordered(false);
+            noteInput.setTextColor(0xFFE5DED0);
+            noteInput.setTextColorUneditable(0xFF77776F);
             addRenderableWidget(noteInput);
 
             addNoteButton = new PlainTextButton(
