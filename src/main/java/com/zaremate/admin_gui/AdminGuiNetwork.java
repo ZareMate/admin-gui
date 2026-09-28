@@ -105,11 +105,16 @@ public final class AdminGuiNetwork {
                 AdminGuiData.addNote(target, player.getUUID(), player.getGameProfile().getName(), payload.text());
             } else if (action.equals("edit")) {
                 UUID note = parseUuid(payload.noteId());
-                if (note == null || payload.text().isBlank()) return;
+                if (note == null || payload.text().isBlank()
+                        || !AdminGuiData.canEditNote(player.getUUID(), note)) {
+                    return;
+                }
                 AdminGuiData.editNote(target, note, payload.text());
             } else if (action.equals("remove")) {
                 UUID note = parseUuid(payload.noteId());
-                if (note == null) return;
+                if (note == null || !AdminGuiData.canEditNote(player.getUUID(), note)) {
+                    return;
+                }
                 AdminGuiData.removeNote(target, note);
             }
             sendDetail(player, target);
