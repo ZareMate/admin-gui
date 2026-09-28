@@ -51,8 +51,10 @@ public final class AdminGuiClient {
         private static final int HEIGHT = 520;
         private static final int MIN_MARGIN = 12;
         private static final double MAX_SCALE = 2.0;
-        private static final ResourceLocation CLIPBOARD_GUI_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/clipboard_gui.png");
+        private static final ResourceLocation CARDBOARD_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/cardboard.png");
+        private static final ResourceLocation CLIPBOARD_FRAME_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/clipboard_frame.png");
 
         public AdminGuiScreen(String data) {
             super(Component.literal("Admin GUI"));
@@ -389,10 +391,12 @@ public final class AdminGuiClient {
             g.pose().scale((float) scale, (float) scale, 1.0F);
             g.pose().translate(-centerX, -centerY, 0);
 
-            // Cardboard is baked at 2x pixel scale into the GUI surface;
-            // the clipboard border and top clip are part of the same texture.
+            // Draw the cardboard surface at 2x pixel scale, then place the
+            // supplied clipboard texture above it. Its transparent center lets
+            // the cardboard show through while retaining the wooden border/clip.
+            drawCardboardTextureScaled2x(g, left, top, WIDTH, HEIGHT);
             g.blit(
-                    CLIPBOARD_GUI_TEXTURE,
+                    CLIPBOARD_FRAME_TEXTURE,
                     left,
                     top,
                     0,
@@ -542,6 +546,42 @@ public final class AdminGuiClient {
             if (widget != null && widget.visible) {
                 widget.render(g, (int) Math.round(mouseX), (int) Math.round(mouseY), partialTick);
             }
+        }
+
+        private void drawCardboardTextureScaled2x(
+                GuiGraphics g,
+                int x,
+                int y,
+                int width,
+                int height
+        ) {
+            int textureAreaWidth = (width + 1) / 2;
+            int textureAreaHeight = (height + 1) / 2;
+
+            g.pose().pushPose();
+            g.pose().translate(x, y, 0);
+            g.pose().scale(2.0F, 2.0F, 1.0F);
+
+            for (int yy = 0; yy < textureAreaHeight; yy += 16) {
+                for (int xx = 0; xx < textureAreaWidth; xx += 16) {
+                    int drawWidth = Math.min(16, textureAreaWidth - xx);
+                    int drawHeight = Math.min(16, textureAreaHeight - yy);
+
+                    g.blit(
+                            CARDBOARD_TEXTURE,
+                            xx,
+                            yy,
+                            0,
+                            0,
+                            drawWidth,
+                            drawHeight,
+                            16,
+                            16
+                    );
+                }
+            }
+
+            g.pose().popPose();
         }
 
         private void drawPostIt(
