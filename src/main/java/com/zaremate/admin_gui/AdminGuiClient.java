@@ -393,11 +393,12 @@ public final class AdminGuiClient {
             g.pose().scale((float) scale, (float) scale, 1.0F);
             g.pose().translate(-centerX, -centerY, 0);
 
-            // Cardboard is the actual dashboard surface. The outer clipboard
-            // frame is taken directly from Create's original texture so its
-            // wood, paper edge and metal clip stay pixel-identical to Create.
+            // Cardboard is the actual dashboard surface. Keep the supplied
+            // clipboard texture unchanged, but place a rounded brass trim
+            // behind it so the brass sits on the outside of the wooden border.
+            drawRoundedBrassOuterFrame(g, left, top, WIDTH, HEIGHT);
             drawCardboardTextureScaled2x(g, left, top, WIDTH, HEIGHT);
-            drawClipboardFrame(g, left, top, WIDTH, HEIGHT);
+            drawClipboardFrame(g, left + 4, top + 4, WIDTH - 8, HEIGHT - 8);
 
             // Player divider.
             g.fill(left + 280, top + 27, left + 282, bottom, 0xFF704B2E);
@@ -538,6 +539,42 @@ public final class AdminGuiClient {
             if (widget != null && widget.visible) {
                 widget.render(g, (int) Math.round(mouseX), (int) Math.round(mouseY), partialTick);
             }
+        }
+
+        private void drawRoundedBrassOuterFrame(
+                GuiGraphics g,
+                int x,
+                int y,
+                int width,
+                int height
+        ) {
+            // Four-pixel brass trim with stepped corners. The corners are
+            // deliberately masked so the rounding affects only the outside
+            // border and never the cardboard/dashboard surface.
+            final int thickness = 4;
+            final int radius = 8;
+
+            g.fill(x + radius, y, x + width - radius, y + thickness, 0xFFC58A4D);
+            g.fill(x + radius, y + height - thickness, x + width - radius, y + height, 0xFF72502F);
+            g.fill(x, y + radius, x + thickness, y + height - radius, 0xFF8F6842);
+            g.fill(x + width - thickness, y + radius, x + width, y + height - radius, 0xFF8F6842);
+
+            // Stepped corner sections give the outer silhouette rounded corners.
+            g.fill(x + 3, y + 3, x + radius, y + thickness, 0xFFC58A4D);
+            g.fill(x + width - radius, y + 3, x + width - 3, y + thickness, 0xFFC58A4D);
+            g.fill(x + 3, y + height - thickness, x + radius, y + height - 3, 0xFF72502F);
+            g.fill(x + width - radius, y + height - thickness, x + width - 3, y + height - 3, 0xFF72502F);
+
+            g.fill(x + 3, y + 3, x + thickness, y + radius, 0xFF8F6842);
+            g.fill(x + width - thickness, y + 3, x + width - 3, y + radius, 0xFF8F6842);
+            g.fill(x + 3, y + height - radius, x + thickness, y + height - 3, 0xFF6A4A2C);
+            g.fill(x + width - thickness, y + height - radius, x + width - 3, y + height - 3, 0xFF6A4A2C);
+
+            // Small highlight/shadow on the brass edge.
+            g.fill(x + radius, y + 1, x + width - radius, y + 2, 0xFFE2AE69);
+            g.fill(x + 1, y + radius, x + 2, y + height - radius, 0xFFB47B46);
+            g.fill(x + radius, y + height - 2, x + width - radius, y + height - 1, 0xFF4E351F);
+            g.fill(x + width - 2, y + radius, x + width - 1, y + height - radius, 0xFF5B3E23);
         }
 
         private void drawClipboardFrame(
