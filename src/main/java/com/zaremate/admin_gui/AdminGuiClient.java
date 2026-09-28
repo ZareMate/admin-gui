@@ -52,6 +52,8 @@ public final class AdminGuiClient {
         private static final double MAX_SCALE = 2.0;
         private static final ResourceLocation CARDBOARD_TEXTURE =
                 ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/cardboard.png");
+        private static final ResourceLocation CLIPBOARD_FRAME_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/clipboard_frame.png");
 
         public AdminGuiScreen(String data) {
             super(Component.literal("Admin GUI"));
@@ -356,14 +358,21 @@ public final class AdminGuiClient {
             g.pose().scale((float) scale, (float) scale, 1.0F);
             g.pose().translate(-centerX, -centerY, 0);
 
-            // User-provided 16x16 cardboard texture, tiled at native pixel scale.
+            // User-provided cardboard surface with the supplied clipboard frame.
             g.fill(left - 3, top - 3, right + 3, bottom + 3, 0xFF5E402A);
             g.fill(left - 1, top - 1, right + 1, bottom + 1, 0xFF8C5F39);
             drawCardboardTexture(g, left, top, WIDTH, HEIGHT);
-
-            // Header.
-            g.fill(left, top, right, top + 27, 0xFF30251C);
-            g.fill(left, top + 25, right, top + 27, 0xFFB2763F);
+            g.blit(
+                    CLIPBOARD_FRAME_TEXTURE,
+                    left,
+                    top,
+                    0,
+                    0,
+                    WIDTH,
+                    HEIGHT,
+                    WIDTH,
+                    HEIGHT
+            );
 
             // Player divider.
             g.fill(left + 280, top + 27, left + 282, bottom, 0xFF6E4B31);
