@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 final class AdminGuiDetailWidgets {
     private AdminGuiDetailWidgets() {}
