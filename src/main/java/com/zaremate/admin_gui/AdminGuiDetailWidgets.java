@@ -46,8 +46,9 @@ final class AdminGuiDetailWidgets {
 
         add(result, x, top + 38, 390, 18, name, 0xFFFFFFFF,
                 "Click to copy player name.", () -> copy(name), font);
-        add(result, x, top + 58, 540, 18, "UUID: " + uuid, 0xFF9AA0AA,
-                "Click to copy player UUID.", () -> copy(uuid), font);
+        String uuidDisplay = fit("UUID: " + uuid, 500, font);
+        add(result, x, top + 58, 540, 18, uuidDisplay, 0xFF9AA0AA,
+                "Click to copy player UUID.\n\n" + uuid, () -> copy(uuid), font);
         add(result, x + 430, top + 38, 130, 18,
                 online ? "● ONLINE" : "○ OFFLINE",
                 online ? 0xFF79B85F : 0xFF8F8E84, null, null, font);
@@ -140,10 +141,11 @@ final class AdminGuiDetailWidgets {
 
         String name = text(o, "name", "No team");
         String id = text(o, "id", "");
+        String teamDisplay = id.isBlank() ? name : name + "  ID: " + id;
         add(out, x, y, CARD_CONTENT_WIDTH, 18,
-                id.isBlank() ? name : name + "  ID: " + id,
+                fit(teamDisplay, CARD_CONTENT_WIDTH, font),
                 0xFFD1C7B7,
-                id.isBlank() ? null : "Click to copy FTB Team ID.",
+                id.isBlank() ? null : "Click to copy FTB Team ID.\n\n" + id,
                 id.isBlank() ? null : () -> copy(id), font);
 
         JsonArray members = o.getAsJsonArray("members");
@@ -196,8 +198,10 @@ final class AdminGuiDetailWidgets {
         add(out, x, y, CARD_CONTENT_WIDTH, 18, display, 0xFFB8BEC8,
                 id.isBlank() ? null : "Click to copy Discord ID.",
                 id.isBlank() ? null : () -> copy(id), font);
-        add(out, x, y + 18, CARD_CONTENT_WIDTH, 18, "ID: " + id, 0xFF8E96A2,
-                id.isBlank() ? null : "Click to copy Discord ID.",
+        add(out, x, y + 18, CARD_CONTENT_WIDTH, 18,
+                fit("ID: " + id, CARD_CONTENT_WIDTH, font),
+                0xFF8E96A2,
+                id.isBlank() ? null : "Click to copy Discord ID.\n\n" + id,
                 id.isBlank() ? null : () -> copy(id), font);
     }
 
@@ -238,11 +242,10 @@ final class AdminGuiDetailWidgets {
             String author = text(note, "author", "");
             if (author.isBlank()) author = "System";
             String value = text(note, "text", "");
-            String preview = value.length() > 58 ? value.substring(0, 55) + "..." : value;
-            Component noteText = Component.literal(author + ": " + preview)
-                    .withStyle(s -> s.withColor(0xFF3A2B20));
-            add(out, x, y + i * 36, 425, 26, noteText.getString(), 0xFF3A2B20,
-                    "Click to copy the full note.\n\n" + value, () -> copy(value), font);
+            String display = fit(author + " — " + value, 405, font);
+            add(out, x, y + i * 36, 425, 26, display, 0xFF3A2B20,
+                    "Click to copy the full note.\n\n" + author + " — " + value,
+                    () -> copy(value), font);
         }
 
     }
@@ -278,6 +281,15 @@ final class AdminGuiDetailWidgets {
             }
         }
         return value;
+    }
+
+    private static String fit(String value, int maxWidth, Font font) {
+        if (value == null || value.isEmpty() || font.width(value) <= maxWidth) {
+            return value == null ? "" : value;
+        }
+        String ellipsis = "...";
+        int available = Math.max(1, maxWidth - font.width(ellipsis));
+        return font.plainSubstrByWidth(value, available) + ellipsis;
     }
 
     private static String text(JsonObject o, String key, String fallback) {
