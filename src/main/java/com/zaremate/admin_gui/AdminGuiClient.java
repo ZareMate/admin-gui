@@ -83,7 +83,7 @@ public final class AdminGuiClient {
                 if (addNoteButton != null) addNoteButton.visible = notesAvailable;
             } catch (Exception ignored) {}
             rebuildPlayerButtons();
-            rebuildNoteButtons();
+            rebuildInfoWidgets();
         }
 
         @Override
@@ -107,7 +107,7 @@ public final class AdminGuiClient {
             addNoteButton.visible = false;
 
             rebuildPlayerButtons();
-            rebuildNoteButtons();
+            rebuildInfoWidgets();
         }
 
         private void rebuildPlayerButtons() {
@@ -166,6 +166,51 @@ public final class AdminGuiClient {
                         .bounds(x + 500, row - 2, 20, 18)
                         .build();
 
+                noteButtons.add(edit);
+                noteButtons.add(remove);
+                addRenderableWidget(edit);
+                addRenderableWidget(remove);
+            }
+        }
+
+        private void rebuildInfoWidgets() {
+            for (PlainTextButton widget : infoWidgets) {
+                removeWidget(widget);
+            }
+            infoWidgets.clear();
+            AdminGuiDetailWidgets.build(detail, (width - WIDTH) / 2, (height - HEIGHT) / 2, font)
+                    .forEach(widget -> {
+                        infoWidgets.add(widget);
+                        addRenderableWidget(widget);
+                    });
+
+            for (Button button : noteButtons) {
+                removeWidget(button);
+            }
+            noteButtons.clear();
+
+            if (detail == null || !detail.has("notesAvailable")
+                    || !detail.get("notesAvailable").getAsBoolean()
+                    || !detail.has("notes")) {
+                return;
+            }
+
+            JsonArray notes = detail.getAsJsonArray("notes");
+            int shown = Math.min(notes.size(), 3);
+            int left = (width - WIDTH) / 2;
+            int top = (height - HEIGHT) / 2;
+            int x = left + 305;
+            int y = top + 298 + 28;
+
+            for (int i = 0; i < shown; i++) {
+                JsonObject note = notes.get(i).getAsJsonObject();
+                int row = y + i * 36;
+                Button edit = Button.builder(Component.literal("Edit"), b -> editNote(note))
+                        .bounds(x + 440, row - 1, 45, 18).build();
+                Button remove = Button.builder(Component.literal("X"), b -> removeNote(note))
+                        .bounds(x + 490, row - 1, 20, 18).build();
+                edit.setTooltip(Tooltip.create(Component.literal("Edit this note.")));
+                remove.setTooltip(Tooltip.create(Component.literal("Remove this note.")));
                 noteButtons.add(edit);
                 noteButtons.add(remove);
                 addRenderableWidget(edit);
@@ -237,197 +282,31 @@ public final class AdminGuiClient {
 
         @Override
         public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-            // Screen.render() performs the background pass and renders the
-            // registered widgets. We draw the dashboard AFTER that pass so
-            // the background blur cannot blur the dashboard text.
-            super.render(g, mouseX, mouseY, partialTick);
+            renderBackground(g, mouseX, mouseY, partialTick);
 
             int left = (width - WIDTH) / 2;
             int top = (height - HEIGHT) / 2;
 
-            // Dashboard background and separators.
             g.fill(left, top, left + WIDTH, top + HEIGHT, 0xEE111318);
             g.fill(left, top, left + WIDTH, top + 26, 0xFF1C2028);
             g.fill(left + 280, top + 26, left + 282, top + HEIGHT, 0xFF303640);
 
-            g.drawString(font, "ADMIN GUI", left + 12, top + 8, 0xFFFFFFFF);
-            g.drawString(font, players.size() + " players", left + 205, top + 8, 0xFF8A9099);
-
-            g.drawString(font, "PLAYERS", left + 12, top + 58, 0xFFB8BEC8);
-            if (detail == null) {
-                g.drawString(font, "Select a player", left + 305, top + 55, 0xFF9AA0AA);
-            } else {
-                renderDetail(g, left + 305, top + 42);
+            if (detail != null) {
+                drawCardBackground(g, left + 313, top + 94, 270, 80);
+                drawCardBackground(g, left + 605, top + 94, 270, 80);
+                drawCardBackground(g, left + 313, top + 182, 270, 62);
+                drawCardBackground(g, left + 605, top + 182, 270, 62);
+                drawCardBackground(g, left + 313, top + 252, 270, 45);
+                drawCardBackground(g, left + 313, top + 298, 562, 145);
             }
 
-            // The dashboard background is drawn over the widgets above, so
-            // render all widgets one final time to keep inputs/buttons sharp.
-            renderWidgetsOnTop(g, mouseX, mouseY, partialTick);
+            super.render(g, mouseX, mouseY, partialTick);
         }
 
-        private void renderWidgetsOnTop(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-            if (search != null && search.visible) {
-                search.render(g, mouseX, mouseY, partialTick);
-            }
-
-            for (Button button : playerButtons) {
-                if (button.visible) button.render(g, mouseX, mouseY, partialTick);
-            }
-
-            if (noteInput != null && noteInput.visible) {
-                noteInput.render(g, mouseX, mouseY, partialTick);
-            }
-
-            if (addNoteButton != null && addNoteButton.visible) {
-                addNoteButton.render(g, mouseX, mouseY, partialTick);
-            }
-
-            for (Button button : noteButtons) {
-                if (button.visible) button.render(g, mouseX, mouseY, partialTick);
-            }
-        }
-
-        private void renderDetail(GuiGraphics g, int x, int y) {
-            String name = text(detail, "name", "Unknown");
-            boolean online = bool(detail, "online");
-
-            g.drawString(font, name, x, y, 0xFFFFFFFF);
-            g.drawString(font, online ? "ONLINE" : "OFFLINE", x + 245, y,
-                    online ? 0xFF55DD77 : 0xFF888E98);
-            g.drawString(font, detail.get("uuid").getAsString(), x, y + 16, 0xFF777E89);
-
-            int cardY = y + 38;
-            drawCard(g, "TSA ANTICHEAT", detail.getAsJsonObject("tsa"), x, cardY, 278, 73);
-            drawCard(g, "AIRPORT SECURITY", detail.getAsJsonObject("ass"), x + 292, cardY, 278, 73);
-
-            cardY += 82;
-            drawCard(g, "FTB TEAM", detail.getAsJsonObject("teams"), x, cardY, 278, 60);
-            drawCard(g, "DISCORD", detail.getAsJsonObject("discord"), x + 292, cardY, 278, 60);
-
-            cardY += 69;
-            drawCard(g, "CLOCK IN", detail.getAsJsonObject("clockin"), x, cardY, 278, 45);
-
-            renderNotes(g, x, y + 260);
-        }
-
-        private void drawCard(GuiGraphics g, String title, JsonObject o, int x, int y, int width, int height) {
+        private void drawCardBackground(GuiGraphics g, int x, int y, int width, int height) {
             g.fill(x, y, x + width, y + height, 0xAA191D24);
             g.fill(x, y, x + width, y + 1, 0xFF3A404A);
-            g.drawString(font, title, x + 8, y + 7, 0xFFD5A84A);
-
-            if (o == null || o.entrySet().isEmpty()) {
-                g.drawString(font, "Not installed / no data", x + 8, y + 25, 0xFF666D78);
-                return;
-            }
-
-            if (title.equals("TSA ANTICHEAT")) {
-                drawWrapped(g,
-                        "Packets: " + num(o, "packetChecks")
-                                + "  PASS: " + num(o, "packetPasses")
-                                + "  Modified: " + num(o, "packetModified")
-                                + "  Timeout: " + num(o, "packetTimeout"),
-                        x + 8, y + 24, width - 16, 13);
-                String last = text(o, "lastPacketStatus", "");
-                if (!last.isBlank()) {
-                    drawWrapped(g, "Last: " + last + " " + text(o, "lastPacketDate", ""),
-                            x + 8, y + 47, width - 16, 13);
-                }
-                return;
-            }
-
-            if (title.equals("AIRPORT SECURITY")) {
-                drawWrapped(g,
-                        "Status: " + text(o, "status", "UNKNOWN")
-                                + "  Checks: " + num(o, "totalChecks")
-                                + "  Detected: " + num(o, "detectedChecks")
-                                + "  Clean: " + num(o, "cleanChecks"),
-                        x + 8, y + 24, width - 16, 13);
-                drawWrapped(g,
-                        "Cleared: " + text(o, "clearedDate", "-")
-                                + "  Categories: " + (o.has("detectionDates")
-                                ? o.getAsJsonObject("detectionDates").entrySet().size() : 0),
-                        x + 8, y + 47, width - 16, 13);
-                return;
-            }
-
-            if (title.equals("FTB TEAM")) {
-                drawWrapped(g,
-                        text(o, "name", "Team") + "  ID: " + text(o, "id", ""),
-                        x + 8, y + 24, width - 16, 13);
-                JsonArray members = o.getAsJsonArray("members");
-                g.drawString(font, "Members: " + (members == null ? 0 : members.size()),
-                        x + 8, y + 43, 0xFF8E96A2);
-                return;
-            }
-
-            if (title.equals("DISCORD")) {
-                drawWrapped(g,
-                        text(o, "displayName", text(o, "discordTag", "Linked")),
-                        x + 8, y + 24, width - 16, 13);
-                drawWrapped(g, "ID: " + text(o, "discordId", ""),
-                        x + 8, y + 43, width - 16, 13);
-                return;
-            }
-
-            g.drawString(font,
-                    (bool(o, "clockedIn") ? "CLOCKED IN" : "CLOCKED OUT"),
-                    x + 8, y + 24, bool(o, "clockedIn") ? 0xFF55DD77 : 0xFF888E98);
-            g.drawString(font,
-                    "Total: " + formatSeconds(num(o, "totalSeconds")),
-                    x + 130, y + 24, 0xFFB8BEC8);
         }
-
-        private void drawWrapped(GuiGraphics g, String value, int x, int y, int maxWidth, int lineHeight) {
-            if (value == null || value.isBlank()) return;
-
-            List<net.minecraft.util.FormattedCharSequence> lines =
-                    font.split(Component.literal(value), maxWidth);
-            int line = 0;
-            for (net.minecraft.util.FormattedCharSequence sequence : lines) {
-                if (line >= 2) break;
-                g.drawString(font, sequence, x, y + line * lineHeight, 0xFFB8BEC8);
-                line++;
-            }
-        }
-
-        private void renderNotes(GuiGraphics g, int x, int y) {
-            int right = x + 570;
-
-            g.fill(x, y, right, y + 145, 0xAA191D24);
-            g.fill(x, y, right, y + 1, 0xFF3A404A);
-            g.drawString(font, "ADMIN NOTES", x + 8, y + 8, 0xFFD5A84A);
-
-            if (detail == null || !detail.has("notes")) {
-                g.drawString(font, "Admin Notes is not installed.", x + 8, y + 28, 0xFF666D78);
-                return;
-            }
-
-            JsonArray notes = detail.getAsJsonArray("notes");
-            int shown = Math.min(notes.size(), 3);
-
-            if (notes.isEmpty()) {
-                g.drawString(font, "No notes for this player.", x + 8, y + 28, 0xFF666D78);
-                return;
-            }
-
-            for (int i = 0; i < shown; i++) {
-                JsonObject n = notes.get(i).getAsJsonObject();
-                int row = y + 26 + i * 44;
-
-                String author = text(n, "author", "");
-                if (author.isBlank()) author = "System";
-
-                String line = text(n, "text", "");
-                g.drawString(font, author, x + 8, row, 0xFF858C97);
-                drawWrapped(g, line, x + 8, row + 13, 425, 13);
-            }
-
-            if (notes.size() > shown) {
-                g.drawString(font, "+" + (notes.size() - shown) + " more notes",
-                        x + 8, y + 138, 0xFF666D78);
-            }
-        }
-
         private static String text(JsonObject o, String k, String fallback) {
             return o != null && o.has(k) ? o.get(k).getAsString() : fallback;
         }
