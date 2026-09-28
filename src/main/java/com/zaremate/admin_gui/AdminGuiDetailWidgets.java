@@ -198,6 +198,23 @@ final class AdminGuiDetailWidgets {
         return o == null || o.entrySet().isEmpty();
     }
 
+    private static String friendly(String value) {
+        if (value == null || value.isBlank()) return "";
+        if (value.startsWith("literal(") || value.contains("contents=")) {
+            int literalStart = value.indexOf("literal(");
+            int end = value.indexOf(')', literalStart + 8);
+            if (literalStart >= 0 && end > literalStart) {
+                String inner = value.substring(literalStart + 8, end);
+                int textStart = inner.indexOf("text=");
+                if (textStart >= 0) {
+                    inner = inner.substring(textStart + 5);
+                }
+                return inner.replaceAll(",\\s*style=.*$", "");
+            }
+        }
+        return value;
+    }
+
     private static String text(JsonObject o, String key, String fallback) {
         return o != null && o.has(key) ? o.get(key).getAsString() : fallback;
     }
