@@ -105,7 +105,7 @@ public final class AdminGuiClient {
             search.setTextColorUneditable(0xFF77776F);
             addRenderableWidget(search);
 
-            noteInput = new EditBox(font, left + 555, top + 456, 245, 20, Component.literal("Note"));
+            noteInput = new EditBox(font, left + 523, top + 456, 250, 20, Component.literal("Note"));
             noteInput.setMaxLength(512);
             noteInput.setBordered(false);
             noteInput.setTextColor(0xFFE5DED0);
@@ -113,7 +113,7 @@ public final class AdminGuiClient {
             addRenderableWidget(noteInput);
 
             addNoteButton = new PlainTextButton(
-                    left + 805, top + 456, 80, 20,
+                    left + 779, top + 456, 84, 20,
                     Component.literal("ADD NOTE").withStyle(s -> s.withColor(0xFFE0B05A)),
                     b -> saveNote(),
                     font
@@ -197,7 +197,7 @@ public final class AdminGuiClient {
             int start = Math.min(noteScroll, Math.max(0, notes.size() - shown));
             int left = (width - WIDTH) / 2;
             int top = (height - HEIGHT) / 2;
-            int x = left + 305;
+            int x = left + 325;
             int y = top + 331 + 28;
 
             for (int i = 0; i < shown; i++) {
@@ -205,11 +205,11 @@ public final class AdminGuiClient {
                 int row = y + i * 36;
                 if (canEditNote(note)) {
                     PlainTextButton edit = new PlainTextButton(
-                            x + 440, row - 1, 45, 18,
+                            x + 415, row - 1, 45, 18,
                             Component.literal("EDIT").withStyle(s -> s.withColor(0xFF5A4028)),
                             b -> editNote(note), font);
                     PlainTextButton remove = new PlainTextButton(
-                            x + 490, row - 1, 20, 18,
+                            x + 465, row - 1, 20, 18,
                             Component.literal("×").withStyle(s -> s.withColor(0xFFC43E32)),
                             b -> removeNote(note), font);
                     edit.setTooltip(Tooltip.create(Component.literal("Edit your note.")));
@@ -465,12 +465,12 @@ public final class AdminGuiClient {
                 );
 
                 if (noteInput != null && noteInput.visible) {
-                    drawBrassFrame(g, left + 552, top + 453, 251, 26);
+                    drawBrassFrame(g, left + 521, top + 453, 254, 26);
                     drawCopperButtonFrame(
                             g,
-                            left + 803,
+                            left + 777,
                             top + 453,
-                            84,
+                            88,
                             26,
                             addNoteButton != null && addNoteButton.isHoveredOrFocused()
                     );
@@ -709,22 +709,26 @@ public final class AdminGuiClient {
                 boolean hovered,
                 int variant
         ) {
-            int note = (Math.floorMod(variant / 36, 2) == 0) ? 0xFFFFE58A : 0xFFF6D778;
-            if (hovered) note = 0xFFFFEDA5;
+            int note = (Math.floorMod(variant / 36, 2) == 0) ? 0xFF9A774F : 0xFF876642;
+            if (hovered) note = 0xFFB18A5B;
 
-            g.fill(x + 4, y + 4, x + width + 3, y + height + 4, 0x42000000);
+            // Darker paper gives the black/cream UI text more contrast and
+            // separates each note from the bright cardboard underneath.
+            g.fill(x + 4, y + 4, x + width + 3, y + height + 4, 0x52000000);
             g.fill(x, y, x + width, y + height, note);
-            g.fill(x, y, x + width, y + 2, 0x48FFFFFF);
-            g.fill(x + 2, y + height - 2, x + width - 6, y + height, 0x22000000);
+            g.fill(x, y, x + width, y + 1, 0x30FFF4D2);
+            g.fill(x + 1, y + height - 2, x + width - 6, y + height, 0x33000000);
 
-            int tapeWidth = Math.min(96, Math.max(56, width / 7));
+            // Small translucent tape strip, kept subtle so it doesn't compete
+            // with the note text or the action buttons.
+            int tapeWidth = Math.min(84, Math.max(52, width / 8));
             int tapeX = x + (width - tapeWidth) / 2;
-            g.fill(tapeX, y - 2, tapeX + tapeWidth, y + 4, 0x32FFF9D8);
-            g.fill(tapeX + 2, y - 1, tapeX + tapeWidth - 2, y + 3, 0x24FFF4B5);
+            g.fill(tapeX, y - 2, tapeX + tapeWidth, y + 3, 0x2AFFF0C2);
+            g.fill(tapeX + 2, y - 1, tapeX + tapeWidth - 2, y + 2, 0x1CFFF8D9);
 
-            int fold = Math.min(14, Math.max(8, height / 5));
-            g.fill(x + width - fold, y + height - fold, x + width, y + height, 0x2A000000);
-            g.fill(x + width - fold, y + height - fold, x + width - 1, y + height - fold + 1, 0x4A000000);
+            int fold = Math.min(12, Math.max(8, height / 5));
+            g.fill(x + width - fold, y + height - fold, x + width, y + height, 0x30000000);
+            g.fill(x + width - fold, y + height - fold, x + width - 1, y + height - fold + 1, 0x52000000);
         }
 
         private List<PlayerRef> filteredPlayers() {
