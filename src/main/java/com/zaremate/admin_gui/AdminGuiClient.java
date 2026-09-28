@@ -153,18 +153,18 @@ public final class AdminGuiClient {
             search.setHint(Component.literal("Search online/offline players..."));
             search.setMaxLength(64);
             search.setBordered(false);
-            search.setTextColor(0xFFE5DED0);
-            search.setTextColorUneditable(0xFF77776F);
+            search.setTextColor(0xFFF4EBDD);
+            search.setTextColorUneditable(0xFFB7AA97);
             addRenderableWidget(search);
 
             noteInput = new EditBox(font, left + 325, top + 490, 254, 26, Component.literal("Note"));
             noteInput.setMaxLength(512);
             noteInput.setBordered(false);
-            noteInput.setTextColor(0xFFE5DED0);
-            noteInput.setTextColorUneditable(0xFF77776F);
+            noteInput.setTextColor(0xFFF1E5D0);
+            noteInput.setTextColorUneditable(0xFFB7AA97);
             addRenderableWidget(noteInput);
 
-            addNoteButton = new PlainTextButton(
+            addNoteButton = new CenteredTextButton(
                     left + 585, top + 490, 84, 26,
                     Component.literal("ADD NOTE").withStyle(s -> s.withColor(0xFF3A291A)),
                     b -> saveNote(),
@@ -202,12 +202,12 @@ public final class AdminGuiClient {
             for (int i = start; i < end; i++) {
                 PlayerRef p = filtered.get(i);
                 int y = top + 70 + (i - start) * 32;
-                int color = p.online() ? 0xFF4F9148 : 0xFF4A4033;
+                int color = p.online() ? 0xFF2F7D35 : 0xFF34281D;
                 Component label = Component.literal((p.online() ? "● " : "○ ") + p.name())
                         .withStyle(s -> s.withColor(color));
 
-                PlainTextButton b = new PlainTextButton(
-                        left + 16, y, 256, 27, label,
+                PlainTextButton b = new CenteredTextButton(
+                        left + 22, y, 256, 27, label,
                         btn -> selectPlayer(p.uuid()),
                         font
                 );
@@ -450,7 +450,7 @@ public final class AdminGuiClient {
             drawExactTexture(g, GUI_BACKGROUND_TEXTURE, left, top, 900, 520);
 
             // Player list component includes the search-box frame and list cavity.
-            drawExactTexture(g, PLAYER_LIST_TEXTURE, left + 4, top + 20, 280, 375);
+            drawExactTexture(g, PLAYER_LIST_TEXTURE, left + 10, top + 20, 280, 375);
 
             // Independent player entries.
             List<PlayerRef> filtered = filteredPlayers();
@@ -461,15 +461,15 @@ public final class AdminGuiClient {
             for (int i = start; i < end; i++) {
                 PlayerRef p = filtered.get(i);
                 int rowY = top + 70 + (i - start) * 32;
-                boolean hovered = logicalX >= left + 16 && logicalX <= left + 272
+                boolean hovered = logicalX >= left + 22 && logicalX <= left + 278
                         && logicalY >= rowY && logicalY <= rowY + 27;
                 boolean selected = p.uuid().equals(selectedUuid);
-                drawPostIt(g, left + 16, rowY, 256, 27, selected, hovered, i);
+                drawPostIt(g, left + 22, rowY, 256, 27, selected, hovered, i);
             }
 
             drawPlayerScrollBar(
                     g,
-                    left + 272,
+                    left + 278,
                     top + 70,
                     290,
                     filtered.size(),
@@ -761,6 +761,33 @@ public final class AdminGuiClient {
         public boolean isPauseScreen() { return false; }
 
         private record PlayerRef(String uuid, String name, boolean online) {}
+    }
+
+    private static final class CenteredTextButton extends PlainTextButton {
+        private CenteredTextButton(
+                int x,
+                int y,
+                int width,
+                int height,
+                Component text,
+                Button.OnPress onPress,
+                Font font
+        ) {
+            super(x, y, width, height, text, onPress, font);
+        }
+
+        @Override
+        public void renderString(GuiGraphics g, Font font, int color) {
+            Component message = getMessage();
+            int textWidth = font.width(message);
+            int textX = getX() + Math.max(0, (getWidth() - textWidth) / 2);
+            int textY = getY() + Math.max(0, (getHeight() - font.lineHeight) / 2);
+
+            // Explicit vertical centering and a subtle shadow for readability
+            // on the textured paper/metal surfaces.
+            g.drawString(font, message, textX + 1, textY + 1, 0x55301F14, false);
+            g.drawString(font, message, textX, textY, color, false);
+        }
     }
 
     private static final class AdminGuiNetworkSelect {
