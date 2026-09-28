@@ -391,25 +391,13 @@ public final class AdminGuiClient {
             g.pose().scale((float) scale, (float) scale, 1.0F);
             g.pose().translate(-centerX, -centerY, 0);
 
-            // User-provided cardboard surface with the supplied clipboard frame.
-            g.fill(left - 3, top - 3, right + 3, bottom + 3, 0xFF5E402A);
-            g.fill(left - 1, top - 1, right + 1, bottom + 1, 0xFF8C5F39);
-            drawCardboardTexture(g, left, top, WIDTH, HEIGHT);
-            g.blit(
-                    CLIPBOARD_FRAME_TEXTURE,
-                    left,
-                    top,
-                    0,
-                    0,
-                    WIDTH,
-                    HEIGHT,
-                    WIDTH,
-                    HEIGHT
-            );
+            // The cardboard is already rendered full-screen. The clipboard
+            // texture is transparent in the center, so only its wooden border
+            // and metal clip/top are drawn over the cardboard.
+            drawClipboardFrame(g, left, top, WIDTH, HEIGHT);
 
             // Player divider.
-            g.fill(left + 280, top + 27, left + 282, bottom, 0xFF6E4B31);
-            g.fill(left + 3, top + 55, left + 276, bottom - 8, 0x1AFFF0D0);
+            g.fill(left + 280, top + 27, left + 282, bottom, 0xFF704B2E);
 
             // Search field.
             drawBrassFrame(g, left + 11, top + 31, 257, 22);
@@ -588,6 +576,26 @@ public final class AdminGuiClient {
             g.fill(trackX, thumbY + thumbHeight - 1, trackX + trackWidth, thumbY + thumbHeight, 0x6A3B2818);
         }
 
+        private void drawClipboardFrame(
+                GuiGraphics g,
+                int x,
+                int y,
+                int width,
+                int height
+        ) {
+            g.blit(
+                    CLIPBOARD_FRAME_TEXTURE,
+                    x,
+                    y,
+                    0,
+                    0,
+                    width,
+                    height,
+                    900,
+                    520
+            );
+        }
+
         private void drawCardboardTexture(GuiGraphics g, int x, int y, int width, int height) {
             for (int yy = y; yy < y + height; yy += 16) {
                 for (int xx = x; xx < x + width; xx += 16) {
@@ -717,9 +725,9 @@ public final class AdminGuiClient {
 
         @Override
         public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-            // Admin GUI intentionally uses a solid background instead of
-            // Minecraft's blurred in-world screen background.
-            g.fill(0, 0, width, height, 0xFF101210);
+            // Tile the supplied cardboard texture across the entire screen.
+            // This keeps the GUI background cardboard even outside the clipboard frame.
+            drawCardboardTexture(g, 0, 0, width, height);
         }
 
         private static String text(JsonObject o, String k, String fallback) {
