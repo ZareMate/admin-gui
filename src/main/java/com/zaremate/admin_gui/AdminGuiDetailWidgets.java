@@ -114,21 +114,58 @@ final class AdminGuiDetailWidgets {
 
     private static void team(List<PlainTextButton> out, JsonObject o, int x, int y, Font font) {
         if (empty(o)) {
-            add(out, x, y, 260, 18, "Not installed / no data", 0xFF666D78, null, null, font);
+            add(out, x, y, 260, 18, "Not installed / no data", 0xFF77776F, null, null, font);
             return;
         }
+
         String name = text(o, "name", "No team");
         String id = text(o, "id", "");
-        add(out, x, y, 260, 18, id.isBlank() ? name : name + "  ID: " + id, 0xFFB8BEC8,
+        add(out, x, y, 260, 18,
+                id.isBlank() ? name : name + "  ID: " + id,
+                0xFFD1C7B7,
                 id.isBlank() ? null : "Click to copy FTB Team ID.",
                 id.isBlank() ? null : () -> copy(id), font);
-        JsonArray members = o.getAsJsonArray("members");
-        String all = members == null ? "" : join(members);
-        add(out, x, y + 19, 260, 18, "Members: " + (members == null ? 0 : members.size()),
-                0xFF8E96A2, all.isBlank() ? null : "Click to copy team member UUIDs.",
-                all.isBlank() ? null : () -> copy(all), font);
-    }
 
+        JsonArray members = o.getAsJsonArray("members");
+        if (members == null || members.isEmpty()) {
+            add(out, x, y + 19, 260, 18, "Members: 0", 0xFF9B978B, null, null, font);
+            return;
+        }
+
+        StringBuilder fullRoster = new StringBuilder();
+        int shown = Math.min(members.size(), 2);
+        for (int i = 0; i < shown; i++) {
+            JsonObject member = members.get(i).getAsJsonObject();
+            String memberName = text(member, "name", text(member, "uuid", "Unknown"));
+            String rank = text(member, "rankDisplay", text(member, "rank", "NONE"));
+            String line = memberName + " — " + rank;
+
+            if (!fullRoster.isEmpty()) fullRoster.append('\n');
+            fullRoster.append(line);
+
+            final String copiedLine = line;
+            add(out, x, y + 19 + i * 19, 260, 18,
+                    line, rank.equalsIgnoreCase("OWNER") ? 0xFFE0A15F : 0xFFD1C7B7,
+                    "Click to copy this member.\n\n" + line,
+                    () -> copy(copiedLine), font);
+        }
+
+        if (members.size() > shown) {
+            String all = fullRoster.toString();
+            for (int i = shown; i < members.size(); i++) {
+                JsonObject member = members.get(i).getAsJsonObject();
+                if (!all.isEmpty()) all += "\n";
+                all += text(member, "name", text(member, "uuid", "Unknown"))
+                        + " — " + text(member, "rankDisplay", text(member, "rank", "NONE"));
+            }
+            final String roster = all;
+            add(out, x, y + 19 + shown * 19, 260, 18,
+                    "+" + (members.size() - shown) + " more members",
+                    0xFF9B978B,
+                    "Click to copy the complete team roster.\n\n" + roster,
+                    () -> copy(roster), font);
+        }
+    }
     private static void discord(List<PlainTextButton> out, JsonObject o, int x, int y, Font font) {
         if (empty(o)) {
             add(out, x, y, 260, 18, "Not installed / no data", 0xFF666D78, null, null, font);
