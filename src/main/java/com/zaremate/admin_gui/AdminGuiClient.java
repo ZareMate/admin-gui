@@ -268,6 +268,7 @@ public final class AdminGuiClient {
 
         @Override
         public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+            // Fully opaque custom background: do not blur the world behind the GUI.
             renderBackground(g, mouseX, mouseY, partialTick);
 
             int left = (width - WIDTH) / 2;
@@ -275,30 +276,56 @@ public final class AdminGuiClient {
             int right = left + WIDTH;
             int bottom = top + HEIGHT;
 
-            // Create-inspired industrial palette:
-            // zinc/andesite body, dark steel panels, brass frame and copper accents.
-            g.fill(0, 0, width, height, 0x55000000);
+            // Create-inspired industrial backdrop.
+            g.fill(0, 0, width, height, 0xFF101210);
 
-            g.fill(left - 3, top - 3, right + 3, bottom + 3, 0xFF5B4630);
-            g.fill(left - 1, top - 1, right + 1, bottom + 1, 0xFF1A1C1C);
-            g.fill(left, top, right, bottom, 0xFF252827);
+            // Subtle horizontal panel bands.
+            for (int y = 0; y < height; y += 24) {
+                g.fill(0, y, width, y + 1, 0xFF171917);
+            }
+
+            // Main brass/steel frame.
+            g.fill(left - 3, top - 3, right + 3, bottom + 3, 0xFF765336);
+            g.fill(left - 1, top - 1, right + 1, bottom + 1, 0xFF0E100F);
+            g.fill(left, top, right, bottom, 0xFF202322);
 
             // Header.
-            g.fill(left, top, right, top + 27, 0xFF1B1D1C);
+            g.fill(left, top, right, top + 27, 0xFF191B1A);
             g.fill(left, top + 25, right, top + 27, 0xFFB2763F);
-            g.fill(left, top + 27, left + 2, bottom, 0xFF6B5845);
 
-            // Vertical divider.
+            // Player panel divider.
             g.fill(left + 280, top + 27, left + 282, bottom, 0xFF8D6946);
 
-            // Search frame.
+            // Search field.
             drawBrassFrame(g, left + 11, top + 31, 257, 22);
-            g.fill(left + 13, top + 33, left + 266, top + 51, 0xFF111313);
+            g.fill(left + 13, top + 33, left + 266, top + 51, 0xFF0B0D0C);
 
-            // Player list rows.
-            drawPlayerRows(g, left, top, mouseX, mouseY, filteredPlayers());
+            // Player row plates behind the real widgets.
+            List<PlayerRef> filtered = filteredPlayers();
+            int start = Math.min(playerScroll, Math.max(0, filtered.size() - 1));
+            int end = Math.min(filtered.size(), start + 14);
 
-            // Detail card frames.
+            for (int i = start; i < end; i++) {
+                PlayerRef p = filtered.get(i);
+                int rowY = top + 62 + (i - start) * 29;
+                boolean hovered = mouseX >= left + 12 && mouseX <= left + 267
+                        && mouseY >= rowY && mouseY <= rowY + 25;
+                boolean selected = p.uuid().equals(selectedUuid);
+
+                int plate = selected ? 0xFF4B3B29
+                        : hovered ? 0xFF30332F
+                        : 0xFF242725;
+
+                g.fill(left + 12, rowY, left + 267, rowY + 25, plate);
+                g.fill(left + 12, rowY + 24, left + 267, rowY + 25,
+                        selected || hovered ? 0xFFC1844B : 0xFF454844);
+
+                if (selected) {
+                    g.fill(left + 12, rowY, left + 15, rowY + 25, 0xFFE0A15F);
+                }
+            }
+
+            // Detail panels.
             if (detail != null) {
                 drawCreateCard(g, left + 313, top + 94, 270, 80);
                 drawCreateCard(g, left + 605, top + 94, 270, 80);
@@ -307,69 +334,85 @@ public final class AdminGuiClient {
                 drawCreateCard(g, left + 313, top + 252, 270, 45);
                 drawCreateCard(g, left + 313, top + 298, 562, 145);
 
-                // Note editor frame.
                 if (noteInput != null && noteInput.visible) {
                     drawBrassFrame(g, left + 552, top + 453, 251, 26);
-                    drawCopperButtonFrame(g, left + 803, top + 453, 84, 26,
-                            addNoteButton != null && addNoteButton.isHoveredOrFocused());
+                    drawCopperButtonFrame(
+                            g,
+                            left + 803,
+                            top + 453,
+                            84,
+                            26,
+                            addNoteButton != null && addNoteButton.isHoveredOrFocused()
+                    );
                 }
             }
 
-            super.render(g, mouseX, mouseY, partialTick);
+            // Render the actual interactive widgets last.
+            renderWidgetIfVisible(g, search, mouseX, mouseY, partialTick);
+            for (PlainTextButton button : playerButtons) {
+                renderWidgetIfVisible(g, button, mouseX, mouseY, partialTick);
+            }
+            for (PlainTextButton widget : infoWidgets) {
+                renderWidgetIfVisible(g, widget, mouseX, mouseY, partialTick);
+            }
+            for (PlainTextButton button : noteButtons) {
+                renderWidgetIfVisible(g, button, mouseX, mouseY, partialTick);
+            }
+            renderWidgetIfVisible(g, noteInput, mouseX, mouseY, partialTick);
+            renderWidgetIfVisible(g, addNoteButton, mouseX, mouseY, partialTick);
+        }
+
+        private void renderWidgetIfVisible(
+                GuiGraphics g,
+                net.minecraft.client.gui.components.AbstractWidget widget,
+                int mouseX,
+                int mouseY,
+                float partialTick
+        ) {
+            if (widget != null && widget.visible) {
+                widget.render(g, mouseX, mouseY, partialTick);
+            }
         }
 
         private List<PlayerRef> filteredPlayers() {
-            if (search == null) return players;
+            if (search == null) {
+                return players;
+            }
+
             String query = search.getValue().trim().toLowerCase(Locale.ROOT);
             return players.stream()
-                    .filter(p -> query.isEmpty() || p.name().toLowerCase(Locale.ROOT).contains(query))
+                    .filter(p -> query.isEmpty()
+                            || p.name().toLowerCase(Locale.ROOT).contains(query))
                     .toList();
         }
 
-        private void drawPlayerRows(GuiGraphics g, int left, int top, int mouseX, int mouseY, List<PlayerRef> filtered) {
-            int start = Math.min(playerScroll, Math.max(0, filtered.size() - 1));
-            int end = Math.min(filtered.size(), start + 14);
-
-            for (int i = start; i < end; i++) {
-                PlayerRef p = filtered.get(i);
-                int y = top + 62 + (i - start) * 29;
-                boolean hovered = mouseX >= left + 12 && mouseX <= left + 267
-                        && mouseY >= y && mouseY <= y + 25;
-                boolean selected = p.uuid().equals(selectedUuid);
-
-                int fill = selected ? 0xFF50412E : hovered ? 0xFF343936 : 0xFF2A2D2C;
-                g.fill(left + 12, y, left + 267, y + 25, fill);
-
-                if (selected) {
-                    g.fill(left + 12, y, left + 14, y + 25, 0xFFD08A4B);
-                }
-                g.fill(left + 12, y + 24, left + 267, y + 25,
-                        hovered || selected ? 0xFFB2763F : 0xFF4A4D49);
-            }
-        }
-
         private void drawCreateCard(GuiGraphics g, int x, int y, int width, int height) {
-            g.fill(x, y, x + width, y + height, 0xFF202322);
+            g.fill(x, y, x + width, y + height, 0xFF1B1E1D);
             g.fill(x, y, x + width, y + 1, 0xFFB2763F);
-            g.fill(x, y + 1, x + 1, y + height, 0xFF5E4937);
-            g.fill(x + width - 1, y + 1, x + width, y + height, 0xFF5E4937);
-
-            // Tiny rivets.
+            g.fill(x, y + 1, x + 1, y + height, 0xFF574534);
+            g.fill(x + width - 1, y + 1, x + width, y + height, 0xFF574534);
             drawRivet(g, x + 4, y + 4);
             drawRivet(g, x + width - 7, y + 4);
         }
 
         private void drawBrassFrame(GuiGraphics g, int x, int y, int width, int height) {
-            g.fill(x, y, x + width, y + 1, 0xFFB2763F);
-            g.fill(x, y + height - 1, x + width, y + height, 0xFF6B4C34);
+            g.fill(x, y, x + width, y + 1, 0xFFC1844B);
+            g.fill(x, y + height - 1, x + width, y + height, 0xFF65472F);
             g.fill(x, y, x + 1, y + height, 0xFF8D6946);
             g.fill(x + width - 1, y, x + width, y + height, 0xFF8D6946);
         }
 
-        private void drawCopperButtonFrame(GuiGraphics g, int x, int y, int width, int height, boolean hovered) {
-            int edge = hovered ? 0xFFE0A15F : 0xFFB2763F;
+        private void drawCopperButtonFrame(
+                GuiGraphics g,
+                int x,
+                int y,
+                int width,
+                int height,
+                boolean hovered
+        ) {
+            int edge = hovered ? 0xFFE3A866 : 0xFFB2763F;
             g.fill(x, y, x + width, y + 1, edge);
-            g.fill(x, y + height - 1, x + width, y + height, 0xFF6B4C34);
+            g.fill(x, y + height - 1, x + width, y + height, 0xFF65472F);
             g.fill(x, y, x + 1, y + height, 0xFF8D6946);
             g.fill(x + width - 1, y, x + width, y + height, 0xFF8D6946);
         }
@@ -377,6 +420,13 @@ public final class AdminGuiClient {
         private void drawRivet(GuiGraphics g, int x, int y) {
             g.fill(x, y, x + 3, y + 3, 0xFF9A9B91);
             g.fill(x + 1, y + 1, x + 2, y + 2, 0xFF4D4F4C);
+        }
+
+        @Override
+        public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+            // Admin GUI intentionally uses a solid background instead of
+            // Minecraft's blurred in-world screen background.
+            g.fill(0, 0, width, height, 0xFF101210);
         }
 
         private static String text(JsonObject o, String k, String fallback) {
