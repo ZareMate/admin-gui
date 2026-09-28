@@ -448,7 +448,7 @@ public final class AdminGuiClient {
                 float partialTick
         ) {
             if (widget != null && widget.visible) {
-                widget.render(g, mouseX, mouseY, partialTick);
+                widget.render(g, (int) Math.round(mouseX), (int) Math.round(mouseY), partialTick);
             }
         }
 
