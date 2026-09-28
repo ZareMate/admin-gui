@@ -10,7 +10,7 @@ import net.minecraft.client.gui.components.PlainTextButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 
@@ -50,6 +50,8 @@ public final class AdminGuiClient {
         private static final int HEIGHT = 520;
         private static final int MIN_MARGIN = 12;
         private static final double MAX_SCALE = 2.0;
+        private static final ResourceLocation CARDBOARD_TEXTURE =
+                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/cardboard.png");
 
         public AdminGuiScreen(String data) {
             super(Component.literal("Admin GUI"));
@@ -354,10 +356,10 @@ public final class AdminGuiClient {
             g.pose().scale((float) scale, (float) scale, 1.0F);
             g.pose().translate(-centerX, -centerY, 0);
 
-            // Create-inspired kraft/cardboard surface.
-            g.fill(left - 3, top - 3, right + 3, bottom + 3, 0xFF6A482D);
-            g.fill(left - 1, top - 1, right + 1, bottom + 1, 0xFF8D603C);
-            drawCardboard(g, left, top, WIDTH, HEIGHT);
+            // User-provided 16x16 cardboard texture, tiled at native pixel scale.
+            g.fill(left - 3, top - 3, right + 3, bottom + 3, 0xFF5E402A);
+            g.fill(left - 1, top - 1, right + 1, bottom + 1, 0xFF8C5F39);
+            drawCardboardTexture(g, left, top, WIDTH, HEIGHT);
 
             // Header.
             g.fill(left, top, right, top + 27, 0xFF30251C);
@@ -427,21 +429,34 @@ public final class AdminGuiClient {
             }
 
             for (PlainTextButton widget : infoWidgets) {
-                if (widget.visible && widget.getY() >= top + 90 && widget.getWidth() <= 260) {
+                if (widget.visible && widget.getY() >= top + 90) {
                     boolean hovered = logicalMouseX >= widget.getX()
                             && logicalMouseX <= widget.getX() + widget.getWidth()
                             && logicalMouseY >= widget.getY()
                             && logicalMouseY <= widget.getY() + widget.getHeight();
-                    drawPostIt(
-                            g,
-                            widget.getX(),
-                            widget.getY(),
-                            widget.getWidth(),
-                            widget.getHeight(),
-                            false,
-                            hovered,
-                            widget.getY()
-                    );
+
+                    if (widget.getWidth() <= 260) {
+                        drawPostIt(
+                                g,
+                                widget.getX(),
+                                widget.getY(),
+                                widget.getWidth(),
+                                widget.getHeight(),
+                                false,
+                                hovered,
+                                widget.getY()
+                        );
+                    } else if (widget.getY() >= top + 350 && widget.getWidth() >= 400) {
+                        drawAdminNote(
+                                g,
+                                widget.getX(),
+                                widget.getY(),
+                                widget.getWidth(),
+                                widget.getHeight(),
+                                hovered,
+                                widget.getY()
+                        );
+                    }
                 }
                 renderWidgetIfVisible(g, widget, logicalMouseX, logicalMouseY, partialTick);
             }
@@ -480,54 +495,24 @@ public final class AdminGuiClient {
                     .toList();
         }
 
-        private void drawCardboard(GuiGraphics g, int x, int y, int width, int height) {
-            g.fill(x, y, x + width, y + height, 0xFFB77A45);
-
-            // Deterministic low-frequency fibers/grain. It is deliberately
-            // sparse so the texture stays cheap to render every frame.
-            for (int yy = y; yy < y + height; yy += 8) {
-                for (int xx = x; xx < x + width; xx += 12) {
-                    int seed = grainSeed(xx, yy);
-                    int fiber = 0x22000000 | (0x18 + (seed & 0x10)) << 24;
-                    int shade = switch ((seed >>> 8) & 3) {
-                        case 0 -> 0x182C180A;
-                        case 1 -> 0x181F1208;
-                        case 2 -> 0x141C1007;
-                        default -> 0x10160D06;
-                    };
-
-                    int w = 2 + ((seed >>> 12) & 3);
-                    int h = 1 + ((seed >>> 14) & 1);
-                    g.fill(xx + 1, yy + 2, Math.min(xx + 1 + w, x + width), Math.min(yy + 2 + h, y + height), shade);
-
-                    if ((seed & 7) == 0) {
-                        g.fill(
-                                Math.min(xx + 5, x + width - 1),
-                                yy + 5,
-                                Math.min(xx + 8, x + width),
-                                Math.min(yy + 6, y + height),
-                                fiber
-                        );
-                    }
+        private void drawCardboardTexture(GuiGraphics g, int x, int y, int width, int height) {
+            for (int yy = y; yy < y + height; yy += 16) {
+                for (int xx = x; xx < x + width; xx += 16) {
+                    int drawWidth = Math.min(16, x + width - xx);
+                    int drawHeight = Math.min(16, y + height - yy);
+                    g.blit(
+                            CARDBOARD_TEXTURE,
+                            xx,
+                            yy,
+                            0,
+                            0,
+                            drawWidth,
+                            drawHeight,
+                            16,
+                            16
+                    );
                 }
             }
-
-            // Broad paper fibers add the recognizable kraft-cardboard look.
-            for (int yy = y + 3; yy < y + height; yy += 27) {
-                g.fill(x, yy, x + width, Math.min(yy + 1, y + height), 0x141F1208);
-            }
-
-            for (int xx = x + 9; xx < x + width; xx += 41) {
-                g.fill(xx, y, Math.min(xx + 1, x + width), y + height, 0x0DFFF0D0);
-            }
-        }
-
-        private int grainSeed(int x, int y) {
-            int v = x * 0x45d9f3b + y * 0x119de1f3;
-            v ^= v >>> 16;
-            v *= 0x45d9f3b;
-            v ^= v >>> 16;
-            return v;
         }
 
         private void drawPostIt(
@@ -540,34 +525,65 @@ public final class AdminGuiClient {
                 boolean hovered,
                 int variant
         ) {
-            int palette = Math.floorMod(variant, 5);
+            int palette = Math.floorMod(variant / 29, 4);
             int note = switch (palette) {
-                case 0 -> 0xFFF2D978;
-                case 1 -> 0xFFE9CF72;
-                case 2 -> 0xFFF0D88E;
-                case 3 -> 0xFFE6CA69;
-                default -> 0xFFF1D47B;
+                case 0 -> 0xFFF5DE79;
+                case 1 -> 0xFFEFD57B;
+                case 2 -> 0xFFF2DCA0;
+                default -> 0xFFE9CC6D;
             };
 
-            if (hovered) {
-                note = 0xFFF7E49A;
-            }
-            if (selected) {
-                note = 0xFFFFE99B;
-            }
+            if (hovered) note = 0xFFFFE99E;
+            if (selected) note = 0xFFFFEB9E;
 
-            // Soft paper shadow.
-            g.fill(x + 2, y + 2, x + width + 2, y + height + 3, 0x30000000);
+            // Paper shadow and lifted edge.
+            g.fill(x + 2, y + 2, x + width + 2, y + height + 3, 0x38000000);
+            g.fill(x, y, x + width, y + height, note);
+            g.fill(x, y, x + width, y + 1, 0x28FFFFFF);
+            g.fill(x, y + height - 1, x + width, y + height, 0x22000000);
+            g.fill(x + width - 1, y + 2, x + width, y + height, 0x18000000);
+
+            // Small curled lower-right corner.
+            int fold = Math.min(8, Math.max(4, height / 3));
+            g.fill(x + width - fold, y + height - fold, x + width, y + height, 0x26000000);
+            g.fill(x + width - fold, y + height - fold, x + width - 1, y + height - fold + 1, 0x45000000);
+
+            // Tiny paper grain.
+            if (height >= 18) {
+                g.fill(x + 5, y + height - 4, x + Math.min(width - 6, 22), y + height - 3, 0x12000000);
+            }
+        }
+
+        private void drawAdminNote(
+                GuiGraphics g,
+                int x,
+                int y,
+                int width,
+                int height,
+                boolean hovered,
+                int variant
+        ) {
+            int note = (Math.floorMod(variant / 36, 2) == 0) ? 0xFFFFE58A : 0xFFF7D97A;
+            if (hovered) note = 0xFFFFEDA5;
+
+            // Larger offset shadow.
+            g.fill(x + 3, y + 3, x + width + 3, y + height + 4, 0x3E000000);
             g.fill(x, y, x + width, y + height, note);
 
-            // Slightly darker lower/side edges make it read as a loose paper note.
-            g.fill(x, y + height - 1, x + width - 3, y + height, 0x24000000);
-            g.fill(x + width - 1, y + 3, x + width, y + height, 0x18000000);
+            // Top highlight and warm bottom edge.
+            g.fill(x, y, x + width, y + 2, 0x42FFFFFF);
+            g.fill(x, y + height - 2, x + width - 4, y + height, 0x20000000);
 
-            // Folded lower-right corner.
-            int fold = Math.min(7, Math.max(4, height / 3));
-            g.fill(x + width - fold, y + height - fold, x + width, y + height, 0x30000000);
-            g.fill(x + width - fold, y + height - fold, x + width - 1, y + height - fold + 1, 0x50000000);
+            // A strip of translucent tape across the top makes it read as a posted note.
+            int tapeWidth = Math.min(92, Math.max(54, width / 7));
+            int tapeX = x + (width - tapeWidth) / 2;
+            g.fill(tapeX, y - 2, tapeX + tapeWidth, y + 4, 0x35FFF7CF);
+            g.fill(tapeX + 2, y - 1, tapeX + tapeWidth - 2, y + 3, 0x22FFF4B0);
+
+            // Folded corner.
+            int fold = Math.min(13, Math.max(8, height / 5));
+            g.fill(x + width - fold, y + height - fold, x + width, y + height, 0x28000000);
+            g.fill(x + width - fold, y + height - fold, x + width - 1, y + height - fold + 1, 0x4A000000);
         }
 
         private void drawCreateCard(GuiGraphics g, int x, int y, int width, int height) {
