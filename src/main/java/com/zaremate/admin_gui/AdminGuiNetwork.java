@@ -55,19 +55,33 @@ public final class AdminGuiNetwork {
                 AdminGuiClientBridge.detail(payload.data()));
         registrar.playToServer(SELECT_TYPE, SELECT_CODEC, (payload, context) ->
                 context.enqueueWork(() -> {
-                    if (context.player() instanceof ServerPlayer player && player.hasPermissions(3)) {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.hasPermissions(3)
+                            && clientHasAdminGui(player)) {
                         sendDetail(player, parseUuid(payload.uuid()));
                     }
                 }));
         registrar.playToServer(NOTE_ACTION_TYPE, NOTE_ACTION_CODEC, (payload, context) ->
                 context.enqueueWork(() -> {
-                    if (context.player() instanceof ServerPlayer player && player.hasPermissions(3)) {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.hasPermissions(3)
+                            && clientHasAdminGui(player)) {
                         handleNoteAction(player, payload);
                     }
                 }));
     }
 
+    public static boolean clientHasAdminGui(ServerPlayer player) {
+        return player != null && player.connection.hasChannel(OPEN_TYPE.id());
+    }
+
     public static void open(ServerPlayer player) {
+        if (!clientHasAdminGui(player)) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    "Admin GUI: You need the admin_gui client mod installed to open this interface."));
+            return;
+        }
+
         String list = AdminGuiData.buildPlayerList(player.server);
         PacketDistributor.sendToPlayer(player, new OpenPayload(list));
     }
