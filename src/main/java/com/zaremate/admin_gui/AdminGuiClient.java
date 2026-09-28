@@ -7,6 +7,8 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.PlainTextButton;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -36,6 +38,7 @@ public final class AdminGuiClient {
         private final List<PlayerRef> players = new ArrayList<>();
         private final List<Button> playerButtons = new ArrayList<>();
         private final List<Button> noteButtons = new ArrayList<>();
+        private final List<PlainTextButton> infoWidgets = new ArrayList<>();
         private String selectedUuid;
         private JsonObject detail;
         private EditBox search;
