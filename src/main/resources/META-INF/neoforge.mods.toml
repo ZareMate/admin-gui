@@ -1,64 +1,64 @@
 modLoader="javafml"
-loaderVersion="\loader_version_range"
-license="\mod_license"
+loaderVersion="[1,)"
+license="MIT"
 
 [[mods]]
-modId="\mod_id"
-version="\mod_version"
-displayName="\mod_name"
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
 authors="ZareMate"
 description='''Server-side administration dashboard for player records, notes, anti-cheat/security integrations, teams, Discord links and optional ClockIn data.'''
 
-[[dependencies.\mod_id]]
+[[dependencies.${mod_id}]]
 modId="neoforge"
 type="required"
-versionRange="[\neo_version,)"
+versionRange="[${neo_version},)"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.\mod_id]]
+[[dependencies.${mod_id}]]
 modId="minecraft"
 type="required"
-versionRange="\minecraft_version_range"
+versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.\mod_id]]
+[[dependencies.${mod_id}]]
 modId="tsa_anticheat"
 type="optional"
 versionRange="[1,)"
 ordering="AFTER"
 side="SERVER"
 
-[[dependencies.\mod_id]]
+[[dependencies.${mod_id}]]
 modId="airport_security_system"
 type="optional"
 versionRange="[1,)"
 ordering="AFTER"
 side="SERVER"
 
-[[dependencies.\mod_id]]
+[[dependencies.${mod_id}]]
 modId="admin_notes"
 type="optional"
 versionRange="[2,)"
 ordering="AFTER"
 side="SERVER"
 
-[[dependencies.\mod_id]]
+[[dependencies.${mod_id}]]
 modId="ftb_teams_util"
 type="optional"
 versionRange="[1,)"
 ordering="AFTER"
 side="SERVER"
 
-[[dependencies.\mod_id]]
+[[dependencies.${mod_id}]]
 modId="discordlink"
 type="optional"
 versionRange="[1,)"
 ordering="AFTER"
 side="SERVER"
 
-[[dependencies.\mod_id]]
+[[dependencies.${mod_id}]]
 modId="clockin"
 type="optional"
 versionRange="[1,)"
