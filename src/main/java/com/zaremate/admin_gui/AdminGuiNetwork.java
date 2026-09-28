@@ -55,13 +55,13 @@ public final class AdminGuiNetwork {
                 AdminGuiClientBridge.detail(payload.data()));
         registrar.playToServer(SELECT_TYPE, SELECT_CODEC, (payload, context) ->
                 context.enqueueWork(() -> {
-                    if (context.player() instanceof ServerPlayer player && player.hasPermission(3)) {
+                    if (context.player() instanceof ServerPlayer player && player.hasPermissions(3)) {
                         sendDetail(player, parseUuid(payload.uuid()));
                     }
                 }));
         registrar.playToServer(NOTE_ACTION_TYPE, NOTE_ACTION_CODEC, (payload, context) ->
                 context.enqueueWork(() -> {
-                    if (context.player() instanceof ServerPlayer player && player.hasPermission(3)) {
+                    if (context.player() instanceof ServerPlayer player && player.hasPermissions(3)) {
                         handleNoteAction(player, payload);
                     }
                 }));
