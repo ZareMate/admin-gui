@@ -234,21 +234,44 @@ public final class AdminGuiClient {
 
         private void rebuildInfoWidgets() {
             for (PlainTextButton widget : infoWidgets) {
-                removeWidget(widget);
+                if (widget.visible && widget.getY() >= top + 90) {
+                    boolean hovered = logicalMouseX >= widget.getX()
+                            && logicalMouseX <= widget.getX() + widget.getWidth()
+                            && logicalMouseY >= widget.getY()
+                            && logicalMouseY <= widget.getY() + widget.getHeight();
+
+                    // Headers already live inside their full widget background.
+                    boolean widgetHeader = widget.getY() == top + 101
+                            || widget.getY() == top + 197
+                            || widget.getY() == top + 285
+                            || widget.getY() == top + 344;
+
+                    if (!widgetHeader && widget.getWidth() == 405) {
+                        drawExactTexture(
+                                g,
+                                hovered ? NOTE_ENTRY_HOVER_TEXTURE : NOTE_ENTRY_TEXTURE,
+                                widget.getX(),
+                                widget.getY(),
+                                405,
+                                26,
+                                405,
+                                26
+                        );
+                    } else if (!widgetHeader && widget.getWidth() <= 260) {
+                        drawExactTexture(
+                                g,
+                                WIDGET_ENTRY_TEXTURE,
+                                widget.getX(),
+                                widget.getY(),
+                                Math.min(widget.getWidth(), 254),
+                                widget.getHeight(),
+                                254,
+                                18
+                        );
+                    }
+                }
+                renderWidgetIfVisible(g, widget, logicalMouseX, logicalMouseY, partialTick);
             }
-            infoWidgets.clear();
-            AdminGuiDetailWidgets.build(
-                    detail,
-                    players.size(),
-                    (width - WIDTH) / 2,
-                    (height - HEIGHT) / 2,
-                    font,
-                    noteScroll
-            )
-                    .forEach(widget -> {
-                        infoWidgets.add(widget);
-                        addRenderableWidget(widget);
-                    });
 
             for (PlainTextButton button : noteButtons) {
                 removeWidget(button);
@@ -267,7 +290,7 @@ public final class AdminGuiClient {
             int left = (width - WIDTH) / 2;
             int top = (height - HEIGHT) / 2;
             int x = left + 325;
-            int y = top + 331 + 28;
+            int y = top + 331 + 50;
 
             for (int i = 0; i < shown; i++) {
                 JsonObject note = notes.get(start + i).getAsJsonObject();
@@ -471,8 +494,9 @@ public final class AdminGuiClient {
 
             // Player rows.
             List<PlayerRef> filtered = filteredPlayers();
-            int start = Math.min(playerScroll, Math.max(0, filtered.size() - 1));
-            int end = Math.min(filtered.size(), start + 14);
+            final int visiblePlayers = 10;
+            int start = Math.min(playerScroll, Math.max(0, filtered.size() - visiblePlayers));
+            int end = Math.min(filtered.size(), start + visiblePlayers);
 
             for (int i = start; i < end; i++) {
                 PlayerRef p = filtered.get(i);
@@ -521,11 +545,13 @@ public final class AdminGuiClient {
                 drawScrollBar(
                         g,
                         left + 862,
-                        top + 359,
+                        top + 379,
                         78,
                         noteCount,
                         3,
-                        noteScroll
+                        noteScroll,
+                        logicalMouseX,
+                        logicalMouseY
                 );
 
                 if (noteInput != null && noteInput.visible) {
@@ -638,16 +664,6 @@ public final class AdminGuiClient {
             return Minecraft.getInstance().player != null
                     && Minecraft.getInstance().player.getUUID().toString()
                     .equalsIgnoreCase(note.get("authorUuid").getAsString());
-        }
-
-        private void drawCardboardTextureScaled2x(
-                GuiGraphics g,
-                int x,
-                int y,
-                int width,
-                int height
-        ) {
-            drawExactTexture(g, GUI_BACKGROUND_TEXTURE, x, y, width, height, 900, 520);
         }
 
         private void drawPostIt(
@@ -847,10 +863,6 @@ public final class AdminGuiClient {
                     size - slice, size - slice, slice, slice, size, size);
         }
 
-        private void drawBrassFrame(GuiGraphics g, int x, int y, int width, int height) {
-            drawTexturePanel(g, INPUT_TEXTURE, x, y, width, height);
-        }
-
         private void drawCopperButtonFrame(
                 GuiGraphics g,
                 int x,
@@ -859,13 +871,10 @@ public final class AdminGuiClient {
                 int height,
                 boolean hovered
         ) {
-            drawTexturePanel(
+            drawExactTexture(
                     g,
                     hovered ? BUTTON_HOVER_TEXTURE : BUTTON_TEXTURE,
-                    x,
-                    y,
-                    width,
-                    height
+                    x, y, width, height, 32, 32
             );
         }
 
