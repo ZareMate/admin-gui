@@ -55,6 +55,7 @@ public final class AdminGuiData {
 
         root.add("tsa", tsa(uuid));
         root.add("ass", ass(uuid));
+        root.addProperty("notesAvailable", classAvailable("com.zaremate.admin_notes.AdminNotesAPI"));
         root.add("notes", notes(uuid));
         root.add("teams", teams(uuid));
         root.add("discord", discord(uuid));
@@ -65,6 +66,17 @@ public final class AdminGuiData {
 
     private static Map<UUID, String> collectPlayers(MinecraftServer server) {
         Map<UUID, String> result = new LinkedHashMap<>();
+        try {
+            for (Object info : server.getProfileCache().load()) {
+                Object profile = info.getClass().getMethod("getProfile").invoke(info);
+                if (profile != null) {
+                    UUID id = (UUID) profile.getClass().getMethod("getId").invoke(profile);
+                    String name = String.valueOf(profile.getClass().getMethod("getName").invoke(profile));
+                    if (id != null && name != null && !name.isBlank()) result.putIfAbsent(id, name);
+                }
+            }
+        } catch (Throwable ignored) {}
+
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
             result.put(p.getUUID(), p.getGameProfile().getName());
         }
@@ -72,10 +84,10 @@ public final class AdminGuiData {
         for (UUID u : reflectedUuids("com.zaremate.admin_notes.AdminNotesAPI", "getPlayers")) {
             result.putIfAbsent(u, resolveName(server, u));
         }
-        for (UUID u : reflectedUuids("com.zaremate.airport_security_system.AirportSecuritySystemAPI", "getPlayerOffenses")) {
+        for (UUID u : recordUuids("com.zaremate.airport_security_system.AirportSecuritySystemAPI", "getPlayerOffenses", "playerUuid")) {
             result.putIfAbsent(u, resolveName(server, u));
         }
-        for (UUID u : reflectedUuids("com.zaremate.tsa_anticheat.api.TsaAnticheatAPI", "getPlayers")) {
+        for (UUID u : recordUuids("com.zaremate.tsa_anticheat.api.TsaAnticheatAPI", "getPlayers", "playerUuid")) {
             result.putIfAbsent(u, resolveName(server, u));
         }
         for (UUID u : clockinPlayers()) {
@@ -153,6 +165,10 @@ public final class AdminGuiData {
             o.addProperty("available", true);
         } catch (Throwable ignored) {}
         return o;
+    }
+
+    private static boolean classAvailable(String name) {
+        try { Class.forName(name); return true; } catch (Throwable ignored) { return false; }
     }
 
     private static JsonArray notes(UUID uuid) {
@@ -256,8 +272,26 @@ public final class AdminGuiData {
         try {
             Class<?> c = Class.forName(className);
             Object value = c.getMethod(methodName).invoke(null);
-            if (value instanceof Iterable<?> it) for (Object x : it) if (x instanceof UUID u) result.add(u);
-            else if (value instanceof Map<?, ?> m) for (Object x : m.keySet()) if (x instanceof UUID u) result.add(u);
+            if (value instanceof Iterable<?> it) {
+                for (Object x : it) if (x instanceof UUID u) result.add(u);
+            } else if (value instanceof Map<?, ?> m) {
+                for (Object x : m.keySet()) if (x instanceof UUID u) result.add(u);
+            }
+        } catch (Throwable ignored) {}
+        return result;
+    }
+
+    private static Set<UUID> recordUuids(String className, String methodName, String accessor) {
+        Set<UUID> result = new HashSet<>();
+        try {
+            Class<?> c = Class.forName(className);
+            Object value = c.getMethod(methodName).invoke(null);
+            if (value instanceof Iterable<?> it) {
+                for (Object x : it) {
+                    Object v = recordAccessor(x, accessor);
+                    if (v instanceof UUID u) result.add(u);
+                }
+            }
         } catch (Throwable ignored) {}
         return result;
     }
