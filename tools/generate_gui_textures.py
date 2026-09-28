@@ -63,12 +63,12 @@ assets = {
 for name, image in assets.items():
     image.save(OUT / name)
 
-bar = Image.new("RGBA", (8, 16), (0, 0, 0, 0))
+bar = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
 d = ImageDraw.Draw(bar)
-d.rectangle([1, 0, 6, 15], fill=(83, 56, 33, 220))
-d.line([(1, 0), (6, 0)], fill=(216, 151, 75, 255))
-d.line([(1, 1), (6, 1)], fill=(165, 104, 47, 220))
-d.line([(1, 14), (6, 14)], fill=(48, 30, 18, 255))
+d.rectangle([5, 0, 10, 15], fill=(83, 56, 33, 220))
+d.line([(5, 0), (10, 0)], fill=(216, 151, 75, 255))
+d.line([(5, 1), (10, 1)], fill=(165, 104, 47, 220))
+d.line([(5, 14), (10, 14)], fill=(48, 30, 18, 255))
 bar.save(OUT / "scrollbar.png")
 
 print(f"Generated {len(assets) + 1} GUI textures in {OUT}")
