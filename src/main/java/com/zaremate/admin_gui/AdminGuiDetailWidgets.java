@@ -30,13 +30,13 @@ final class AdminGuiDetailWidgets {
         List<PlainTextButton> result = new ArrayList<>();
         int x = left + 305;
 
-        add(result, x, top + 8, 150, 18, "ADMINISTRATION", 0xFFE5DED0, null, null, font);
+        add(result, x, top + 8, 150, 18, "ADMINISTRATION", 0xFFF2D7A0, null, null, font);
         add(result, left + 205, top + 8, 80, 18,
-                playerCount + " players", 0xFF99958A, null, null, font);
-        add(result, left + 12, top + 58, 180, 18, "PLAYERS", 0xFFD1C7B7, null, null, font);
+                playerCount + " players", 0xFFE7DDC9, null, null, font);
+        add(result, left + 16, top + 62, 180, 18, "PLAYERS", 0xFF3A291A, null, null, font);
 
         if (detail == null) {
-            add(result, x, top + 55, 260, 18, "Select a player", 0xFFA9A49A, null, null, font);
+            add(result, x, top + 55, 260, 18, "Select a player", 0xFF5A4630, null, null, font);
             return result;
         }
 
@@ -44,14 +44,14 @@ final class AdminGuiDetailWidgets {
         String uuid = text(detail, "uuid", "");
         boolean online = bool(detail, "online");
 
-        add(result, x, top + 38, 390, 18, name, 0xFFFFFFFF,
+        add(result, x, top + 38, 390, 18, name, 0xFFF3E7D0,
                 "Click to copy player name.", () -> copy(name), font);
         String uuidDisplay = fit("UUID: " + uuid, 500, font);
-        add(result, x, top + 58, 540, 18, uuidDisplay, 0xFF9AA0AA,
+        add(result, x, top + 58, 540, 18, uuidDisplay, 0xFF554839,
                 "Click to copy player UUID.\n\n" + uuid, () -> copy(uuid), font);
         add(result, x + 430, top + 38, 130, 18,
                 online ? "● ONLINE" : "○ OFFLINE",
-                online ? 0xFF79B85F : 0xFF8F8E84, null, null, font);
+                online ? 0xFF5C9E52 : 0xFF6A5C4C, null, null, font);
 
         int cardY = top + 94;
         int tsaX = x + 8 + CARD_INSET;
@@ -73,13 +73,13 @@ final class AdminGuiDetailWidgets {
         clock(result, detail.getAsJsonObject("clockin"), tsaX, cardY + 27, font);
 
         int notesY = top + 331;
-        header(result, x + 8 + CARD_INSET, notesY + 7, "ADMIN NOTES", font);
-        notes(result, detail, x + 20, notesY + 28, font, noteScroll);
+        header(result, x + 8 + CARD_INSET, notesY + 13, "ADMIN NOTES", font);
+        notes(result, detail, x + 20, notesY + 50, font, noteScroll);
         return result;
     }
 
     private static void header(List<PlainTextButton> out, int x, int y, String text, Font font) {
-        add(out, x, y, CARD_CONTENT_WIDTH, 18, text, 0xFFE0A15F, null, null, font);
+        add(out, x, y, CARD_CONTENT_WIDTH, 18, text, 0xFF3A291A, null, null, font);
     }
 
     private static void tsa(List<PlainTextButton> out, JsonObject o, int x, int y, Font font) {
@@ -91,15 +91,15 @@ final class AdminGuiDetailWidgets {
                 + "  PASS: " + num(o, "packetPasses")
                 + "  Modified: " + num(o, "packetModified")
                 + "  Timeout: " + num(o, "packetTimeout");
-        add(out, x, y, CARD_CONTENT_WIDTH, 18, stats, 0xFFB8BEC8,
+        add(out, x, y, CARD_CONTENT_WIDTH, 18, stats, 0xFF352A20,
                 "Click to copy TSA packet statistics.", () -> copy(stats), font);
         String last = text(o, "lastPacketStatus", "");
         if (!last.isBlank()) {
             String result = "Last: " + last + " " + text(o, "lastPacketDate", "");
             int resultColor = switch (last.toUpperCase(Locale.ROOT)) {
-                case "MODIFIED", "TIMEOUT" -> 0xFFE35A4F;
-                case "PASS" -> 0xFF79B85F;
-                default -> 0xFF9B978B;
+                case "MODIFIED", "TIMEOUT" -> 0xFFC53D30;
+                case "PASS" -> 0xFF5C9E52;
+                default -> 0xFF6A5C4C;
             };
             add(out, x, y + 18, CARD_CONTENT_WIDTH, 18, result, resultColor,
                     "Click to copy the last TSA packet result.", () -> copy(result), font);
@@ -109,7 +109,7 @@ final class AdminGuiDetailWidgets {
         if (!uniqueDetections.isEmpty()) {
             String all = String.join("\n", uniqueDetections);
             add(out, x, y + 38, CARD_CONTENT_WIDTH, 18, "Detections: " + uniqueDetections.size(),
-                    0xFFE35A4F,
+                    0xFFC53D30,
                     "Click to copy unique TSA detections.\n\n" + all,
                     () -> copy(all), font);
         }
@@ -124,12 +124,12 @@ final class AdminGuiDetailWidgets {
         String stats = "Status: " + status + "  Checks: " + num(o, "totalChecks")
                 + "  Detected: " + num(o, "detectedChecks") + "  Clean: " + num(o, "cleanChecks");
         add(out, x, y, CARD_CONTENT_WIDTH, 18, stats,
-                status.equalsIgnoreCase("DETECTED") ? 0xFFE35A4F : 0xFFB8BEC8,
+                status.equalsIgnoreCase("DETECTED") ? 0xFFC53D30 : 0xFF352A20,
                 "Click to copy ASS statistics.", () -> copy(stats), font);
         JsonObject dates = o.getAsJsonObject("detectionDates");
         String state = "Cleared: " + text(o, "clearedDate", "-")
                 + "  Categories: " + (dates == null ? 0 : dates.entrySet().size());
-        add(out, x, y + 18, CARD_CONTENT_WIDTH, 18, state, 0xFF8E96A2,
+        add(out, x, y + 18, CARD_CONTENT_WIDTH, 18, state, 0xFF554839,
                 "Click to copy ASS offense state.", () -> copy(state), font);
     }
 
@@ -144,7 +144,7 @@ final class AdminGuiDetailWidgets {
         String teamDisplay = id.isBlank() ? name : name + "  ID: " + id;
         add(out, x, y, CARD_CONTENT_WIDTH, 18,
                 fit(teamDisplay, CARD_CONTENT_WIDTH, font),
-                0xFFD1C7B7,
+                0xFF352A20,
                 id.isBlank() ? null : "Click to copy FTB Team ID.\n\n" + id,
                 id.isBlank() ? null : () -> copy(id), font);
 
@@ -167,7 +167,7 @@ final class AdminGuiDetailWidgets {
 
             final String copiedLine = line;
             add(out, x, y + 18 + i * 18, CARD_CONTENT_WIDTH, 18,
-                    line, rank.equalsIgnoreCase("OWNER") ? 0xFFE0A15F : 0xFFD1C7B7,
+                    line, rank.equalsIgnoreCase("OWNER") ? 0xFF9B5E25 : 0xFF352A20,
                     "Click to copy this member.\n\n" + line,
                     () -> copy(copiedLine), font);
         }
@@ -183,7 +183,7 @@ final class AdminGuiDetailWidgets {
             final String roster = all;
             add(out, x, y + 18 + shown * 18, CARD_CONTENT_WIDTH, 18,
                     "+" + (members.size() - shown) + " more members",
-                    0xFF9B978B,
+                    0xFF6A5C4C,
                     "Click to copy the complete team roster.\n\n" + roster,
                     () -> copy(roster), font);
         }
@@ -195,12 +195,12 @@ final class AdminGuiDetailWidgets {
         }
         String display = text(o, "displayName", text(o, "discordTag", "Linked"));
         String id = text(o, "discordId", "");
-        add(out, x, y, CARD_CONTENT_WIDTH, 18, display, 0xFFB8BEC8,
+        add(out, x, y, CARD_CONTENT_WIDTH, 18, display, 0xFF352A20,
                 id.isBlank() ? null : "Click to copy Discord ID.",
                 id.isBlank() ? null : () -> copy(id), font);
         add(out, x, y + 18, CARD_CONTENT_WIDTH, 18,
                 fit("ID: " + id, CARD_CONTENT_WIDTH, font),
-                0xFF8E96A2,
+                0xFF554839,
                 id.isBlank() ? null : "Click to copy Discord ID.\n\n" + id,
                 id.isBlank() ? null : () -> copy(id), font);
     }
@@ -214,7 +214,7 @@ final class AdminGuiDetailWidgets {
         String value = (bool(o, "clockedIn") ? "CLOCKED IN" : "CLOCKED OUT")
                 + "  Total: " + formatSeconds(seconds);
         add(out, x, y, CARD_CONTENT_WIDTH, 18, value,
-                bool(o, "clockedIn") ? 0xFF55DD77 : 0xFF888E98,
+                bool(o, "clockedIn") ? 0xFF5C9E52 : 0xFF6A5C4C,
                 "Click to copy total ClockIn seconds.", () -> copy(String.valueOf(seconds)), font);
     }
 
@@ -227,12 +227,12 @@ final class AdminGuiDetailWidgets {
             int noteScroll
     ) {
         if (!detail.has("notesAvailable") || !detail.get("notesAvailable").getAsBoolean()) {
-            add(out, x, y, 430, 18, "Admin Notes is not installed.", 0xFF666D78, null, null, font);
+            add(out, x, y, 405, 18, "Admin Notes is not installed.", 0xFF5A4630, null, null, font);
             return;
         }
         JsonArray notes = detail.getAsJsonArray("notes");
         if (notes == null || notes.isEmpty()) {
-            add(out, x, y, 430, 18, "No notes for this player.", 0xFF777E89, null, null, font);
+            add(out, x, y, 405, 18, "No notes for this player.", 0xFF5A4630, null, null, font);
             return;
         }
         int shown = Math.min(notes.size(), 3);
