@@ -238,20 +238,27 @@ public final class AdminGuiClient {
             if (title.equals("TSA ANTICHEAT")) {
                 g.drawString(font, "Packets: " + num(o,"packetChecks") + "  Pass: " + num(o,"packetPasses")
                         + "  Modified: " + num(o,"packetModified") + "  Timeout: " + num(o,"packetTimeout"), x + 120, y, 0xFFB8BEC8);
-                return y + 22;
+                String last = text(o,"lastPacketStatus","");
+                if (!last.isBlank()) g.drawString(font, "Last: " + last + " " + text(o,"lastPacketDate",""), x + 120, y + 13, 0xFF8E96A2);
+                return y + 35;
             }
             if (title.equals("AIRPORT SECURITY")) {
                 g.drawString(font, "Status: " + text(o,"status","UNKNOWN") + "  Checks: " + num(o,"totalChecks")
                         + "  Detected: " + num(o,"detectedChecks") + "  Clean: " + num(o,"cleanChecks"), x + 120, y, 0xFFB8BEC8);
-                return y + 22;
+                JsonObject dates = o.getAsJsonObject("detectionDates");
+                if (dates != null && !dates.entrySet().isEmpty()) g.drawString(font, "Categories: " + dates.entrySet().size() + "  Cleared: " + text(o,"clearedDate","-"), x + 120, y + 13, 0xFF8E96A2);
+                return y + 35;
             }
             if (title.equals("FTB TEAM")) {
                 g.drawString(font, text(o,"name","Team") + "  ID: " + text(o,"id",""), x + 120, y, 0xFFB8BEC8);
-                return y + 22;
+                JsonArray members = o.getAsJsonArray("members");
+                g.drawString(font, "Members: " + (members == null ? 0 : members.size()), x + 120, y + 13, 0xFF8E96A2);
+                return y + 35;
             }
             if (title.equals("DISCORD")) {
                 g.drawString(font, text(o,"displayName",text(o,"discordTag","Linked")), x + 120, y, 0xFFB8BEC8);
-                return y + 22;
+                g.drawString(font, "ID: " + text(o,"discordId",""), x + 120, y + 13, 0xFF8E96A2);
+                return y + 35;
             }
             g.drawString(font, (bool(o,"clockedIn") ? "CLOCKED IN" : "CLOCKED OUT") + "  Total: " + formatSeconds(num(o,"totalSeconds")), x + 120, y, 0xFFB8BEC8);
             return y + 22;
