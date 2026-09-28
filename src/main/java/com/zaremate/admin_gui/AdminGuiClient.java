@@ -147,19 +147,20 @@ public final class AdminGuiClient {
             }
 
             JsonArray notes = detail.getAsJsonArray("notes");
-            int shown = Math.min(notes.size(), 5);
+            int shown = Math.min(notes.size(), 3);
+
             int x = (width - WIDTH) / 2 + 305;
-            int y = (height - HEIGHT) / 2 + 42 + 255 + 20;
+            int y = (height - HEIGHT) / 2 + 42 + 285;
 
             for (int i = 0; i < shown; i++) {
                 JsonObject note = notes.get(i).getAsJsonObject();
-                int row = y + i * 36;
+                int row = y + i * 44;
 
                 Button edit = Button.builder(Component.literal("Edit"), b -> editNote(note))
-                        .bounds(x + 390, row - 4, 45, 18)
+                        .bounds(x + 450, row - 2, 45, 18)
                         .build();
                 Button remove = Button.builder(Component.literal("X"), b -> removeNote(note))
-                        .bounds(x + 440, row - 4, 20, 18)
+                        .bounds(x + 500, row - 2, 20, 18)
                         .build();
 
                 noteButtons.add(edit);
@@ -181,11 +182,13 @@ public final class AdminGuiClient {
             AdminGuiNetworkNote.send(action, detail.get("uuid").getAsString(), noteId, noteInput.getValue());
             editingNote = null;
             noteInput.setValue("");
+            if (addNoteButton != null) addNoteButton.setMessage(Component.literal("Add note"));
         }
 
         private void editNote(JsonObject note) {
             editingNote = UUID.fromString(note.get("id").getAsString());
             noteInput.setValue(note.get("text").getAsString());
+            if (addNoteButton != null) addNoteButton.setMessage(Component.literal("Update"));
             noteInput.setFocused(true);
         }
 
@@ -255,72 +258,141 @@ public final class AdminGuiClient {
         private void renderDetail(GuiGraphics g, int x, int y) {
             String name = text(detail, "name", "Unknown");
             boolean online = bool(detail, "online");
+
             g.drawString(font, name, x, y, 0xFFFFFFFF);
-            g.drawString(font, online ? "ONLINE" : "OFFLINE", x + 210, y, online ? 0xFF55DD77 : 0xFF888E98);
+            g.drawString(font, online ? "ONLINE" : "OFFLINE", x + 245, y,
+                    online ? 0xFF55DD77 : 0xFF888E98);
             g.drawString(font, detail.get("uuid").getAsString(), x, y + 16, 0xFF777E89);
 
-            int yy = y + 42;
-            yy = section(g, "TSA ANTICHEAT", detail.getAsJsonObject("tsa"), x, yy);
-            yy = section(g, "AIRPORT SECURITY", detail.getAsJsonObject("ass"), x, yy);
-            yy = section(g, "FTB TEAM", detail.getAsJsonObject("teams"), x, yy);
-            yy = section(g, "DISCORD", detail.getAsJsonObject("discord"), x, yy);
-            section(g, "CLOCK IN", detail.getAsJsonObject("clockin"), x, yy);
+            int cardY = y + 38;
+            drawCard(g, "TSA ANTICHEAT", detail.getAsJsonObject("tsa"), x, cardY, 278, 73);
+            drawCard(g, "AIRPORT SECURITY", detail.getAsJsonObject("ass"), x + 292, cardY, 278, 73);
 
-            renderNotes(g, x, y + 255);
+            cardY += 82;
+            drawCard(g, "FTB TEAM", detail.getAsJsonObject("teams"), x, cardY, 278, 60);
+            drawCard(g, "DISCORD", detail.getAsJsonObject("discord"), x + 292, cardY, 278, 60);
+
+            cardY += 69;
+            drawCard(g, "CLOCK IN", detail.getAsJsonObject("clockin"), x, cardY, 278, 45);
+
+            renderNotes(g, x, y + 286);
         }
 
-        private int section(GuiGraphics g, String title, JsonObject o, int x, int y) {
-            g.drawString(font, title, x, y, 0xFFD5A84A);
+        private void drawCard(GuiGraphics g, String title, JsonObject o, int x, int y, int width, int height) {
+            g.fill(x, y, x + width, y + height, 0xAA191D24);
+            g.fill(x, y, x + width, y + 1, 0xFF3A404A);
+            g.drawString(font, title, x + 8, y + 7, 0xFFD5A84A);
+
             if (o == null || o.entrySet().isEmpty()) {
-                g.drawString(font, "Not installed / no data", x + 120, y, 0xFF666D78);
-                return y + 22;
+                g.drawString(font, "Not installed / no data", x + 8, y + 25, 0xFF666D78);
+                return;
             }
+
             if (title.equals("TSA ANTICHEAT")) {
-                g.drawString(font, "Packets: " + num(o,"packetChecks") + "  Pass: " + num(o,"packetPasses")
-                        + "  Modified: " + num(o,"packetModified") + "  Timeout: " + num(o,"packetTimeout"), x + 120, y, 0xFFB8BEC8);
-                String last = text(o,"lastPacketStatus","");
-                if (!last.isBlank()) g.drawString(font, "Last: " + last + " " + text(o,"lastPacketDate",""), x + 120, y + 13, 0xFF8E96A2);
-                return y + 35;
+                drawWrapped(g,
+                        "Packets: " + num(o, "packetChecks")
+                                + "  PASS: " + num(o, "packetPasses")
+                                + "  Modified: " + num(o, "packetModified")
+                                + "  Timeout: " + num(o, "packetTimeout"),
+                        x + 8, y + 24, width - 16, 13);
+                String last = text(o, "lastPacketStatus", "");
+                if (!last.isBlank()) {
+                    drawWrapped(g, "Last: " + last + " " + text(o, "lastPacketDate", ""),
+                            x + 8, y + 47, width - 16, 13);
+                }
+                return;
             }
+
             if (title.equals("AIRPORT SECURITY")) {
-                g.drawString(font, "Status: " + text(o,"status","UNKNOWN") + "  Checks: " + num(o,"totalChecks")
-                        + "  Detected: " + num(o,"detectedChecks") + "  Clean: " + num(o,"cleanChecks"), x + 120, y, 0xFFB8BEC8);
-                JsonObject dates = o.getAsJsonObject("detectionDates");
-                if (dates != null && !dates.entrySet().isEmpty()) g.drawString(font, "Categories: " + dates.entrySet().size() + "  Cleared: " + text(o,"clearedDate","-"), x + 120, y + 13, 0xFF8E96A2);
-                return y + 35;
+                drawWrapped(g,
+                        "Status: " + text(o, "status", "UNKNOWN")
+                                + "  Checks: " + num(o, "totalChecks")
+                                + "  Detected: " + num(o, "detectedChecks")
+                                + "  Clean: " + num(o, "cleanChecks"),
+                        x + 8, y + 24, width - 16, 13);
+                drawWrapped(g,
+                        "Cleared: " + text(o, "clearedDate", "-")
+                                + "  Categories: " + (o.has("detectionDates")
+                                ? o.getAsJsonObject("detectionDates").entrySet().size() : 0),
+                        x + 8, y + 47, width - 16, 13);
+                return;
             }
+
             if (title.equals("FTB TEAM")) {
-                g.drawString(font, text(o,"name","Team") + "  ID: " + text(o,"id",""), x + 120, y, 0xFFB8BEC8);
+                drawWrapped(g,
+                        text(o, "name", "Team") + "  ID: " + text(o, "id", ""),
+                        x + 8, y + 24, width - 16, 13);
                 JsonArray members = o.getAsJsonArray("members");
-                g.drawString(font, "Members: " + (members == null ? 0 : members.size()), x + 120, y + 13, 0xFF8E96A2);
-                return y + 35;
+                g.drawString(font, "Members: " + (members == null ? 0 : members.size()),
+                        x + 8, y + 43, 0xFF8E96A2);
+                return;
             }
+
             if (title.equals("DISCORD")) {
-                g.drawString(font, text(o,"displayName",text(o,"discordTag","Linked")), x + 120, y, 0xFFB8BEC8);
-                g.drawString(font, "ID: " + text(o,"discordId",""), x + 120, y + 13, 0xFF8E96A2);
-                return y + 35;
+                drawWrapped(g,
+                        text(o, "displayName", text(o, "discordTag", "Linked")),
+                        x + 8, y + 24, width - 16, 13);
+                drawWrapped(g, "ID: " + text(o, "discordId", ""),
+                        x + 8, y + 43, width - 16, 13);
+                return;
             }
-            g.drawString(font, (bool(o,"clockedIn") ? "CLOCKED IN" : "CLOCKED OUT") + "  Total: " + formatSeconds(num(o,"totalSeconds")), x + 120, y, 0xFFB8BEC8);
-            return y + 22;
+
+            g.drawString(font,
+                    (bool(o, "clockedIn") ? "CLOCKED IN" : "CLOCKED OUT"),
+                    x + 8, y + 24, bool(o, "clockedIn") ? 0xFF55DD77 : 0xFF888E98);
+            g.drawString(font,
+                    "Total: " + formatSeconds(num(o, "totalSeconds")),
+                    x + 130, y + 24, 0xFFB8BEC8);
+        }
+
+        private void drawWrapped(GuiGraphics g, String value, int x, int y, int maxWidth, int lineHeight) {
+            if (value == null || value.isBlank()) return;
+
+            List<net.minecraft.util.FormattedCharSequence> lines =
+                    font.split(Component.literal(value), maxWidth);
+            int line = 0;
+            for (net.minecraft.util.FormattedCharSequence sequence : lines) {
+                if (line >= 2) break;
+                g.drawString(font, sequence, x, y + line * lineHeight, 0xFFB8BEC8);
+                line++;
+            }
         }
 
         private void renderNotes(GuiGraphics g, int x, int y) {
-            g.drawString(font, "ADMIN NOTES", x, y, 0xFFD5A84A);
-            if (detail == null || !detail.has("notes")) return;
+            int right = x + 570;
+
+            g.fill(x, y, right, y + 155, 0xAA191D24);
+            g.fill(x, y, right, y + 1, 0xFF3A404A);
+            g.drawString(font, "ADMIN NOTES", x + 8, y + 8, 0xFFD5A84A);
+
+            if (detail == null || !detail.has("notes")) {
+                g.drawString(font, "Admin Notes is not installed.", x + 8, y + 28, 0xFF666D78);
+                return;
+            }
+
             JsonArray notes = detail.getAsJsonArray("notes");
-            int shown = Math.min(notes.size(), 5);
+            int shown = Math.min(notes.size(), 3);
+
+            if (notes.isEmpty()) {
+                g.drawString(font, "No notes for this player.", x + 8, y + 28, 0xFF666D78);
+                return;
+            }
+
             for (int i = 0; i < shown; i++) {
                 JsonObject n = notes.get(i).getAsJsonObject();
-                int row = y + 20 + i * 36;
-                String author = n.get("author").getAsString();
-                String line = n.get("text").getAsString();
-                if (line.length() > 66) line = line.substring(0, 63) + "...";
-                g.drawString(font, author.isBlank() ? "System" : author, x, row, 0xFF858C97);
-                g.drawString(font, line, x, row + 12, 0xFFE1E4E8);
+                int row = y + 26 + i * 44;
 
+                String author = text(n, "author", "");
+                if (author.isBlank()) author = "System";
+
+                String line = text(n, "text", "");
+                g.drawString(font, author, x + 8, row, 0xFF858C97);
+                drawWrapped(g, line, x + 8, row + 13, 425, 13);
             }
+
             if (notes.size() > shown) {
-                g.drawString(font, "+" + (notes.size() - shown) + " more notes", x, y + 28 + shown * 36, 0xFF666D78);
+                g.drawString(font, "+" + (notes.size() - shown) + " more notes",
+                        x + 8, y + 138, 0xFF666D78);
             }
         }
 
