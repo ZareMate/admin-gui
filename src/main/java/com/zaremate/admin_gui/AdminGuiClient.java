@@ -76,6 +76,7 @@ public final class AdminGuiClient {
                 if (noteInput != null) noteInput.setValue("");
             } catch (Exception ignored) {}
             rebuildPlayerButtons();
+            rebuildNoteButtons();
         }
 
         @Override
