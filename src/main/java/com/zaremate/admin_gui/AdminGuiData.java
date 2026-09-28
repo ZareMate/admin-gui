@@ -212,15 +212,19 @@ public final class AdminGuiData {
         return result;
     }
 
-    static boolean canEditNote(UUID playerUuid, UUID noteId) {
-        if (playerUuid == null || noteId == null) {
+    static boolean canEditNote(
+            UUID targetPlayerUuid,
+            UUID noteId,
+            UUID editorUuid
+    ) {
+        if (targetPlayerUuid == null || noteId == null || editorUuid == null) {
             return false;
         }
 
         try {
             Class<?> c = Class.forName("com.zaremate.admin_notes.AdminNotesAPI");
             Method m = c.getMethod("getNote", UUID.class, UUID.class);
-            Object value = m.invoke(null, playerUuid, noteId);
+            Object value = m.invoke(null, targetPlayerUuid, noteId);
 
             if (!(value instanceof Optional<?> optional) || optional.isEmpty()) {
                 return false;
@@ -233,12 +237,7 @@ public final class AdminGuiData {
 
             Object owner = recordAccessor(note, "authorUuid");
             return owner instanceof UUID ownerUuid
-                    && ownerUuid.equals(
-                            serverForReflection() != null
-                                    && serverForReflection().getPlayerList().getPlayer(playerUuid) != null
-                                    ? serverForReflection().getPlayerList().getPlayer(playerUuid).getUUID()
-                                    : playerUuid
-                    );
+                    && ownerUuid.equals(editorUuid);
         } catch (Throwable ignored) {
             return false;
         }
