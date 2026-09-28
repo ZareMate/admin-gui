@@ -65,6 +65,17 @@ public final class AdminGuiData {
 
     private static Map<UUID, String> collectPlayers(MinecraftServer server) {
         Map<UUID, String> result = new LinkedHashMap<>();
+        try {
+            for (Object info : server.getProfileCache().load()) {
+                Object profile = info.getClass().getMethod("getProfile").invoke(info);
+                if (profile != null) {
+                    UUID id = (UUID) profile.getClass().getMethod("getId").invoke(profile);
+                    String name = String.valueOf(profile.getClass().getMethod("getName").invoke(profile));
+                    if (id != null && name != null && !name.isBlank()) result.putIfAbsent(id, name);
+                }
+            }
+        } catch (Throwable ignored) {}
+
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
             result.put(p.getUUID(), p.getGameProfile().getName());
         }
