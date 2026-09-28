@@ -40,6 +40,7 @@ public final class AdminGuiClient {
         private JsonObject detail;
         private EditBox search;
         private EditBox noteInput;
+        private Button addNoteButton;
         private UUID editingNote;
         private int playerScroll;
         private boolean suppressSearch;
@@ -74,6 +75,9 @@ public final class AdminGuiClient {
                 selectedUuid = detail.get("uuid").getAsString();
                 editingNote = null;
                 if (noteInput != null) noteInput.setValue("");
+                boolean notesAvailable = detail.has("notesAvailable") && detail.get("notesAvailable").getAsBoolean();
+                if (noteInput != null) noteInput.visible = notesAvailable;
+                if (addNoteButton != null) addNoteButton.visible = notesAvailable;
             } catch (Exception ignored) {}
             rebuildPlayerButtons();
             rebuildNoteButtons();
@@ -93,8 +97,11 @@ public final class AdminGuiClient {
             noteInput.setMaxLength(512);
             addRenderableWidget(noteInput);
 
-            addRenderableWidget(Button.builder(Component.literal("Add note"), b -> saveNote())
-                    .bounds(left + 805, top + 456, 80, 20).build());
+            addNoteButton = Button.builder(Component.literal("Add note"), b -> saveNote())
+                    .bounds(left + 805, top + 456, 80, 20).build();
+            addRenderableWidget(addNoteButton);
+            noteInput.visible = false;
+            addNoteButton.visible = false;
 
             rebuildPlayerButtons();
             rebuildNoteButtons();
