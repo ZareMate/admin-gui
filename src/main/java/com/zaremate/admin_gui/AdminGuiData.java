@@ -72,10 +72,10 @@ public final class AdminGuiData {
         for (UUID u : reflectedUuids("com.zaremate.admin_notes.AdminNotesAPI", "getPlayers")) {
             result.putIfAbsent(u, resolveName(server, u));
         }
-        for (UUID u : reflectedUuids("com.zaremate.airport_security_system.AirportSecuritySystemAPI", "getPlayerOffenses")) {
+        for (UUID u : recordUuids("com.zaremate.airport_security_system.AirportSecuritySystemAPI", "getPlayerOffenses", "playerUuid")) {
             result.putIfAbsent(u, resolveName(server, u));
         }
-        for (UUID u : reflectedUuids("com.zaremate.tsa_anticheat.api.TsaAnticheatAPI", "getPlayers")) {
+        for (UUID u : recordUuids("com.zaremate.tsa_anticheat.api.TsaAnticheatAPI", "getPlayers", "playerUuid")) {
             result.putIfAbsent(u, resolveName(server, u));
         }
         for (UUID u : clockinPlayers()) {
@@ -256,8 +256,26 @@ public final class AdminGuiData {
         try {
             Class<?> c = Class.forName(className);
             Object value = c.getMethod(methodName).invoke(null);
-            if (value instanceof Iterable<?> it) for (Object x : it) if (x instanceof UUID u) result.add(u);
-            else if (value instanceof Map<?, ?> m) for (Object x : m.keySet()) if (x instanceof UUID u) result.add(u);
+            if (value instanceof Iterable<?> it) {
+                for (Object x : it) if (x instanceof UUID u) result.add(u);
+            } else if (value instanceof Map<?, ?> m) {
+                for (Object x : m.keySet()) if (x instanceof UUID u) result.add(u);
+            }
+        } catch (Throwable ignored) {}
+        return result;
+    }
+
+    private static Set<UUID> recordUuids(String className, String methodName, String accessor) {
+        Set<UUID> result = new HashSet<>();
+        try {
+            Class<?> c = Class.forName(className);
+            Object value = c.getMethod(methodName).invoke(null);
+            if (value instanceof Iterable<?> it) {
+                for (Object x : it) {
+                    Object v = recordAccessor(x, accessor);
+                    if (v instanceof UUID u) result.add(u);
+                }
+            }
         } catch (Throwable ignored) {}
         return result;
     }
