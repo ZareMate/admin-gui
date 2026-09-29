@@ -62,7 +62,6 @@ public final class AdminGuiData {
         root.add("identity", identity);
 
         JsonObject debug = new JsonObject();
-        root.add("debug", debug);
         debug.addProperty("tsa.classPresent", classPresent("com.zaremate.tsa_anticheat.api.TsaAnticheatAPI"));
         debug.addProperty("ass.classPresent", classPresent("com.zaremate.airport_security_system.AirportSecuritySystemAPI"));
         debug.addProperty("teams.classPresent", classPresent("com.zaremate.ftb_teams_util.FTBTeamsUtilAPI"));
