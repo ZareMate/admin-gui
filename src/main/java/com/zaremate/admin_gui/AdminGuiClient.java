@@ -173,7 +173,7 @@ public final class AdminGuiClient {
             infoWidgets.clear();
             AdminGuiDetailWidgets.build(
                     detail, players.size(), baseLeft(), baseTop(), font,
-                    tsaScroll, assScroll, teamScroll, discordScroll, clockScroll, noteScroll
+                    tsaScroll, assScroll, teamScroll, discordScroll, noteScroll
             ).forEach(widget -> {
                 infoWidgets.add(widget);
                 addRenderableWidget(widget);
@@ -416,8 +416,6 @@ public final class AdminGuiClient {
                 card(g, left + 613, top + 128, 272, 86, "AIRPORT SECURITY");
                 card(g, left + 321, top + 224, 272, 78, "FTB TEAM");
                 card(g, left + 613, top + 224, 272, 78, "DISCORD");
-                card(g, left + 321, top + 312, 272, 45, "CLOCK IN");
-
                 drawCardScrollBar(g, left + 586, top + 158, 48,
                         AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TSA, font),
                         3, tsaScroll, logicalX, logicalY);
@@ -430,10 +428,6 @@ public final class AdminGuiClient {
                 drawCardScrollBar(g, left + 878, top + 254, 42,
                         AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.DISCORD, font),
                         3, discordScroll, logicalX, logicalY);
-                drawCardScrollBar(g, left + 585, top + 330, 20,
-                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.CLOCK, font),
-                        3, clockScroll, logicalX, logicalY);
-
                 panel(g, left + 313, top + 370, 562, 117, PANEL, BORDER, 1);
                 g.drawString(font, "ADMIN NOTES", left + 325, top + 381, MUTED, false);
                 drawScrollBar(g, left + 863, top + 400, 78,
