@@ -152,7 +152,7 @@ public final class AdminGuiClient {
             if (search == null) return;
 
             List<PlayerRef> filtered = filteredPlayers();
-            final int visiblePlayers = 10;
+            final int visiblePlayers = 9;
             int start = Math.min(playerScroll, Math.max(0, filtered.size() - visiblePlayers));
             int end = Math.min(filtered.size(), start + visiblePlayers);
 
@@ -184,7 +184,7 @@ public final class AdminGuiClient {
             int top = baseTop();
 
             addActionButton(
-                    left + 24, top + 418, 82, 21, "PUNISH",
+                    left + 24, top + 402, 82, 21, "PUNISH",
                     hasPlayer,
                     hasPlayer ? "/punish " + selected.name() + " " : "",
                     hasPlayer ? "Insert /punish " + selected.name() + " into chat." : "Select a player first.",
@@ -192,7 +192,7 @@ public final class AdminGuiClient {
             );
 
             addActionButton(
-                    left + 112, top + 418, 82, 21, "INVSEE",
+                    left + 112, top + 402, 82, 21, "INVSEE",
                     online,
                     "",
                     online ? "Run /invsee " + selected.name() + "." : "Only available for online players.",
@@ -200,7 +200,7 @@ public final class AdminGuiClient {
             );
 
             addActionButton(
-                    left + 200, top + 418, 82, 21, online ? "TP SPEC" : "TP LAST",
+                    left + 200, top + 402, 82, 21, online ? "TP SPEC" : "TP LAST",
                     hasPlayer,
                     "",
                     hasPlayer
@@ -211,7 +211,7 @@ public final class AdminGuiClient {
             );
 
             addActionButton(
-                    left + 24, top + 440, 82, 21, "KICK",
+                    left + 24, top + 425, 82, 21, "KICK",
                     online,
                     online ? "/kick " + selected.name() : "",
                     online ? "Insert /kick " + selected.name() + " into chat."
@@ -220,7 +220,7 @@ public final class AdminGuiClient {
             );
 
             addActionButton(
-                    left + 112, top + 440, 82, 21, "DAMAGE",
+                    left + 112, top + 425, 82, 21, "DAMAGE",
                     online,
                     "",
                     online
@@ -230,7 +230,7 @@ public final class AdminGuiClient {
             );
 
             addActionButton(
-                    left + 200, top + 440, 82, 21, "MSG",
+                    left + 200, top + 425, 82, 21, "MSG",
                     online,
                     online ? "/msg " + selected.name() + " " : "",
                     online
@@ -403,10 +403,10 @@ public final class AdminGuiClient {
             int top = baseTop();
 
             if (logicalX >= left + 12 && logicalX <= left + 292
-                    && logicalY >= top + 20 && logicalY <= top + 400) {
+                    && logicalY >= top + 20 && logicalY <= top + 390) {
                 playerScroll = clampScroll(
                         playerScroll - (int) Math.signum(scrollY),
-                        Math.max(0, filteredCount() - 10)
+                        Math.max(0, filteredCount() - 9)
                 );
                 rebuildPlayerButtons();
                 return true;
@@ -530,7 +530,7 @@ public final class AdminGuiClient {
             g.drawString(font, "Server administration", left + 110, top + 17, MUTED, false);
 
             // Player sidebar
-            panel(g, left + 12, top + 58, 282, 404, PANEL, BORDER, 1);
+            panel(g, left + 12, top + 58, 282, 332, PANEL, BORDER, 1);
             g.drawString(font, "PLAYERS", left + 24, top + 69, MUTED, true);
             panel(g, left + 24, top + 94, 258, 26, BG, BORDER, 1);
             drawSearchIcon(g, left + 32, top + 101, MUTED);
@@ -550,7 +550,10 @@ public final class AdminGuiClient {
                 g.fill(left + 29, rowY + 8, left + 33, rowY + 12, p.online() ? SUCCESS : MUTED);
                 g.drawString(font, p.name(), left + 42, rowY + 8, TEXT, false);
             }
-            drawScrollBar(g, left + 286, top + 126, 290, filtered.size(), 10, playerScroll, logicalX, logicalY);
+            drawScrollBar(g, left + 286, top + 126, 261, filtered.size(), 9, playerScroll, logicalX, logicalY);
+
+            panel(g, left + 12, top + 398, 282, 63, PANEL, BORDER, 1);
+            g.drawString(font, "PLAYER ACTIONS", left + 24, top + 404, MUTED, true);
 
             for (PlainTextButton action : actionButtons) {
                 boolean hovered = action.isHoveredOrFocused();
@@ -585,9 +588,9 @@ public final class AdminGuiClient {
                 drawCardScrollBar(g, left + 878, top + 254, 42,
                         AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.DISCORD, font),
                         3, discordScroll, logicalX, logicalY);
-                panel(g, left + 313, top + 370, 562, 117, PANEL, BORDER, 1);
-                g.drawString(font, "ADMIN NOTES", left + 325, top + 381, MUTED, false);
-                drawScrollBar(g, left + 863, top + 400, 78,
+                panel(g, left + 313, top + 312, 562, 168, PANEL, BORDER, 1);
+                g.drawString(font, "ADMIN NOTES", left + 325, top + 323, MUTED, false);
+                drawScrollBar(g, left + 863, top + 342, 126,
                         detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0, 3, noteScroll, logicalX, logicalY);
             }
 
