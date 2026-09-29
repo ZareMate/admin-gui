@@ -657,11 +657,15 @@ public final class AdminGuiClient {
         }
 
         private void drawSearchIcon(GuiGraphics g, int x, int y, int color) {
-            g.fill(x, y, x + 7, y + 1, color);
-            g.fill(x, y + 1, x + 1, y + 7, color);
-            g.fill(x + 1, y + 7, x + 6, y + 8, color);
-            g.fill(x + 6, y + 5, x + 7, y + 7, color);
-            g.fill(x + 7, y + 7, x + 10, y + 9, color);
+            // Small pixel-art magnifying glass.
+            g.fill(x + 2, y, x + 7, y + 1, color);
+            g.fill(x + 1, y + 1, x + 8, y + 2, color);
+            g.fill(x, y + 2, x + 1, y + 7, color);
+            g.fill(x + 1, y + 7, x + 2, y + 8, color);
+            g.fill(x + 2, y + 8, x + 7, y + 9, color);
+            g.fill(x + 7, y + 7, x + 8, y + 8, color);
+            g.fill(x + 8, y + 6, x + 9, y + 7, color);
+            g.fill(x + 9, y + 7, x + 11, y + 9, color);
         }
 
         private void drawCardScrollBar(GuiGraphics g, int x, int y, int height,
