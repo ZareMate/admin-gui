@@ -95,15 +95,23 @@ final class AdminGuiDetailWidgets {
             return lines;
         }
 
-        String stats = "Packets: " + num(o, "packetChecks")
-                + "  PASS: " + num(o, "packetPasses")
-                + "  Modified: " + num(o, "packetModified")
-                + "  Timeout: " + num(o, "packetTimeout");
         lines.add(new DetailLine(
-                fit(stats, CARD_CONTENT_WIDTH, font),
+                "Packets: " + num(o, "packetChecks"),
+                0xFFF0F3F6,
+                "Click to copy TSA packet check count.",
+                () -> copy(String.valueOf(num(o, "packetChecks")))
+        ));
+        lines.add(new DetailLine(
+                "PASS: " + num(o, "packetPasses")
+                        + "  Modified: " + num(o, "packetModified")
+                        + "  Timeout: " + num(o, "packetTimeout"),
                 0xFFF0F3F6,
                 "Click to copy TSA packet statistics.",
-                () -> copy(stats)
+                () -> copy(
+                        "PASS: " + num(o, "packetPasses")
+                                + "  Modified: " + num(o, "packetModified")
+                                + "  Timeout: " + num(o, "packetTimeout")
+                )
         ));
 
         String last = text(o, "lastPacketStatus", "");
@@ -154,6 +162,14 @@ final class AdminGuiDetailWidgets {
                 0xFFF0F3F6,
                 "Click to copy ASS check statistics.\n\n" + checks,
                 () -> copy(checks)
+        ));
+
+        String inconclusive = "Inconclusive: " + num(o, "inconclusiveChecks");
+        lines.add(new DetailLine(
+                inconclusive,
+                0xFF8B949E,
+                "Click to copy ASS inconclusive check count.",
+                () -> copy(inconclusive)
         ));
 
         JsonObject dates = o.getAsJsonObject("detectionDates");
@@ -239,6 +255,25 @@ final class AdminGuiDetailWidgets {
                 id.isBlank() ? null : "Click to copy Discord ID.\n\n" + id,
                 id.isBlank() ? null : () -> copy(id)
         ));
+
+        if (o.has("linkedAt") && num(o, "linkedAt") > 0) {
+            lines.add(new DetailLine(
+                    "Linked: " + num(o, "linkedAt"),
+                    0xFF8B949E,
+                    "Click to copy Discord link timestamp.",
+                    () -> copy(String.valueOf(num(o, "linkedAt")))
+            ));
+        }
+
+        if (o.has("rewarded")) {
+            String rewarded = "Rewarded: " + (bool(o, "rewarded") ? "yes" : "no");
+            lines.add(new DetailLine(
+                    rewarded,
+                    bool(o, "rewarded") ? 0xFF3FB950 : 0xFF8B949E,
+                    null,
+                    null
+            ));
+        }
         return lines;
     }
 
