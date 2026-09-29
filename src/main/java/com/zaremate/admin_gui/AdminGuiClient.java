@@ -172,12 +172,153 @@ public final class AdminGuiClient {
             }
         }
 
+        private void rebuildActionButtons() {
+            for (PlainTextButton b : actionButtons) removeWidget(b);
+            actionButtons.clear();
+
+            PlayerRef selected = selectedPlayer();
+            boolean hasPlayer = selected != null;
+            boolean online = hasPlayer && isPlayerOnline(selected);
+
+            int left = baseLeft();
+            int top = baseTop();
+
+            addActionButton(
+                    left + 24, top + 418, 82, 21, "PUNISH",
+                    hasPlayer,
+                    hasPlayer ? "/punish " + selected.name() + " " : "",
+                    hasPlayer ? "Insert /punish " + selected.name() + " into chat." : "Select a player first.",
+                    true
+            );
+
+            addActionButton(
+                    left + 112, top + 418, 82, 21, "INVSEE",
+                    online,
+                    "",
+                    online ? "Run /invsee " + selected.name() + "." : "Only available for online players.",
+                    false
+            );
+
+            addActionButton(
+                    left + 200, top + 418, 82, 21, online ? "TP SPEC" : "TP LAST",
+                    hasPlayer,
+                    "",
+                    hasPlayer
+                            ? (online ? "Run /tp_spec " + selected.name() + "."
+                                      : "Run /teleport_last " + selected.name() + ".")
+                            : "Select a player first.",
+                    false
+            );
+
+            addActionButton(
+                    left + 24, top + 440, 82, 21, "KICK",
+                    online,
+                    online ? "/kick " + selected.name() : "",
+                    online ? "Insert /kick " + selected.name() + " into chat."
+                           : "Only available for online players.",
+                    true
+            );
+
+            addActionButton(
+                    left + 112, top + 440, 82, 21, "DAMAGE",
+                    online,
+                    "",
+                    online
+                            ? "Run /damage " + selected.name() + " 0.1 minecraft:player_attack."
+                            : "Only available for online players.",
+                    false
+            );
+
+            addActionButton(
+                    left + 200, top + 440, 82, 21, "MSG",
+                    online,
+                    online ? "/msg " + selected.name() + " " : "",
+                    online
+                            ? "Insert /msg " + selected.name() + " into chat."
+                            : "Only available for online players.",
+                    true
+            );
+        }
+
+        private void addActionButton(
+                int x, int y, int width, int height, String label,
+                boolean enabled, String command, String tooltip, boolean insert
+        ) {
+            PlainTextButton button = new CenteredTextButton(
+                    x, y, width, height,
+                    Component.literal(label).withStyle(s -> s.withColor(TEXT)),
+                    ignored -> {
+                        PlayerRef selected = selectedPlayer();
+                        if (selected == null) return;
+
+                        boolean online = isPlayerOnline(selected);
+                        if ((label.equals("INVSEE") || label.equals("KICK")
+                                || label.equals("DAMAGE") || label.equals("MSG")) && !online) {
+                            return;
+                        }
+
+                        if (label.equals("PUNISH") || label.equals("KICK") || label.equals("MSG")) {
+                            openChat(command);
+                            return;
+                        }
+
+                        String runCommand = switch (label) {
+                            case "INVSEE" -> "invsee " + selected.name();
+                            case "TP SPEC" -> "tp_spec " + selected.name();
+                            case "TP LAST" -> "teleport_last " + selected.name();
+                            case "DAMAGE" -> "damage " + selected.name()
+                                    + " 0.1 minecraft:player_attack";
+                            default -> "";
+                        };
+
+                        if (!runCommand.isBlank()) {
+                            runClientCommand(runCommand);
+                        }
+                    },
+                    font
+            );
+            button.active = enabled;
+            if (tooltip != null && !tooltip.isBlank()) {
+                button.setTooltip(Tooltip.create(Component.literal(tooltip)));
+            }
+            actionButtons.add(button);
+            addRenderableWidget(button);
+        }
+
+        private PlayerRef selectedPlayer() {
+            if (selectedUuid == null) return null;
+            return players.stream()
+                    .filter(p -> p.uuid().equals(selectedUuid))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        private boolean isPlayerOnline(PlayerRef player) {
+            if (detail != null && detail.has("uuid")
+                    && detail.get("uuid").getAsString().equalsIgnoreCase(player.uuid())) {
+                return bool(detail, "online");
+            }
+            return player.online();
+        }
+
+        private void openChat(String command) {
+            if (command == null || command.isBlank()) return;
+            Minecraft.getInstance().setScreen(new ChatScreen(command));
+        }
+
+        private void runClientCommand(String command) {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.player != null && minecraft.getConnection() != null) {
+                minecraft.getConnection().sendCommand(command);
+            }
+        }
+
         private void rebuildInfoWidgets() {
             for (PlainTextButton widget : infoWidgets) removeWidget(widget);
             infoWidgets.clear();
             AdminGuiDetailWidgets.build(
                     detail, players.size(), baseLeft(), baseTop(), font,
-                    tsaScroll, assScroll, teamScroll, discordScroll, noteScroll
+                    tsaScroll, assScroll, teamScroll, discordScroll, 0, noteScroll
             ).forEach(widget -> {
                 infoWidgets.add(widget);
                 addRenderableWidget(widget);
