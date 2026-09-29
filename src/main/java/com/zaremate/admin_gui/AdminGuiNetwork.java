@@ -29,6 +29,9 @@ public final class AdminGuiNetwork {
     public static final CustomPacketPayload.Type<ListUpdatePayload> LIST_UPDATE_TYPE =
             new CustomPacketPayload.Type<>(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(AdminGui.MOD_ID, "list_update"));
 
+    public static final CustomPacketPayload.Type<ClosePayload> CLOSE_TYPE =
+            new CustomPacketPayload.Type<>(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(AdminGui.MOD_ID, "close"));
+
     public static final CustomPacketPayload.Type<SelectPayload> SELECT_TYPE =
             new CustomPacketPayload.Type<>(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(AdminGui.MOD_ID, "select"));
 
@@ -45,6 +48,9 @@ public final class AdminGuiNetwork {
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ListUpdatePayload> LIST_UPDATE_CODEC =
             StreamCodec.composite(STRING_CODEC, ListUpdatePayload::data, ListUpdatePayload::new);
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClosePayload> CLOSE_CODEC =
+            StreamCodec.unit(new ClosePayload());
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SelectPayload> SELECT_CODEC =
             StreamCodec.composite(STRING_CODEC, SelectPayload::uuid, SelectPayload::new);
@@ -66,6 +72,13 @@ public final class AdminGuiNetwork {
                 AdminGuiClientBridge.detail(payload.data()));
         registrar.playToClient(LIST_UPDATE_TYPE, LIST_UPDATE_CODEC, (payload, context) ->
                 AdminGuiClientBridge.listUpdate(payload.data()));
+
+        registrar.playToServer(CLOSE_TYPE, CLOSE_CODEC, (payload, context) ->
+                context.enqueueWork(() -> {
+                    if (context.player() instanceof ServerPlayer player) {
+                        OPEN_GUI_SELECTIONS.remove(player.getUUID());
+                    }
+                }));
         registrar.playToServer(SELECT_TYPE, SELECT_CODEC, (payload, context) ->
                 context.enqueueWork(() -> {
                     if (context.player() instanceof ServerPlayer player
@@ -109,6 +122,12 @@ public final class AdminGuiNetwork {
                 player,
                 new DetailPayload(AdminGuiData.buildPlayerDetail(player.server, uuid, player.getUUID()))
         );
+    }
+
+    public static void close(ServerPlayer player) {
+        if (player != null) {
+            OPEN_GUI_SELECTIONS.remove(player.getUUID());
+        }
     }
 
     public static void refreshOpenGuis(net.minecraft.server.MinecraftServer server) {
@@ -190,6 +209,10 @@ public final class AdminGuiNetwork {
 
     public record ListUpdatePayload(String data) implements CustomPacketPayload {
         @Override public Type<? extends CustomPacketPayload> type() { return LIST_UPDATE_TYPE; }
+    }
+
+    public record ClosePayload() implements CustomPacketPayload {
+        @Override public Type<? extends CustomPacketPayload> type() { return CLOSE_TYPE; }
     }
 
     public record SelectPayload(String uuid) implements CustomPacketPayload {
