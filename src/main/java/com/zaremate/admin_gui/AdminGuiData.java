@@ -135,12 +135,25 @@ public final class AdminGuiData {
         return uuid.toString();
     }
 
-    private static JsonObject tsa(UUID uuid) {
+    private static JsonObject tsa(UUID uuid, JsonObject debug) {
         JsonObject o = new JsonObject();
         try {
-            Optional<?> opt = optionalInvoke("com.zaremate.tsa_anticheat.api.TsaAnticheatAPI", "getPlayer", uuid);
-            if (opt.isEmpty()) return o;
+            Class<?> c = Class.forName("com.zaremate.tsa_anticheat.api.TsaAnticheatAPI");
+            debug.addProperty("tsa.class", c.getName());
+            Object value = c.getMethod("getPlayer", UUID.class).invoke(null, uuid);
+            debug.addProperty("tsa.getPlayer", value == null ? "null" : value.getClass().getName());
+
+            if (!(value instanceof Optional<?> opt)) {
+                debug.addProperty("tsa.result", "not Optional");
+                return o;
+            }
+            if (opt.isEmpty()) {
+                debug.addProperty("tsa.result", "empty");
+                return o;
+            }
+
             Object r = opt.get();
+            debug.addProperty("tsa.result", "record " + r.getClass().getName());
             o.addProperty("playerName", recordString(r, "playerName"));
             o.addProperty("packetChecks", recordLong(r, "packetChecks"));
             o.addProperty("packetPasses", recordLong(r, "packetPasses"));
@@ -149,22 +162,41 @@ public final class AdminGuiData {
             o.addProperty("lastPacketStatus", recordString(r, "lastPacketStatus"));
             o.addProperty("lastPacketDate", recordString(r, "lastPacketDate"));
             JsonArray d = new JsonArray();
-            Object value = recordAccessor(r, "detections");
-            if (value instanceof Iterable<?> it) for (Object x : it) d.add(String.valueOf(x));
+            Object valueDetections = recordAccessor(r, "detections");
+            if (valueDetections instanceof Iterable<?> it) {
+                for (Object x : it) d.add(String.valueOf(x));
+            }
             o.add("detections", d);
             o.addProperty("available", true);
-        } catch (Throwable ignored) {}
+        } catch (Throwable ex) {
+            Throwable cause = rootCause(ex);
+            String msg = cause.getClass().getSimpleName() + ": " + String.valueOf(cause.getMessage());
+            debug.addProperty("tsa.error", msg);
+            AdminGui.LOGGER.warn("Admin GUI TSA API failed for {}", uuid, cause);
+        }
         return o;
     }
 
-    private static JsonObject ass(UUID uuid) {
+
+    private static JsonObject ass(UUID uuid, JsonObject debug) {
         JsonObject o = new JsonObject();
         try {
-            Optional<?> opt = optionalInvoke(
-                    "com.zaremate.airport_security_system.AirportSecuritySystemAPI",
-                    "getPlayerOffense", uuid);
-            if (opt.isEmpty()) return o;
+            Class<?> c = Class.forName("com.zaremate.airport_security_system.AirportSecuritySystemAPI");
+            debug.addProperty("ass.class", c.getName());
+            Object value = c.getMethod("getPlayerOffense", UUID.class).invoke(null, uuid);
+            debug.addProperty("ass.getPlayerOffense", value == null ? "null" : value.getClass().getName());
+
+            if (!(value instanceof Optional<?> opt)) {
+                debug.addProperty("ass.result", "not Optional");
+                return o;
+            }
+            if (opt.isEmpty()) {
+                debug.addProperty("ass.result", "empty");
+                return o;
+            }
+
             Object r = opt.get();
+            debug.addProperty("ass.result", "record " + r.getClass().getName());
             o.addProperty("playerName", recordString(r, "playerName"));
             o.addProperty("status", recordString(r, "status"));
             o.addProperty("clearedDate", recordString(r, "clearedDate"));
@@ -175,9 +207,15 @@ public final class AdminGuiData {
             o.add("detectionDates", mapToJson(recordAccessor(r, "detectionDates")));
             o.add("detectionCounts", mapToJson(recordAccessor(r, "detectionCounts")));
             o.addProperty("available", true);
-        } catch (Throwable ignored) {}
+        } catch (Throwable ex) {
+            Throwable cause = rootCause(ex);
+            String msg = cause.getClass().getSimpleName() + ": " + String.valueOf(cause.getMessage());
+            debug.addProperty("ass.error", msg);
+            AdminGui.LOGGER.warn("Admin GUI ASS API failed for {}", uuid, cause);
+        }
         return o;
     }
+
 
     private static boolean classAvailable(String name) {
         try { Class.forName(name); return true; } catch (Throwable ignored) { return false; }
@@ -243,97 +281,132 @@ public final class AdminGuiData {
         }
     }
 
-    private static JsonObject teams(UUID uuid) {
+    private static JsonObject teams(UUID uuid, JsonObject debug) {
         JsonObject o = new JsonObject();
         try {
             Class<?> c = Class.forName("com.zaremate.ftb_teams_util.FTBTeamsUtilAPI");
-            Method getTeam = c.getMethod("getTeam", UUID.class);
-            Optional<?> opt = (Optional<?>) getTeam.invoke(null, uuid);
-            if (opt.isEmpty()) return o;
+            debug.addProperty("teams.class", c.getName());
+            Object value = c.getMethod("getTeam", UUID.class).invoke(null, uuid);
+            debug.addProperty("teams.getTeam", value == null ? "null" : value.getClass().getName());
+
+            if (!(value instanceof Optional<?> opt)) {
+                debug.addProperty("teams.result", "not Optional");
+                return o;
+            }
+            if (opt.isEmpty()) {
+                debug.addProperty("teams.result", "empty");
+                return o;
+            }
 
             Object team = opt.get();
+            debug.addProperty("teams.result", "team " + team.getClass().getName());
             o.addProperty("available", true);
             o.addProperty("id", firstString(team, "getTeamId", "getId", "getTeamID"));
             o.addProperty("name", firstString(team, "getName", "getTeamName"));
+
             JsonArray members = new JsonArray();
             Object raw = firstObject(team, "getMembers");
+            debug.addProperty("teams.membersType", raw == null ? "null" : raw.getClass().getName());
+
             if (raw instanceof Iterable<?> it) {
-                for (Object value : it) {
-                    if (!(value instanceof UUID memberUuid)) {
-                        continue;
-                    }
+                for (Object valueMember : it) {
+                    if (!(valueMember instanceof UUID memberUuid)) continue;
 
                     JsonObject member = new JsonObject();
                     member.addProperty("uuid", memberUuid.toString());
-
                     String memberName = resolveName(serverForReflection(), memberUuid);
                     member.addProperty("name", memberName);
 
-                    try {
-                        Object rank = team.getClass()
-                                .getMethod("getRankForPlayer", UUID.class)
-                                .invoke(team, memberUuid);
+                    Object rank = firstObjectWithArgs(
+                            team, new Class<?>[]{UUID.class}, new Object[]{memberUuid},
+                            "getRankForPlayer"
+                    );
+                    String rankName = rank == null ? "NONE" : String.valueOf(rank);
+                    String rankDisplay = rankName;
 
-                        String rankName = rank == null ? "NONE" : String.valueOf(rank);
-                        String rankDisplay = rankName;
-
-                        if (rank != null) {
-                            try {
-                                Object display = rank.getClass()
-                                        .getMethod("getDisplayName")
-                                        .invoke(rank);
-                                if (display instanceof net.minecraft.network.chat.Component component) {
-                                    rankDisplay = component.getString();
-                                }
-                            } catch (Throwable ignored) {
-                                // Fall back to the enum name.
-                            }
+                    if (rank != null) {
+                        Object display = firstObject(rank, "getDisplayName");
+                        if (display instanceof net.minecraft.network.chat.Component component) {
+                            rankDisplay = component.getString();
                         }
-
-                        member.addProperty("rank", rankName);
-                        member.addProperty("rankDisplay", rankDisplay);
-                    } catch (Throwable ignored) {
-                        member.addProperty("rank", "NONE");
-                        member.addProperty("rankDisplay", "None");
                     }
 
+                    member.addProperty("rank", rankName);
+                    member.addProperty("rankDisplay", rankDisplay);
                     members.add(member);
                 }
             }
             o.add("members", members);
-        } catch (Throwable ignored) {}
+            debug.addProperty("teams.memberCount", members.size());
+        } catch (Throwable ex) {
+            Throwable cause = rootCause(ex);
+            String msg = cause.getClass().getSimpleName() + ": " + String.valueOf(cause.getMessage());
+            debug.addProperty("teams.error", msg);
+            AdminGui.LOGGER.warn("Admin GUI FTB Teams API failed for {}", uuid, cause);
+        }
         return o;
     }
 
-    private static JsonObject discord(UUID uuid) {
+
+    private static JsonObject discord(UUID uuid, JsonObject debug) {
         JsonObject o = new JsonObject();
         try {
-            Optional<?> opt = optionalInvoke(
-                    "com.zaremate.discordlink.DiscordLinkAPI",
-                    "getPlayerLink", uuid);
-            if (opt.isEmpty()) return o;
+            Class<?> c = Class.forName("com.zaremate.discordlink.DiscordLinkAPI");
+            debug.addProperty("discord.class", c.getName());
+            Object value = c.getMethod("getPlayerLink", UUID.class).invoke(null, uuid);
+            debug.addProperty("discord.getPlayerLink", value == null ? "null" : value.getClass().getName());
+
+            if (!(value instanceof Optional<?> opt)) {
+                debug.addProperty("discord.result", "not Optional");
+                return o;
+            }
+            if (opt.isEmpty()) {
+                debug.addProperty("discord.result", "empty");
+                return o;
+            }
+
             Object r = opt.get();
+            debug.addProperty("discord.result", "record " + r.getClass().getName());
             o.addProperty("available", true);
             o.addProperty("discordId", recordString(r, "discordId"));
             o.addProperty("discordTag", recordString(r, "discordTag"));
             o.addProperty("displayName", recordString(r, "displayName"));
             o.addProperty("linkedAt", recordLong(r, "linkedAt"));
-            o.addProperty("rewarded", Boolean.TRUE.equals(recordAccessor(r, "rewarded")));
-        } catch (Throwable ignored) {}
+            Object rewarded = recordAccessor(r, "rewarded");
+            o.addProperty("rewarded", rewarded instanceof Boolean b && b);
+        } catch (Throwable ex) {
+            Throwable cause = rootCause(ex);
+            String msg = cause.getClass().getSimpleName() + ": " + String.valueOf(cause.getMessage());
+            debug.addProperty("discord.error", msg);
+            AdminGui.LOGGER.warn("Admin GUI Discord API failed for {}", uuid, cause);
+        }
         return o;
     }
 
-    private static JsonObject clockin(UUID uuid) {
+
+    private static JsonObject clockin(UUID uuid, JsonObject debug) {
         JsonObject o = new JsonObject();
         try {
             Class<?> c = Class.forName("com.zaremate.clockin.ClockInMod");
+            debug.addProperty("clockin.class", c.getName());
+
             Field f = c.getDeclaredField("PLAYERS");
             f.setAccessible(true);
             Object map = f.get(null);
-            if (!(map instanceof Map<?, ?> players)) return o;
-            Object data = players.get(uuid);
-            if (data == null) return o;
+            debug.addProperty("clockin.PLAYERS", map == null ? "null" : map.getClass().getName());
 
+            if (!(map instanceof Map<?, ?> players)) {
+                debug.addProperty("clockin.result", "PLAYERS is not Map");
+                return o;
+            }
+
+            Object data = players.get(uuid);
+            if (data == null) {
+                debug.addProperty("clockin.result", "no player entry");
+                return o;
+            }
+
+            debug.addProperty("clockin.result", "record " + data.getClass().getName());
             o.addProperty("available", true);
             o.addProperty("name", fieldString(data, "name"));
             o.addProperty("clockedIn", fieldBoolean(data, "clockedIn"));
@@ -343,9 +416,15 @@ public final class AdminGuiData {
                 total += Math.max(0L, (System.currentTimeMillis() - at) / 1000L);
             }
             o.addProperty("totalSeconds", total);
-        } catch (Throwable ignored) {}
+        } catch (Throwable ex) {
+            Throwable cause = rootCause(ex);
+            String msg = cause.getClass().getSimpleName() + ": " + String.valueOf(cause.getMessage());
+            debug.addProperty("clockin.error", msg);
+            AdminGui.LOGGER.warn("Admin GUI ClockIn API/reflection failed for {}", uuid, cause);
+        }
         return o;
     }
+
 
     private static Set<UUID> clockinPlayers() {
         Set<UUID> result = new HashSet<>();
@@ -402,8 +481,18 @@ public final class AdminGuiData {
     }
 
     private static Object recordAccessor(Object record, String name) {
-        try { return record.getClass().getMethod(name).invoke(record); }
-        catch (Throwable ignored) { return null; }
+        try {
+            Method method;
+            try {
+                method = record.getClass().getMethod(name);
+            } catch (NoSuchMethodException ex) {
+                method = record.getClass().getDeclaredMethod(name);
+                method.setAccessible(true);
+            }
+            return method.invoke(record);
+        } catch (Throwable ignored) {
+            return null;
+        }
     }
 
     private static String recordString(Object record, String name) {
@@ -416,24 +505,64 @@ public final class AdminGuiData {
         return v instanceof Number n ? n.longValue() : 0L;
     }
 
-    private static String firstString(Object target, String... methods) {
+    private static Throwable rootCause(Throwable throwable) {
+        Throwable current = throwable;
+        while (current.getCause() != null
+                && current.getCause() != current
+                && (current instanceof java.lang.reflect.InvocationTargetException
+                    || current.getCause() instanceof java.lang.reflect.InvocationTargetException
+                    || current.getCause() != null)) {
+            if (current.getCause() == current) break;
+            current = current.getCause();
+        }
+        return current;
+    }
+
+    private static Object firstObjectWithArgs(
+            Object target,
+            Class<?>[] parameterTypes,
+            Object[] args,
+            String... methods
+    ) {
         for (String method : methods) {
             try {
-                Object v = target.getClass().getMethod(method).invoke(target);
-                if (v instanceof net.minecraft.network.chat.Component component) {
-                    String text = component.getString();
-                    if (!text.isBlank()) return text;
+                Method m;
+                try {
+                    m = target.getClass().getMethod(method, parameterTypes);
+                } catch (NoSuchMethodException ex) {
+                    m = target.getClass().getDeclaredMethod(method, parameterTypes);
+                    m.setAccessible(true);
                 }
-                if (v != null && !v.toString().isBlank()) return v.toString();
+                return m.invoke(target, args);
             } catch (Throwable ignored) {}
+        }
+        return null;
+    }
+
+    private static String firstString(Object target, String... methods) {
+        for (String methodName : methods) {
+            Object value = firstObject(target, methodName);
+            if (value instanceof net.minecraft.network.chat.Component component) {
+                String text = component.getString();
+                if (!text.isBlank()) return text;
+            }
+            if (value != null && !value.toString().isBlank()) return value.toString();
         }
         return "";
     }
 
     private static Object firstObject(Object target, String... methods) {
-        for (String method : methods) {
-            try { return target.getClass().getMethod(method).invoke(target); }
-            catch (Throwable ignored) {}
+        for (String methodName : methods) {
+            try {
+                Method method;
+                try {
+                    method = target.getClass().getMethod(methodName);
+                } catch (NoSuchMethodException ex) {
+                    method = target.getClass().getDeclaredMethod(methodName);
+                    method.setAccessible(true);
+                }
+                return method.invoke(target);
+            } catch (Throwable ignored) {}
         }
         return null;
     }
