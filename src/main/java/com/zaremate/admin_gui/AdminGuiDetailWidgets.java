@@ -4,9 +4,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.PlainTextButton;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
@@ -14,8 +14,18 @@ import java.util.List;
 import java.util.Locale;
 
 final class AdminGuiDetailWidgets {
-    private static final int CARD_INSET = 8;
-    private static final int CARD_CONTENT_WIDTH = 254;
+    private static final int CARD_CONTENT_WIDTH = 246;
+    private static final int VISIBLE_LINES = 3;
+
+    enum Section {
+        TSA,
+        ASS,
+        TEAM,
+        DISCORD,
+        CLOCK
+    }
+
+    private record DetailLine(String text, int color, String tooltip, Runnable action) {}
 
     private AdminGuiDetailWidgets() {}
 
@@ -25,6 +35,11 @@ final class AdminGuiDetailWidgets {
             int left,
             int top,
             Font font,
+            int tsaScroll,
+            int assScroll,
+            int teamScroll,
+            int discordScroll,
+            int clockScroll,
             int noteScroll
     ) {
         List<PlainTextButton> result = new ArrayList<>();
@@ -33,8 +48,9 @@ final class AdminGuiDetailWidgets {
         add(result, x, top + 68, 150, 18, "PLAYER DETAILS", 0xFF8B949E, null, null, font);
         add(result, left + 205, top + 68, 80, 18,
                 playerCount + " players", 0xFF8B949E, null, null, font);
+
         if (detail == null) {
-            add(result, x, top + 55, 260, 18, "Select a player", 0xFF8B949E, null, null, font);
+            add(result, x, top + 91, 260, 18, "Select a player", 0xFF8B949E, null, null, font);
             return result;
         }
 
@@ -44,9 +60,11 @@ final class AdminGuiDetailWidgets {
 
         add(result, x, top + 91, 390, 24, name, 0xFFF0F3F6,
                 "Click to copy player name.", () -> copy(name), font);
+
         String uuidDisplay = fit("UUID: " + uuid, 500, font);
         add(result, x, top + 113, 540, 18, uuidDisplay, 0xFF8B949E,
                 "Click to copy player UUID.\n\n" + uuid, () -> copy(uuid), font);
+
         add(result, x + 430, top + 91, 130, 18,
                 online ? "● ONLINE" : "○ OFFLINE",
                 online ? 0xFF3FB950 : 0xFF8B949E, null, null, font);
@@ -55,160 +73,222 @@ final class AdminGuiDetailWidgets {
         int tsaX = x + 12;
         int assX = x + 304;
 
-        tsa(result, detail.getAsJsonObject("tsa"), tsaX, cardY + 33, font);
-        ass(result, detail.getAsJsonObject("ass"), assX, cardY + 33, font);
+        scrollable(result, tsaLines(detail, font), tsaX, cardY + 33, tsaScroll, font);
+        scrollable(result, assLines(detail, font), assX, cardY + 33, assScroll, font);
 
         cardY += 96;
-        team(result, detail.getAsJsonObject("teams"), tsaX, cardY + 33, font);
-        discord(result, detail.getAsJsonObject("discord"), assX, cardY + 33, font);
+        scrollable(result, teamLines(detail, font), tsaX, cardY + 33, teamScroll, font);
+        scrollable(result, discordLines(detail, font), assX, cardY + 33, discordScroll, font);
 
         cardY += 88;
-        clock(result, detail.getAsJsonObject("clockin"), tsaX, cardY + 27, font);
+        scrollable(result, clockLines(detail, font), tsaX, cardY + 27, clockScroll, font);
 
         int notesY = top + 370;
         notes(result, detail, x + 12, notesY + 34, font, noteScroll);
         return result;
     }
 
-    private static void header(List<PlainTextButton> out, int x, int y, String text, Font font) {
-        add(out, x, y, CARD_CONTENT_WIDTH, 22, text, 0xFFF0F3F6, null, null, font);
-    }
-
-    private static void tsa(List<PlainTextButton> out, JsonObject o, int x, int y, Font font) {
+    private static List<DetailLine> tsaLines(JsonObject o, Font font) {
+        List<DetailLine> lines = new ArrayList<>();
         if (empty(o)) {
-            add(out, x, y, CARD_CONTENT_WIDTH, 18, "Not installed / no data", 0xFF8B949E, null, null, font);
-            return;
+            lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
+            return lines;
         }
+
         String stats = "Packets: " + num(o, "packetChecks")
                 + "  PASS: " + num(o, "packetPasses")
                 + "  Modified: " + num(o, "packetModified")
                 + "  Timeout: " + num(o, "packetTimeout");
-        add(out, x, y, CARD_CONTENT_WIDTH, 18, fit(stats, CARD_CONTENT_WIDTH, font), 0xFFF0F3F6,
-                "Click to copy TSA packet statistics.", () -> copy(stats), font);
+        lines.add(new DetailLine(
+                fit(stats, CARD_CONTENT_WIDTH, font),
+                0xFFF0F3F6,
+                "Click to copy TSA packet statistics.",
+                () -> copy(stats)
+        ));
+
         String last = text(o, "lastPacketStatus", "");
         if (!last.isBlank()) {
             String result = "Last: " + last + " " + text(o, "lastPacketDate", "");
-            int resultColor = switch (last.toUpperCase(Locale.ROOT)) {
+            int color = switch (last.toUpperCase(Locale.ROOT)) {
                 case "MODIFIED", "TIMEOUT" -> 0xFFF85149;
                 case "PASS" -> 0xFF3FB950;
                 default -> 0xFF8B949E;
             };
-            add(out, x, y + 18, CARD_CONTENT_WIDTH, 18, result, resultColor,
-                    "Click to copy the last TSA packet result.", () -> copy(result), font);
+            lines.add(new DetailLine(
+                    fit(result, CARD_CONTENT_WIDTH, font),
+                    color,
+                    "Click to copy the last TSA packet result.",
+                    () -> copy(result)
+            ));
         }
-        JsonArray detections = o.getAsJsonArray("detections");
-        List<String> uniqueDetections = uniqueDetections(detections);
-        if (!uniqueDetections.isEmpty()) {
-            String all = String.join("\n", uniqueDetections);
-            add(out, x, y + 38, CARD_CONTENT_WIDTH, 18, "Detections: " + uniqueDetections.size(),
+
+        for (String detection : uniqueDetections(o.getAsJsonArray("detections"))) {
+            String line = "Detection: " + detection;
+            lines.add(new DetailLine(
+                    fit(line, CARD_CONTENT_WIDTH, font),
                     0xFFF85149,
-                    "Click to copy unique TSA detections.\n\n" + all,
-                    () -> copy(all), font);
+                    "Click to copy this TSA detection.\n\n" + detection,
+                    () -> copy(detection)
+            ));
         }
+        return lines;
     }
 
-    private static void ass(List<PlainTextButton> out, JsonObject o, int x, int y, Font font) {
+    private static List<DetailLine> assLines(JsonObject o, Font font) {
+        List<DetailLine> lines = new ArrayList<>();
         if (empty(o)) {
-            add(out, x, y, 260, 18, "Not installed / no data", 0xFF8B949E, null, null, font);
-            return;
+            lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
+            return lines;
         }
+
         String status = text(o, "status", "UNKNOWN");
-        String stats = "Status: " + status + "  Checks: " + num(o, "totalChecks")
-                + "  Detected: " + num(o, "detectedChecks") + "  Clean: " + num(o, "cleanChecks");
-        add(out, x, y, CARD_CONTENT_WIDTH, 18, fit(stats, CARD_CONTENT_WIDTH, font),
-                status.equalsIgnoreCase("DETECTED") ? 0xFFF85149 : 0xFFF0F3F6,
-                "Click to copy ASS statistics.", () -> copy(stats), font);
+        int statusColor = status.equalsIgnoreCase("DETECTED") ? 0xFFF85149 : 0xFFF0F3F6;
+        lines.add(new DetailLine("Status: " + status, statusColor,
+                "Click to copy ASS status.\n\n" + status, () -> copy(status)));
+
+        String checks = "Checks: " + num(o, "totalChecks")
+                + "  Detected: " + num(o, "detectedChecks")
+                + "  Clean: " + num(o, "cleanChecks");
+        lines.add(new DetailLine(
+                fit(checks, CARD_CONTENT_WIDTH, font),
+                0xFFF0F3F6,
+                "Click to copy ASS check statistics.\n\n" + checks,
+                () -> copy(checks)
+        ));
+
         JsonObject dates = o.getAsJsonObject("detectionDates");
-        String state = "Cleared: " + text(o, "clearedDate", "-")
-                + "  Categories: " + (dates == null ? 0 : dates.entrySet().size());
-        add(out, x, y + 18, CARD_CONTENT_WIDTH, 18, fit(state, CARD_CONTENT_WIDTH, font), 0xFF8B949E,
-                "Click to copy ASS offense state.", () -> copy(state), font);
+        String cleared = "Cleared: " + text(o, "clearedDate", "-");
+        lines.add(new DetailLine(
+                fit(cleared, CARD_CONTENT_WIDTH, font),
+                0xFF8B949E,
+                "Click to copy ASS cleared date.",
+                () -> copy(cleared)
+        ));
+
+        if (dates != null) {
+            for (var entry : dates.entrySet()) {
+                String category = entry.getKey() + ": " + entry.getValue().getAsString();
+                lines.add(new DetailLine(
+                        fit(category, CARD_CONTENT_WIDTH, font),
+                        0xFFD29922,
+                        "Click to copy this ASS detection category.\n\n" + category,
+                        () -> copy(category)
+                ));
+            }
+        }
+        return lines;
     }
 
-    private static void team(List<PlainTextButton> out, JsonObject o, int x, int y, Font font) {
+    private static List<DetailLine> teamLines(JsonObject o, Font font) {
+        List<DetailLine> lines = new ArrayList<>();
         if (empty(o)) {
-            add(out, x, y, 260, 18, "Not installed / no data", 0xFF8B949E, null, null, font);
-            return;
+            lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
+            return lines;
         }
 
         String name = text(o, "name", "No team");
         String id = text(o, "id", "");
         String teamDisplay = id.isBlank() ? name : name + "  ID: " + id;
-        add(out, x, y, CARD_CONTENT_WIDTH, 18,
+        lines.add(new DetailLine(
                 fit(teamDisplay, CARD_CONTENT_WIDTH, font),
                 0xFFF0F3F6,
                 id.isBlank() ? null : "Click to copy FTB Team ID.\n\n" + id,
-                id.isBlank() ? null : () -> copy(id), font);
+                id.isBlank() ? null : () -> copy(id)
+        ));
 
         JsonArray members = o.getAsJsonArray("members");
         if (members == null || members.isEmpty()) {
-            add(out, x, y + 18, CARD_CONTENT_WIDTH, 18, "Members: 0", 0xFF8B949E, null, null, font);
-            return;
+            lines.add(new DetailLine("Members: 0", 0xFF8B949E, null, null));
+            return lines;
         }
 
-        StringBuilder fullRoster = new StringBuilder();
-        int shown = Math.min(members.size(), 1);
-        for (int i = 0; i < shown; i++) {
-            JsonObject member = members.get(i).getAsJsonObject();
+        for (JsonElement element : members) {
+            JsonObject member = element.getAsJsonObject();
             String memberName = text(member, "name", text(member, "uuid", "Unknown"));
             String rank = text(member, "rankDisplay", text(member, "rank", "NONE"));
             String line = memberName + " — " + rank;
-
-            if (!fullRoster.isEmpty()) fullRoster.append('\n');
-            fullRoster.append(line);
-
-            final String copiedLine = line;
-            add(out, x, y + 18 + i * 18, CARD_CONTENT_WIDTH, 18,
+            int color = rank.equalsIgnoreCase("OWNER") ? 0xFFD29922 : 0xFFF0F3F6;
+            lines.add(new DetailLine(
                     fit(line, CARD_CONTENT_WIDTH, font),
-                    rank.equalsIgnoreCase("OWNER") ? 0xFFD29922 : 0xFFF0F3F6,
-                    "Click to copy this member.\n\n" + line,
-                    () -> copy(copiedLine), font);
+                    color,
+                    "Click to copy this team member.\n\n" + line,
+                    () -> copy(line)
+            ));
+        }
+        return lines;
+    }
+
+    private static List<DetailLine> discordLines(JsonObject o, Font font) {
+        List<DetailLine> lines = new ArrayList<>();
+        if (empty(o)) {
+            lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
+            return lines;
         }
 
-        if (members.size() > shown) {
-            String all = fullRoster.toString();
-            for (int i = shown; i < members.size(); i++) {
-                JsonObject member = members.get(i).getAsJsonObject();
-                if (!all.isEmpty()) all += "\n";
-                all += text(member, "name", text(member, "uuid", "Unknown"))
-                        + " — " + text(member, "rankDisplay", text(member, "rank", "NONE"));
-            }
-            final String roster = all;
-            add(out, x, y + 18 + shown * 18, CARD_CONTENT_WIDTH, 18,
-                    "+" + (members.size() - shown) + " more members",
-                    0xFF8B949E,
-                    "Click to copy the complete team roster.\n\n" + roster,
-                    () -> copy(roster), font);
-        }
-    }
-    private static void discord(List<PlainTextButton> out, JsonObject o, int x, int y, Font font) {
-        if (empty(o)) {
-            add(out, x, y, 260, 18, "Not installed / no data", 0xFF8B949E, null, null, font);
-            return;
-        }
         String display = text(o, "displayName", text(o, "discordTag", "Linked"));
         String id = text(o, "discordId", "");
-        add(out, x, y, CARD_CONTENT_WIDTH, 18, display, 0xFFF0F3F6,
+        lines.add(new DetailLine(
+                display,
+                0xFFF0F3F6,
                 id.isBlank() ? null : "Click to copy Discord ID.",
-                id.isBlank() ? null : () -> copy(id), font);
-        add(out, x, y + 18, CARD_CONTENT_WIDTH, 18,
+                id.isBlank() ? null : () -> copy(id)
+        ));
+        lines.add(new DetailLine(
                 fit("ID: " + id, CARD_CONTENT_WIDTH, font),
                 0xFF8B949E,
                 id.isBlank() ? null : "Click to copy Discord ID.\n\n" + id,
-                id.isBlank() ? null : () -> copy(id), font);
+                id.isBlank() ? null : () -> copy(id)
+        ));
+        return lines;
     }
 
-    private static void clock(List<PlainTextButton> out, JsonObject o, int x, int y, Font font) {
+    private static List<DetailLine> clockLines(JsonObject o, Font font) {
+        List<DetailLine> lines = new ArrayList<>();
         if (empty(o)) {
-            add(out, x, y, 260, 18, "Not installed / no data", 0xFF8B949E, null, null, font);
-            return;
+            lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
+            return lines;
         }
+
         long seconds = num(o, "totalSeconds");
         String value = (bool(o, "clockedIn") ? "CLOCKED IN" : "CLOCKED OUT")
                 + "  Total: " + formatSeconds(seconds);
-        add(out, x, y, CARD_CONTENT_WIDTH, 18, value,
+        lines.add(new DetailLine(
+                value,
                 bool(o, "clockedIn") ? 0xFF3FB950 : 0xFF8B949E,
-                "Click to copy total ClockIn seconds.", () -> copy(String.valueOf(seconds)), font);
+                "Click to copy total ClockIn seconds.",
+                () -> copy(String.valueOf(seconds))
+        ));
+        return lines;
+    }
+
+    private static void scrollable(
+            List<PlainTextButton> out,
+            List<DetailLine> lines,
+            int x,
+            int y,
+            int scroll,
+            Font font
+    ) {
+        int maxScroll = Math.max(0, lines.size() - VISIBLE_LINES);
+        int start = Math.min(Math.max(0, scroll), maxScroll);
+        int end = Math.min(lines.size(), start + VISIBLE_LINES);
+
+        for (int i = start; i < end; i++) {
+            DetailLine line = lines.get(i);
+            add(out, x, y + (i - start) * 18, CARD_CONTENT_WIDTH, 18,
+                    line.text(), line.color(), line.tooltip(), line.action(), font);
+        }
+    }
+
+    static int lineCount(JsonObject detail, Section section, Font font) {
+        if (detail == null) return 0;
+        return switch (section) {
+            case TSA -> tsaLines(detail, font).size();
+            case ASS -> assLines(detail, font).size();
+            case TEAM -> teamLines(detail, font).size();
+            case DISCORD -> discordLines(detail, font).size();
+            case CLOCK -> clockLines(detail, font).size();
+        };
     }
 
     private static void notes(
@@ -219,17 +299,19 @@ final class AdminGuiDetailWidgets {
             Font font,
             int noteScroll
     ) {
-        if (!detail.has("notesAvailable") || !detail.get("notesAvailable").getAsBoolean()) {
+        if (!bool(detail, "notesAvailable")) {
             add(out, x, y, 405, 18, "Admin Notes is not installed.", 0xFF8B949E, null, null, font);
             return;
         }
+
         JsonArray notes = detail.getAsJsonArray("notes");
         if (notes == null || notes.isEmpty()) {
             add(out, x, y, 405, 18, "No notes for this player.", 0xFF8B949E, null, null, font);
             return;
         }
+
         int shown = Math.min(notes.size(), 3);
-        int start = Math.min(noteScroll, Math.max(0, notes.size() - shown));
+        int start = Math.min(Math.max(0, noteScroll), Math.max(0, notes.size() - shown));
         for (int i = 0; i < shown; i++) {
             JsonObject note = notes.get(start + i).getAsJsonObject();
             String author = text(note, "author", "");
@@ -240,7 +322,6 @@ final class AdminGuiDetailWidgets {
                     "Click to copy the full note.\n\n" + author + " — " + value,
                     () -> copy(value), font);
         }
-
     }
 
     private static void add(List<PlainTextButton> out, int x, int y, int width, int height,
@@ -257,23 +338,6 @@ final class AdminGuiDetailWidgets {
 
     private static boolean empty(JsonObject o) {
         return o == null || o.entrySet().isEmpty();
-    }
-
-    private static String friendly(String value) {
-        if (value == null || value.isBlank()) return "";
-        if (value.startsWith("literal(") || value.contains("contents=")) {
-            int literalStart = value.indexOf("literal(");
-            int end = value.indexOf(')', literalStart + 8);
-            if (literalStart >= 0 && end > literalStart) {
-                String inner = value.substring(literalStart + 8, end);
-                int textStart = inner.indexOf("text=");
-                if (textStart >= 0) {
-                    inner = inner.substring(textStart + 5);
-                }
-                return inner.replaceAll(",\\s*style=.*$", "");
-            }
-        }
-        return value;
     }
 
     private static String fit(String value, int maxWidth, Font font) {
@@ -298,24 +362,19 @@ final class AdminGuiDetailWidgets {
     }
 
     private static List<String> uniqueDetections(JsonArray array) {
-        if (array == null || array.isEmpty()) {
-            return List.of();
-        }
+        if (array == null || array.isEmpty()) return List.of();
 
         java.util.LinkedHashMap<String, String> unique = new java.util.LinkedHashMap<>();
         for (JsonElement element : array) {
             String raw = element.getAsString();
             String identity = raw;
-
             int marker = raw.indexOf(" | DETECTED | ");
             if (marker >= 0) {
                 identity = raw.substring(marker + " | DETECTED | ".length());
             }
-
             identity = identity.replaceFirst("\\s+\\[[0-9a-fA-F]{64}\\]$", "");
             unique.put(identity.toLowerCase(Locale.ROOT), raw);
         }
-
         return List.copyOf(unique.values());
     }
 
