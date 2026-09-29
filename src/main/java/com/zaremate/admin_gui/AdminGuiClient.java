@@ -760,14 +760,12 @@ public final class AdminGuiClient {
         }
 
         @Override
-        protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-            if (!visible) return;
-
-            int textWidth = font.width(getMessage());
+        public void renderString(GuiGraphics g, Font font, int color) {
+            Component message = getMessage();
+            int textWidth = font.width(message);
             int textX = getX() + (getWidth() - textWidth) / 2;
             int textY = getY() + (getHeight() - font.lineHeight) / 2;
-
-            g.drawString(font, getMessage(), textX, textY, 0xFFFFFFFF, false);
+            g.drawString(font, message, textX, textY, color, false);
         }
     }
 
