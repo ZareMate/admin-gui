@@ -429,18 +429,21 @@ public final class AdminGuiClient {
                 card(g, left + 613, top + 224, 272, 78, "DISCORD");
                 card(g, left + 321, top + 312, 272, 45, "CLOCK IN");
 
-                drawCardScrollBar(g, left + 585, top + 158, 48,
+                drawCardScrollBar(g, left + 586, top + 158, 48,
                         AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TSA, font),
                         3, tsaScroll, logicalX, logicalY);
-                drawCardScrollBar(g, left + 877, top + 158, 48,
+                drawCardScrollBar(g, left + 878, top + 158, 48,
                         AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.ASS, font),
                         3, assScroll, logicalX, logicalY);
-                drawCardScrollBar(g, left + 585, top + 254, 42,
+                drawCardScrollBar(g, left + 586, top + 254, 42,
                         AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TEAM, font),
                         3, teamScroll, logicalX, logicalY);
-                drawCardScrollBar(g, left + 877, top + 254, 42,
+                drawCardScrollBar(g, left + 878, top + 254, 42,
                         AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.DISCORD, font),
                         3, discordScroll, logicalX, logicalY);
+                drawCardScrollBar(g, left + 585, top + 330, 20,
+                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.CLOCK, font),
+                        3, clockScroll, logicalX, logicalY);
 
                 panel(g, left + 313, top + 370, 562, 117, PANEL, BORDER, 1);
                 g.drawString(font, "ADMIN NOTES", left + 325, top + 381, MUTED, false);
@@ -522,7 +525,7 @@ public final class AdminGuiClient {
                                          double mouseX, double mouseY) {
             if (total <= visible || height <= 0) return;
 
-            g.fill(x, y, x + 3, y + height, 0xFF21262D);
+            g.fill(x, y, x + 4, y + height, 0xFF21262D);
             int maxOffset = total - visible;
             int thumbHeight = Math.max(10, height * visible / total);
             int travel = Math.max(0, height - thumbHeight);
@@ -530,7 +533,7 @@ public final class AdminGuiClient {
 
             boolean hovered = mouseX >= x - 3 && mouseX <= x + 7
                     && mouseY >= thumbY && mouseY <= thumbY + thumbHeight;
-            g.fill(x, thumbY, x + 3, thumbY + thumbHeight,
+            g.fill(x, thumbY, x + 4, thumbY + thumbHeight,
                     hovered ? BORDER_HOVER : MUTED);
         }
 
