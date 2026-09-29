@@ -35,7 +35,6 @@ public final class AdminGuiData {
 
         root.add("players", players);
         root.addProperty("serverPlayers", server.getPlayerList().getPlayerCount());
-        AdminGui.LOGGER.info("Detail diagnostics for {}: {}", uuid, debug);
         return root.toString();
     }
 
@@ -78,6 +77,7 @@ public final class AdminGuiData {
         root.add("discord", discord(uuid, debug));
         root.add("clockin", clockin(uuid, debug));
 
+        AdminGui.LOGGER.info("Detail diagnostics for {}: {}", uuid, debug);
         return root.toString();
     }
 
