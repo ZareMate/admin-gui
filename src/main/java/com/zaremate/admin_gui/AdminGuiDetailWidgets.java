@@ -49,7 +49,6 @@ final class AdminGuiDetailWidgets {
                 playerCount + " players", 0xFF8B949E, null, null, font);
 
         if (detail == null) {
-            add(result, x, top + 91, 260, 18, "Select a player", 0xFF8B949E, null, null, font);
             return result;
         }
 
@@ -91,20 +90,28 @@ final class AdminGuiDetailWidgets {
             return lines;
         }
 
-        String stats = "Packets: " + num(o, "packetChecks")
-                + "  PASS: " + num(o, "packetPasses")
+        String packets = "Packets: " + num(o, "packetChecks");
+        lines.add(new DetailLine(
+                packets,
+                0xFFF0F3F6,
+                "Click to copy TSA packet count.",
+                () -> copy(packets)
+        ));
+
+        String outcomes = "PASS: " + num(o, "packetPasses")
                 + "  Modified: " + num(o, "packetModified")
                 + "  Timeout: " + num(o, "packetTimeout");
         lines.add(new DetailLine(
-                fit(stats, CARD_CONTENT_WIDTH, font),
+                fit(outcomes, CARD_CONTENT_WIDTH, font),
                 0xFFF0F3F6,
-                "Click to copy TSA packet statistics.",
-                () -> copy(stats)
+                "Click to copy TSA packet outcome statistics.",
+                () -> copy(outcomes)
         ));
 
         String last = text(o, "lastPacketStatus", "");
         if (!last.isBlank()) {
-            String result = "Last: " + last + " " + text(o, "lastPacketDate", "");
+            String date = compactDate(text(o, "lastPacketDate", ""));
+            String result = "Last: " + last + (date.isBlank() ? "" : "  " + date);
             int color = switch (last.toUpperCase(Locale.ROOT)) {
                 case "MODIFIED", "TIMEOUT" -> 0xFFF85149;
                 case "PASS" -> 0xFF3FB950;
@@ -119,9 +126,9 @@ final class AdminGuiDetailWidgets {
         }
 
         for (String detection : uniqueDetections(o.getAsJsonArray("detections"))) {
-            String line = "Detection: " + detection;
+            String line = formatDetection(detection, font);
             lines.add(new DetailLine(
-                    fit(line, CARD_CONTENT_WIDTH, font),
+                    line,
                     0xFFF85149,
                     "Click to copy this TSA detection.\n\n" + detection,
                     () -> copy(detection)
@@ -361,6 +368,36 @@ final class AdminGuiDetailWidgets {
             unique.put(identity.toLowerCase(Locale.ROOT), raw);
         }
         return List.copyOf(unique.values());
+    }
+
+    private static String compactDate(String value) {
+        if (value == null || value.isBlank()) return "";
+        int t = value.indexOf('T');
+        if (t < 0) return value;
+        String date = value.substring(0, t);
+        String rest = value.substring(t + 1);
+        if (rest.length() > 5) rest = rest.substring(0, 5);
+        return date + " " + rest;
+    }
+
+    private static String formatDetection(String raw, Font font) {
+        if (raw == null || raw.isBlank()) return "";
+
+        String display = raw;
+        String[] parts = raw.split(" \\| ", 3);
+        if (parts.length == 3) {
+            String detail = parts[2].replaceFirst("\\s+\\[[0-9a-fA-F]{64}\\]$", "");
+            if (detail.startsWith("RESOURCE_PACK ")) {
+                detail = detail.substring("RESOURCE_PACK ".length());
+                display = "Pack: " + detail;
+            } else if (detail.startsWith("MOD ")) {
+                detail = detail.substring("MOD ".length());
+                display = "Mod: " + detail;
+            } else {
+                display = detail;
+            }
+        }
+        return fit(display, CARD_CONTENT_WIDTH, font);
     }
 
     private static String formatSeconds(long seconds) {
