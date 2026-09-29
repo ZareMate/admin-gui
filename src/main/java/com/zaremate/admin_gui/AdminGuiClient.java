@@ -763,8 +763,8 @@ public final class AdminGuiClient {
         public void renderString(GuiGraphics g, Font font, int color) {
             Component message = getMessage();
             int textWidth = font.width(message);
-            int textX = getX() + Math.max(0, (getWidth() - textWidth) / 2);
-            int textY = getY() + Math.max(0, (getHeight() - font.lineHeight) / 2);
+            int textX = getX() + (getWidth() - textWidth) / 2;
+            int textY = getY() + (getHeight() - font.lineHeight) / 2;
             g.drawString(font, message, textX, textY, color, false);
         }
     }
