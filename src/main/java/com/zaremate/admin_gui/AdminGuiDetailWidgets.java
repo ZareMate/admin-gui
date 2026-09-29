@@ -21,8 +21,7 @@ final class AdminGuiDetailWidgets {
         TSA,
         ASS,
         TEAM,
-        DISCORD,
-        CLOCK
+        DISCORD
     }
 
     private record DetailLine(String text, int color, String tooltip, Runnable action) {}
@@ -80,10 +79,7 @@ final class AdminGuiDetailWidgets {
         scrollable(result, teamLines(detail.getAsJsonObject("teams"), font), tsaX, cardY + 33, teamScroll, font);
         scrollable(result, discordLines(detail.getAsJsonObject("discord"), font), assX, cardY + 33, discordScroll, font);
 
-        cardY += 88;
-        scrollable(result, clockLines(detail.getAsJsonObject("clockin"), font), tsaX, cardY + 27, clockScroll, font);
-
-        int notesY = top + 370;
+        int notesY = top + 312;
         notes(result, detail, x + 12, notesY + 34, font, noteScroll);
         return result;
     }
@@ -250,25 +246,6 @@ final class AdminGuiDetailWidgets {
         return lines;
     }
 
-    private static List<DetailLine> clockLines(JsonObject o, Font font) {
-        List<DetailLine> lines = new ArrayList<>();
-        if (empty(o)) {
-            lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
-            return lines;
-        }
-
-        long seconds = num(o, "totalSeconds");
-        String value = (bool(o, "clockedIn") ? "CLOCKED IN" : "CLOCKED OUT")
-                + "  Total: " + formatSeconds(seconds);
-        lines.add(new DetailLine(
-                value,
-                bool(o, "clockedIn") ? 0xFF3FB950 : 0xFF8B949E,
-                "Click to copy total ClockIn seconds.",
-                () -> copy(String.valueOf(seconds))
-        ));
-        return lines;
-    }
-
     private static void scrollable(
             List<PlainTextButton> out,
             List<DetailLine> lines,
@@ -295,7 +272,6 @@ final class AdminGuiDetailWidgets {
             case ASS -> assLines(detail.getAsJsonObject("ass"), font).size();
             case TEAM -> teamLines(detail.getAsJsonObject("teams"), font).size();
             case DISCORD -> discordLines(detail.getAsJsonObject("discord"), font).size();
-            case CLOCK -> clockLines(detail.getAsJsonObject("clockin"), font).size();
         };
     }
 
