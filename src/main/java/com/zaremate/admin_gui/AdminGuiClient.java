@@ -151,7 +151,7 @@ public final class AdminGuiClient {
                 int y = top + 126 + (i - start) * 29;
                 Component label = Component.literal(p.name())
                         .withStyle(s -> s.withColor(TEXT));
-                PlainTextButton b = new CenteredTextButton(
+                PlainTextButton b = new PlayerListButton(
                         left + 24, y, 258, 26, label,
                         btn -> selectPlayer(p.uuid()), font);
                 b.setTooltip(Tooltip.create(Component.literal(
@@ -481,6 +481,28 @@ public final class AdminGuiClient {
         public boolean isPauseScreen() { return false; }
 
         private record PlayerRef(String uuid, String name, boolean online) {}
+    }
+
+    private static final class PlayerListButton extends PlainTextButton {
+        private PlayerListButton(
+                int x,
+                int y,
+                int width,
+                int height,
+                Component text,
+                Button.OnPress onPress,
+                Font font
+        ) {
+            super(x, y, width, height, text, onPress, font);
+        }
+
+        @Override
+        public void renderString(GuiGraphics g, Font font, int color) {
+            Component message = getMessage();
+            int textX = getX() + 18;
+            int textY = getY() + Math.max(0, (getHeight() - font.lineHeight) / 2);
+            g.drawString(font, message, textX, textY, color, false);
+        }
     }
 
     private static final class CenteredTextButton extends PlainTextButton {
