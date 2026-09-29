@@ -767,9 +767,7 @@ public final class AdminGuiClient {
             int textX = getX() + (getWidth() - textWidth) / 2;
             int textY = getY() + (getHeight() - font.lineHeight) / 2;
 
-            g.drawString(font, getMessage(), textX, textY, getMessage().getStyle().getColor() != null
-                    ? getMessage().getStyle().getColor().getValue()
-                    : 0xFFFFFFFF, false);
+            g.drawString(font, getMessage(), textX, textY, 0xFFFFFFFF, false);
         }
     }
 
