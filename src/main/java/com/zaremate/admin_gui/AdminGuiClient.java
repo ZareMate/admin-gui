@@ -533,7 +533,7 @@ public final class AdminGuiClient {
             panel(g, left + 12, top + 58, 282, 332, PANEL, BORDER, 1);
             g.drawString(font, "PLAYERS", left + 24, top + 69, MUTED, true);
             panel(g, left + 24, top + 94, 258, 26, BG, BORDER, 1);
-            drawSearchIcon(g, left + 38, top + 110, MUTED);
+            drawSearchIcon(g, left + 32, top + 101, MUTED);
 
             List<PlayerRef> filtered = filteredPlayers();
             for (int i = 0; i < Math.min(9, filtered.size()); i++) {
@@ -553,7 +553,6 @@ public final class AdminGuiClient {
             drawScrollBar(g, left + 286, top + 126, 261, filtered.size(), 9, playerScroll, logicalX, logicalY);
 
             panel(g, left + 12, top + 399, 282, 62, PANEL, BORDER, 1);
-            g.drawString(font, "PLAYER ACTIONS", left + 24, top + 404, MUTED, true);
 
             for (PlainTextButton action : actionButtons) {
                 boolean hovered = action.isHoveredOrFocused();
@@ -746,7 +745,7 @@ public final class AdminGuiClient {
         }
     }
 
-    private static final class CenteredTextButton extends PlainTextButton {
+    private static final class CenteredTextButton extends Button {
         private CenteredTextButton(
                 int x,
                 int y,
@@ -756,16 +755,26 @@ public final class AdminGuiClient {
                 Button.OnPress onPress,
                 Font font
         ) {
-            super(x, y, width, height, text, onPress, font);
+            super(x, y, width, height, text, onPress, Button.DEFAULT_NARRATION);
         }
 
         @Override
-        public void renderString(GuiGraphics g, Font font, int color) {
+        public void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+            if (!visible) return;
+
             Component message = getMessage();
-            int textWidth = font.width(message);
+            int textWidth = Minecraft.getInstance().font.width(message);
             int textX = getX() + (getWidth() - textWidth) / 2;
-            int textY = getY() + (getHeight() - font.lineHeight) / 2;
-            g.drawString(font, message, textX, textY, color, false);
+            int textY = getY() + (getHeight() - Minecraft.getInstance().font.lineHeight) / 2;
+
+            int color = 0xFFFFFFFF;
+            if (!active) {
+                color = 0xFF6E7681;
+            } else if (message.getStyle().getColor() != null) {
+                color = message.getStyle().getColor().getValue();
+            }
+
+            g.drawString(Minecraft.getInstance().font, message, textX, textY, color, false);
         }
     }
 
