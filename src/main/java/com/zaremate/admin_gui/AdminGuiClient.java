@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.PlainTextButton;
+import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -35,6 +36,7 @@ public final class AdminGuiClient {
     public static final class AdminGuiScreen extends Screen {
         private final List<PlayerRef> players = new ArrayList<>();
         private final List<PlainTextButton> playerButtons = new ArrayList<>();
+        private final List<PlainTextButton> actionButtons = new ArrayList<>();
         private final List<PlainTextButton> noteButtons = new ArrayList<>();
         private final List<PlainTextButton> infoWidgets = new ArrayList<>();
         private String selectedUuid;
@@ -139,6 +141,7 @@ public final class AdminGuiClient {
             addNoteButton.visible = false;
 
             rebuildPlayerButtons();
+            rebuildActionButtons();
             rebuildInfoWidgets();
         }
 
@@ -214,6 +217,7 @@ public final class AdminGuiClient {
 
         private void selectPlayer(String uuid) {
             selectedUuid = uuid;
+            rebuildActionButtons();
             AdminGuiNetworkSelect.send(uuid);
         }
 
@@ -243,6 +247,7 @@ public final class AdminGuiClient {
             if (search != null && search.isFocused()) {
                 boolean result = super.keyPressed(keyCode, scanCode, modifiers);
                 rebuildPlayerButtons();
+                rebuildActionButtons();
                 return result;
             }
             return super.keyPressed(keyCode, scanCode, modifiers);
@@ -405,6 +410,12 @@ public final class AdminGuiClient {
             }
             drawScrollBar(g, left + 286, top + 126, 290, filtered.size(), 10, playerScroll, logicalX, logicalY);
 
+            for (PlainTextButton action : actionButtons) {
+                boolean hovered = action.isHoveredOrFocused();
+                buttonSurface(g, action.getX(), action.getY(), action.getWidth(), action.getHeight(),
+                        hovered && action.active);
+            }
+
             // Detail area
             panel(g, left + 305, top + 58, 580, 404, BG, BORDER, 1);
             if (detail == null) {
@@ -436,6 +447,7 @@ public final class AdminGuiClient {
 
             renderWidgetIfVisible(g, search, logicalX, logicalY, partialTick);
             for (PlainTextButton button : playerButtons) renderWidgetIfVisible(g, button, logicalX, logicalY, partialTick);
+            for (PlainTextButton action : actionButtons) renderWidgetIfVisible(g, action, logicalX, logicalY, partialTick);
             for (PlainTextButton widget : infoWidgets) renderWidgetIfVisible(g, widget, logicalX, logicalY, partialTick);
             for (PlainTextButton button : noteButtons) renderWidgetIfVisible(g, button, logicalX, logicalY, partialTick);
 
