@@ -116,7 +116,7 @@ public final class AdminGuiClient {
             int left = baseLeft();
             int top = baseTop();
 
-            search = new EditBox(font, left + 45, top + 94, 237, 26, Component.literal("Search players"));
+            search = new EditBox(font, left + 45, top + 97, 237, 20, Component.literal("Search players"));
             search.setHint(Component.literal("Search players..."));
             search.setMaxLength(64);
             search.setBordered(false);
@@ -124,7 +124,7 @@ public final class AdminGuiClient {
             search.setTextColorUneditable(MUTED);
             addRenderableWidget(search);
 
-            noteInput = new EditBox(font, left + 325, top + 490, 430, 26, Component.literal("Note"));
+            noteInput = new EditBox(font, left + 325, top + 486, 430, 26, Component.literal("Note"));
             noteInput.setMaxLength(512);
             noteInput.setBordered(false);
             noteInput.setTextColor(TEXT);
@@ -132,7 +132,7 @@ public final class AdminGuiClient {
             addRenderableWidget(noteInput);
 
             addNoteButton = new CenteredTextButton(
-                    left + 765, top + 490, 110, 26,
+                    left + 765, top + 486, 110, 26,
                     Component.literal("ADD NOTE").withStyle(s -> s.withColor(0xFFFFFFFF)),
                     b -> saveNote(),
                     font
@@ -330,7 +330,7 @@ public final class AdminGuiClient {
             if (detail == null || !bool(detail, "notesAvailable") || !detail.has("notes")) return;
 
             JsonArray notes = detail.getAsJsonArray("notes");
-            int shown = Math.min(notes.size(), 3);
+            int shown = Math.min(notes.size(), 4);
             int start = Math.min(noteScroll, Math.max(0, notes.size() - shown));
             int left = baseLeft();
             int top = baseTop();
@@ -457,7 +457,7 @@ public final class AdminGuiClient {
                     int noteCount = detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0;
                     noteScroll = clampScroll(
                             noteScroll - delta,
-                            Math.max(0, noteCount - 3)
+                            Math.max(0, noteCount - 4)
                     );
                     rebuildInfoWidgets();
                     return true;
@@ -591,7 +591,7 @@ public final class AdminGuiClient {
                 panel(g, left + 313, top + 312, 562, 168, PANEL, BORDER, 1);
                 g.drawString(font, "ADMIN NOTES", left + 325, top + 323, MUTED, false);
                 drawScrollBar(g, left + 863, top + 342, 126,
-                        detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0, 3, noteScroll, logicalX, logicalY);
+                        detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0, 4, noteScroll, logicalX, logicalY);
             }
 
             renderWidgetIfVisible(g, search, logicalX, logicalY, partialTick);
@@ -601,8 +601,8 @@ public final class AdminGuiClient {
             for (PlainTextButton button : noteButtons) renderWidgetIfVisible(g, button, logicalX, logicalY, partialTick);
 
             if (noteInput != null && noteInput.visible) {
-                panel(g, left + 325, top + 490, 430, 26, PANEL_ALT, BORDER, 1);
-                buttonSurface(g, left + 765, top + 490, 110, 26, false);
+                panel(g, left + 325, top + 486, 430, 26, PANEL_ALT, BORDER, 1);
+                buttonSurface(g, left + 765, top + 486, 110, 26, false);
             }
             renderWidgetIfVisible(g, noteInput, logicalX, logicalY, partialTick);
             renderWidgetIfVisible(g, addNoteButton, logicalX, logicalY, partialTick);
