@@ -45,68 +45,24 @@ public final class AdminGuiClient {
         private UUID editingNote;
         private int playerScroll;
         private int noteScroll;
-        private boolean suppressSearch;
 
         private static final int WIDTH = 900;
         private static final int HEIGHT = 520;
         private static final int MIN_MARGIN = 12;
         private static final double MAX_SCALE = 2.0;
 
-        private static final ResourceLocation GUI_BACKGROUND_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/background.png");
-        private static final ResourceLocation HEADER_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/header.png");
-
-        private static final ResourceLocation PLAYER_LIST_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/player_list.png");
-        private static final ResourceLocation PLAYER_ENTRY_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/player_entry.png");
-        private static final ResourceLocation PLAYER_ENTRY_HOVER_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/player_entry_hover.png");
-        private static final ResourceLocation PLAYER_ENTRY_SELECTED_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/player_entry_selected.png");
-        private static final ResourceLocation PLAYER_SCROLL_TRACK_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/player_scroll_track.png");
-        private static final ResourceLocation PLAYER_SCROLL_THUMB_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/player_scroll_thumb.png");
-        private static final ResourceLocation PLAYER_SCROLL_THUMB_HOVER_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/player_scroll_thumb_hover.png");
-
-        private static final ResourceLocation WIDGET_270X88_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/widget_270x88.png");
-        private static final ResourceLocation WIDGET_270X80_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/widget_270x80.png");
-        private static final ResourceLocation WIDGET_270X45_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/widget_270x45.png");
-        private static final ResourceLocation WIDGET_ENTRY_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/widget_entry.png");
-
-        private static final ResourceLocation NOTES_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/notes.png");
-        private static final ResourceLocation NOTE_ENTRY_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/note_entry.png");
-        private static final ResourceLocation NOTE_ENTRY_HOVER_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/note_entry_hover.png");
-        private static final ResourceLocation NOTE_EDIT_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/note_edit.png");
-        private static final ResourceLocation NOTE_EDIT_HOVER_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/note_edit_hover.png");
-        private static final ResourceLocation NOTE_REMOVE_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/note_remove.png");
-        private static final ResourceLocation NOTE_REMOVE_HOVER_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/note_remove_hover.png");
-        private static final ResourceLocation NOTES_SCROLL_TRACK_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/notes_scroll_track.png");
-        private static final ResourceLocation NOTES_SCROLL_THUMB_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/notes_scroll_thumb.png");
-        private static final ResourceLocation NOTES_SCROLL_THUMB_HOVER_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/notes_scroll_thumb_hover.png");
-        private static final ResourceLocation NOTE_INPUT_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/note_input.png");
-        private static final ResourceLocation ADD_NOTE_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/add_note.png");
-        private static final ResourceLocation ADD_NOTE_HOVER_TEXTURE =
-                ResourceLocation.fromNamespaceAndPath("admin_gui", "textures/gui/add_note_hover.png");
+        // Dark admin-console palette.
+        private static final int BG = 0xFF0E1117;
+        private static final int PANEL = 0xFF161B22;
+        private static final int PANEL_ALT = 0xFF1C2128;
+        private static final int BORDER = 0xFF30363D;
+        private static final int BORDER_HOVER = 0xFF484F58;
+        private static final int TEXT = 0xFFF0F3F6;
+        private static final int MUTED = 0xFF8B949E;
+        private static final int ACCENT = 0xFF58A6FF;
+        private static final int SUCCESS = 0xFF3FB950;
+        private static final int WARNING = 0xFFD29922;
+        private static final int DANGER = 0xFFF85149;
 
         public AdminGuiScreen(String data) {
             super(Component.literal("Admin GUI"));
@@ -146,27 +102,27 @@ public final class AdminGuiClient {
 
         @Override
         protected void init() {
-            int left = (width - WIDTH) / 2;
-            int top = (height - HEIGHT) / 2;
+            int left = baseLeft();
+            int top = baseTop();
 
-            search = new EditBox(font, left + 19, top + 32, 250, 30, Component.literal("Search players"));
-            search.setHint(Component.literal("Search online/offline players..."));
+            search = new EditBox(font, left + 24, top + 43, 258, 26, Component.literal("Search players"));
+            search.setHint(Component.literal("Search players..."));
             search.setMaxLength(64);
             search.setBordered(false);
-            search.setTextColor(0xFFF4EBDD);
-            search.setTextColorUneditable(0xFFB7AA97);
+            search.setTextColor(TEXT);
+            search.setTextColorUneditable(MUTED);
             addRenderableWidget(search);
 
-            noteInput = new EditBox(font, left + 325, top + 490, 254, 26, Component.literal("Note"));
+            noteInput = new EditBox(font, left + 325, top + 490, 430, 26, Component.literal("Note"));
             noteInput.setMaxLength(512);
             noteInput.setBordered(false);
-            noteInput.setTextColor(0xFFF1E5D0);
-            noteInput.setTextColorUneditable(0xFFB7AA97);
+            noteInput.setTextColor(TEXT);
+            noteInput.setTextColorUneditable(MUTED);
             addRenderableWidget(noteInput);
 
             addNoteButton = new CenteredTextButton(
-                    left + 585, top + 490, 84, 26,
-                    Component.literal("ADD NOTE").withStyle(s -> s.withColor(0xFF3A291A)),
+                    left + 765, top + 490, 110, 26,
+                    Component.literal("ADD NOTE").withStyle(s -> s.withColor(0xFFFFFFFF)),
                     b -> saveNote(),
                     font
             );
@@ -179,42 +135,27 @@ public final class AdminGuiClient {
         }
 
         private void rebuildPlayerButtons() {
-            for (PlainTextButton b : playerButtons) {
-                removeWidget(b);
-            }
+            for (PlainTextButton b : playerButtons) removeWidget(b);
             playerButtons.clear();
+            if (search == null) return;
 
-            if (search == null) {
-                return;
-            }
-
-            String query = search.getValue().trim().toLowerCase(Locale.ROOT);
-            List<PlayerRef> filtered = players.stream()
-                    .filter(p -> query.isEmpty() || p.name().toLowerCase(Locale.ROOT).contains(query))
-                    .toList();
-
-            int left = (width - WIDTH) / 2;
-            int top = (height - HEIGHT) / 2;
+            List<PlayerRef> filtered = filteredPlayers();
             final int visiblePlayers = 10;
             int start = Math.min(playerScroll, Math.max(0, filtered.size() - visiblePlayers));
             int end = Math.min(filtered.size(), start + visiblePlayers);
 
+            int left = baseLeft();
+            int top = baseTop();
             for (int i = start; i < end; i++) {
                 PlayerRef p = filtered.get(i);
-                int y = top + 70 + (i - start) * 32;
-                int color = p.online() ? 0xFF2F7D35 : 0xFF34281D;
-                Component label = Component.literal((p.online() ? "● " : "○ ") + p.name())
-                        .withStyle(s -> s.withColor(color));
-
+                int y = top + 74 + (i - start) * 29;
+                Component label = Component.literal(p.name())
+                        .withStyle(s -> s.withColor(TEXT));
                 PlainTextButton b = new CenteredTextButton(
-                        left + 22, y, 256, 27, label,
-                        btn -> selectPlayer(p.uuid()),
-                        font
-                );
+                        left + 24, y, 258, 26, label,
+                        btn -> selectPlayer(p.uuid()), font);
                 b.setTooltip(Tooltip.create(Component.literal(
-                        p.online()
-                                ? "Online — click to inspect this player."
-                                : "Offline — click to inspect stored player data."
+                        p.online() ? "Online — click to inspect." : "Offline — click to inspect stored data."
                 )));
                 playerButtons.add(b);
                 addRenderableWidget(b);
@@ -222,53 +163,37 @@ public final class AdminGuiClient {
         }
 
         private void rebuildInfoWidgets() {
-            for (PlainTextButton widget : infoWidgets) {
-                removeWidget(widget);
-            }
+            for (PlainTextButton widget : infoWidgets) removeWidget(widget);
             infoWidgets.clear();
             AdminGuiDetailWidgets.build(
-                    detail,
-                    players.size(),
-                    (width - WIDTH) / 2,
-                    (height - HEIGHT) / 2,
-                    font,
-                    noteScroll
-            )
-                    .forEach(widget -> {
-                        infoWidgets.add(widget);
-                        addRenderableWidget(widget);
-                    });
+                    detail, players.size(), baseLeft(), baseTop(), font, noteScroll
+            ).forEach(widget -> {
+                infoWidgets.add(widget);
+                addRenderableWidget(widget);
+            });
 
-            for (PlainTextButton button : noteButtons) {
-                removeWidget(button);
-            }
+            for (PlainTextButton button : noteButtons) removeWidget(button);
             noteButtons.clear();
 
-            if (detail == null || !detail.has("notesAvailable")
-                    || !detail.get("notesAvailable").getAsBoolean()
-                    || !detail.has("notes")) {
-                return;
-            }
+            if (detail == null || !bool(detail, "notesAvailable") || !detail.has("notes")) return;
 
             JsonArray notes = detail.getAsJsonArray("notes");
             int shown = Math.min(notes.size(), 3);
             int start = Math.min(noteScroll, Math.max(0, notes.size() - shown));
-            int left = (width - WIDTH) / 2;
-            int top = (height - HEIGHT) / 2;
-            int x = left + 325;
-            int y = top + 331 + 50;
+            int left = baseLeft();
+            int top = baseTop();
 
             for (int i = 0; i < shown; i++) {
                 JsonObject note = notes.get(start + i).getAsJsonObject();
-                int row = y + i * 34;
+                int row = top + 381 + i * 34;
                 if (canEditNote(note)) {
                     PlainTextButton edit = new PlainTextButton(
-                            x + 415, row + 4, 45, 18,
-                            Component.literal("EDIT").withStyle(s -> s.withColor(0xFF5A4028)),
+                            left + 782, row + 4, 45, 18,
+                            Component.literal("EDIT").withStyle(s -> s.withColor(ACCENT)),
                             b -> editNote(note), font);
                     PlainTextButton remove = new PlainTextButton(
-                            x + 465, row + 4, 20, 18,
-                            Component.literal("×").withStyle(s -> s.withColor(0xFFC43E32)),
+                            left + 832, row + 4, 35, 18,
+                            Component.literal("DEL").withStyle(s -> s.withColor(DANGER)),
                             b -> removeNote(note), font);
                     edit.setTooltip(Tooltip.create(Component.literal("Edit your note.")));
                     remove.setTooltip(Tooltip.create(Component.literal("Remove your note.")));
@@ -292,23 +217,18 @@ public final class AdminGuiClient {
             AdminGuiNetworkNote.send(action, detail.get("uuid").getAsString(), noteId, noteInput.getValue());
             editingNote = null;
             noteInput.setValue("");
-            if (addNoteButton != null) addNoteButton.setMessage(Component.literal("ADD NOTE").withStyle(s -> s.withColor(0xFFE0B05A)));
+            if (addNoteButton != null) addNoteButton.setMessage(Component.literal("ADD NOTE").withStyle(s -> s.withColor(TEXT)));
         }
 
         private void editNote(JsonObject note) {
             editingNote = UUID.fromString(note.get("id").getAsString());
             noteInput.setValue(note.get("text").getAsString());
-            if (addNoteButton != null) addNoteButton.setMessage(Component.literal("UPDATE").withStyle(s -> s.withColor(0xFFE0B05A)));
+            if (addNoteButton != null) addNoteButton.setMessage(Component.literal("UPDATE").withStyle(s -> s.withColor(TEXT)));
             noteInput.setFocused(true);
         }
 
         private void removeNote(JsonObject note) {
-            AdminGuiNetworkNote.send(
-                    "remove",
-                    detail.get("uuid").getAsString(),
-                    note.get("id").getAsString(),
-                    ""
-            );
+            AdminGuiNetworkNote.send("remove", detail.get("uuid").getAsString(), note.get("id").getAsString(), "");
         }
 
         @Override
@@ -328,65 +248,43 @@ public final class AdminGuiClient {
             int left = baseLeft();
             int top = baseTop();
 
-            if (logicalX >= left + 10 && logicalX <= left + 290
-                    && logicalY >= top + 20 && logicalY <= top + 395) {
-                int max = Math.max(0, filteredCount() - 10);
+            if (logicalX >= left + 12 && logicalX <= left + 292
+                    && logicalY >= top + 20 && logicalY <= top + 400) {
                 playerScroll = clampScroll(
                         playerScroll - (int) Math.signum(scrollY),
-                        max
+                        Math.max(0, filteredCount() - 10)
                 );
                 rebuildPlayerButtons();
                 return true;
             }
 
-            if (detail != null
-                    && logicalX >= left + 313
-                    && logicalX <= left + 875
-                    && logicalY >= top + 331
-                    && logicalY <= top + 487) {
-                int noteCount = detail.has("notes")
-                        ? detail.getAsJsonArray("notes").size()
-                        : 0;
-                int max = Math.max(0, noteCount - 3);
+            if (detail != null && logicalX >= left + 305 && logicalX <= left + 885
+                    && logicalY >= top + 349 && logicalY <= top + 488) {
+                int noteCount = detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0;
                 noteScroll = clampScroll(
                         noteScroll - (int) Math.signum(scrollY),
-                        max
+                        Math.max(0, noteCount - 3)
                 );
                 rebuildInfoWidgets();
                 return true;
             }
-
             return super.mouseScrolled(logicalX, logicalY, scrollX, scrollY);
         }
 
         @Override
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            return super.mouseClicked(
-                    logicalMouseX(mouseX),
-                    logicalMouseY(mouseY),
-                    button
-            );
+            return super.mouseClicked(logicalMouseX(mouseX), logicalMouseY(mouseY), button);
         }
 
         @Override
         public boolean mouseReleased(double mouseX, double mouseY, int button) {
-            return super.mouseReleased(
-                    logicalMouseX(mouseX),
-                    logicalMouseY(mouseY),
-                    button
-            );
+            return super.mouseReleased(logicalMouseX(mouseX), logicalMouseY(mouseY), button);
         }
 
         @Override
         public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
             double scale = uiScale();
-            return super.mouseDragged(
-                    logicalMouseX(mouseX),
-                    logicalMouseY(mouseY),
-                    button,
-                    dragX / scale,
-                    dragY / scale
-            );
+            return super.mouseDragged(logicalMouseX(mouseX), logicalMouseY(mouseY), button, dragX / scale, dragY / scale);
         }
 
         @Override
@@ -408,339 +306,169 @@ public final class AdminGuiClient {
             return height / 2.0 + (mouseY - height / 2.0) / uiScale();
         }
 
-        private int baseLeft() {
-            return (width - WIDTH) / 2;
-        }
+        private int baseLeft() { return (width - WIDTH) / 2; }
+        private int baseTop() { return (height - HEIGHT) / 2; }
 
-        private int baseTop() {
-            return (height - HEIGHT) / 2;
-        }
+        private int clampScroll(int value, int max) { return Math.max(0, Math.min(max, value)); }
 
-        private int clampScroll(int value, int max) {
-            return Math.max(0, Math.min(max, value));
-        }
-
-        private int filteredCount() {
-            if (search == null) return players.size();
-            String q = search.getValue().toLowerCase(Locale.ROOT);
-            int n = 0;
-            for (PlayerRef p : players) if (q.isBlank() || p.name().toLowerCase(Locale.ROOT).contains(q)) n++;
-            return n;
-        }
+        private int filteredCount() { return filteredPlayers().size(); }
 
         @Override
         public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-            renderBackground(g, mouseX, mouseY, partialTick);
-
             double scale = uiScale();
-            int centerX = width / 2;
-            int centerY = height / 2;
             int left = baseLeft();
             int top = baseTop();
-
             double logicalX = logicalMouseX(mouseX);
             double logicalY = logicalMouseY(mouseY);
 
+            g.fill(0, 0, width, height, 0x99000000);
+
             g.pose().pushPose();
-            g.pose().translate(centerX, centerY, 0);
+            g.pose().translate(width / 2.0, height / 2.0, 0);
             g.pose().scale((float) scale, (float) scale, 1.0F);
-            g.pose().translate(-centerX, -centerY, 0);
+            g.pose().translate(-width / 2.0, -height / 2.0, 0);
 
-            // Full-resolution 900x520 clipboard/cardboard base.
-            drawExactTexture(g, GUI_BACKGROUND_TEXTURE, left, top, 900, 520);
+            // Main shell
+            panel(g, left, top, WIDTH, HEIGHT, BG, BORDER, 1);
+            panel(g, left + 1, top + 1, WIDTH - 2, 46, PANEL_ALT, BORDER, 1);
+            g.drawString(font, "ADMIN GUI", left + 22, top + 17, TEXT, true);
+            g.drawString(font, "Server administration", left + 110, top + 17, MUTED, false);
 
-            // Player list component includes the search-box frame and list cavity.
-            drawExactTexture(g, PLAYER_LIST_TEXTURE, left + 10, top + 20, 280, 375);
+            // Player sidebar
+            panel(g, left + 12, top + 58, 282, 404, PANEL, BORDER, 1);
+            g.drawString(font, "PLAYERS", left + 24, top + 69, MUTED, true);
+            panel(g, left + 24, top + 94, 258, 26, BG, BORDER, 1);
+            drawSearchIcon(g, left + 32, top + 101, MUTED);
 
-            // Independent player entries.
             List<PlayerRef> filtered = filteredPlayers();
-            final int visiblePlayers = 10;
-            int start = Math.min(playerScroll, Math.max(0, filtered.size() - visiblePlayers));
-            int end = Math.min(filtered.size(), start + visiblePlayers);
-
-            for (int i = start; i < end; i++) {
-                PlayerRef p = filtered.get(i);
-                int rowY = top + 70 + (i - start) * 32;
-                boolean hovered = logicalX >= left + 22 && logicalX <= left + 278
-                        && logicalY >= rowY && logicalY <= rowY + 27;
+            for (int i = 0; i < Math.min(10, filtered.size()); i++) {
+                PlayerRef p = filtered.get(Math.min(playerScroll + i, filtered.size() - 1));
+                int rowY = top + 74 + i * 29;
+                boolean hovered = logicalX >= left + 24 && logicalX <= left + 282
+                        && logicalY >= rowY && logicalY <= rowY + 26;
                 boolean selected = p.uuid().equals(selectedUuid);
-                drawPostIt(g, left + 22, rowY, 256, 27, selected, hovered, i);
+
+                panel(g, left + 24, rowY, 258, 26,
+                        selected ? 0xFF1F6FEB : (hovered ? PANEL_ALT : PANEL),
+                        selected ? ACCENT : (hovered ? BORDER_HOVER : BORDER),
+                        1);
+                g.fill(left + 29, rowY + 8, left + 33, rowY + 12, p.online() ? SUCCESS : MUTED);
+                g.drawString(font, p.name(), left + 42, rowY + 8, selected ? TEXT : TEXT, false);
             }
+            drawScrollBar(g, left + 286, top + 126, 325, filtered.size(), 10, playerScroll, logicalX, logicalY);
 
-            drawPlayerScrollBar(
-                    g,
-                    left + 278,
-                    top + 70,
-                    290,
-                    filtered.size(),
-                    visiblePlayers,
-                    playerScroll,
-                    logicalX,
-                    logicalY
-            );
+            // Detail area
+            panel(g, left + 305, top + 58, 580, 404, BG, BORDER, 1);
+            if (detail == null) {
+                g.drawString(font, "Select a player", left + 330, top + 90, TEXT, true);
+                g.drawString(font, "Player information will appear here.", left + 330, top + 110, MUTED, false);
+            } else {
+                g.drawString(font, "PLAYER", left + 325, top + 73, MUTED, true);
+                g.drawString(font, text(detail, "name", "Unknown"), left + 325, top + 90, TEXT, true);
+                String uuid = text(detail, "uuid", "");
+                g.drawString(font, "UUID: " + fit(uuid, 410, font), left + 325, top + 108, MUTED, false);
+                boolean online = bool(detail, "online");
+                statusPill(g, left + 770, top + 82, online ? "ONLINE" : "OFFLINE", online ? SUCCESS : MUTED);
 
-            if (detail != null) {
-                drawCreateCard(g, left + 313, top + 94, 270, 88);
-                drawCreateCard(g, left + 605, top + 94, 270, 88);
-                drawCreateCard(g, left + 313, top + 190, 270, 80);
-                drawCreateCard(g, left + 605, top + 190, 270, 80);
-                drawCreateCard(g, left + 313, top + 278, 270, 45);
+                // Cards are drawn as flat surfaces; detail widgets only render text/actions.
+                card(g, left + 321, top + 128, 272, 86, "TSA ANTICHEAT");
+                card(g, left + 613, top + 128, 272, 86, "AIRPORT SECURITY");
+                card(g, left + 321, top + 224, 272, 78, "FTB TEAM");
+                card(g, left + 613, top + 224, 272, 78, "DISCORD");
+                card(g, left + 321, top + 312, 272, 45, "CLOCK IN");
 
-                // Full notes component is taller so three note rows fit cleanly.
-                drawExactTexture(g, NOTES_TEXTURE, left + 313, top + 331, 562, 156);
-
-                int noteCount = detail.has("notes")
-                        ? detail.getAsJsonArray("notes").size()
-                        : 0;
-                drawNotesScrollBar(
-                        g,
-                        left + 862,
-                        top + 379,
-                        78,
-                        noteCount,
-                        3,
-                        noteScroll,
-                        logicalX,
-                        logicalY
-                );
-
-                if (noteInput != null && noteInput.visible) {
-                    drawExactTexture(g, NOTE_INPUT_TEXTURE, left + 325, top + 490, 254, 26);
-                    drawAddNoteButton(
-                            g,
-                            left + 585,
-                            top + 490,
-                            84,
-                            26,
-                            addNoteButton != null && addNoteButton.isHoveredOrFocused()
-                    );
-                }
+                panel(g, left + 313, top + 370, 562, 92, PANEL, BORDER, 1);
+                g.drawString(font, "ADMIN NOTES", left + 325, top + 381, MUTED, true);
+                drawScrollBar(g, left + 863, top + 400, 54,
+                        detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0, 3, noteScroll, logicalX, logicalY);
             }
 
             renderWidgetIfVisible(g, search, logicalX, logicalY, partialTick);
+            for (PlainTextButton button : playerButtons) renderWidgetIfVisible(g, button, logicalX, logicalY, partialTick);
+            for (PlainTextButton widget : infoWidgets) renderWidgetIfVisible(g, widget, logicalX, logicalY, partialTick);
+            for (PlainTextButton button : noteButtons) renderWidgetIfVisible(g, button, logicalX, logicalY, partialTick);
 
-            for (PlainTextButton button : playerButtons) {
-                renderWidgetIfVisible(g, button, logicalX, logicalY, partialTick);
+            if (noteInput != null && noteInput.visible) {
+                panel(g, left + 325, top + 490, 430, 26, PANEL_ALT, BORDER, 1);
+                buttonSurface(g, left + 765, top + 490, 110, 26, false);
             }
-
-            for (PlainTextButton widget : infoWidgets) {
-                if (widget.visible && widget.getY() >= top + 90) {
-                    boolean hovered = logicalX >= widget.getX()
-                            && logicalX <= widget.getX() + widget.getWidth()
-                            && logicalY >= widget.getY()
-                            && logicalY <= widget.getY() + widget.getHeight();
-
-                    boolean header = widget.getY() == top + 106
-                            || widget.getY() == top + 202
-                            || widget.getY() == top + 288
-                            || widget.getY() == top + 344;
-
-                    if (!header && widget.getWidth() == 405) {
-                        drawExactTexture(
-                                g,
-                                hovered ? NOTE_ENTRY_HOVER_TEXTURE : NOTE_ENTRY_TEXTURE,
-                                widget.getX(),
-                                widget.getY(),
-                                405,
-                                26
-                        );
-                    } else if (!header && widget.getWidth() == 254) {
-                        drawExactTexture(
-                                g,
-                                WIDGET_ENTRY_TEXTURE,
-                                widget.getX(),
-                                widget.getY(),
-                                254,
-                                18
-                        );
-                    }
-                }
-
-                renderWidgetIfVisible(g, widget, logicalX, logicalY, partialTick);
-            }
-
-            for (PlainTextButton button : noteButtons) {
-                if (button.visible) {
-                    boolean hovered = logicalX >= button.getX()
-                            && logicalX <= button.getX() + button.getWidth()
-                            && logicalY >= button.getY()
-                            && logicalY <= button.getY() + button.getHeight();
-
-                    ResourceLocation texture = button.getWidth() == 45
-                            ? (hovered ? NOTE_EDIT_HOVER_TEXTURE : NOTE_EDIT_TEXTURE)
-                            : (hovered ? NOTE_REMOVE_HOVER_TEXTURE : NOTE_REMOVE_TEXTURE);
-
-                    drawExactTexture(
-                            g,
-                            texture,
-                            button.getX(),
-                            button.getY(),
-                            button.getWidth(),
-                            button.getHeight()
-                    );
-                }
-
-                renderWidgetIfVisible(g, button, logicalX, logicalY, partialTick);
-            }
-
             renderWidgetIfVisible(g, noteInput, logicalX, logicalY, partialTick);
             renderWidgetIfVisible(g, addNoteButton, logicalX, logicalY, partialTick);
 
             g.pose().popPose();
         }
 
-        private void renderWidgetIfVisible(
-                GuiGraphics g,
-                net.minecraft.client.gui.components.AbstractWidget widget,
-                double mouseX,
-                double mouseY,
-                float partialTick
-        ) {
+        private void renderWidgetIfVisible(GuiGraphics g, net.minecraft.client.gui.components.AbstractWidget widget,
+                                           double mouseX, double mouseY, float partialTick) {
             if (widget != null && widget.visible) {
                 widget.render(g, (int) Math.round(mouseX), (int) Math.round(mouseY), partialTick);
             }
         }
 
         private boolean canEditNote(JsonObject note) {
-            if (note == null || !note.has("authorUuid")) {
-                return false;
-            }
-            if (note.has("system") && note.get("system").getAsBoolean()) {
-                return false;
-            }
-            if (note.has("canEdit")) {
-                return note.get("canEdit").getAsBoolean();
-            }
+            if (note == null || !note.has("authorUuid")) return false;
+            if (note.has("system") && note.get("system").getAsBoolean()) return false;
+            if (note.has("canEdit")) return note.get("canEdit").getAsBoolean();
             return Minecraft.getInstance().player != null
-                    && Minecraft.getInstance().player.getUUID().toString()
-                    .equalsIgnoreCase(note.get("authorUuid").getAsString());
+                    && Minecraft.getInstance().player.getUUID().toString().equalsIgnoreCase(note.get("authorUuid").getAsString());
         }
 
         private List<PlayerRef> filteredPlayers() {
-            if (search == null) {
-                return players;
-            }
-
+            if (search == null) return players;
             String query = search.getValue().trim().toLowerCase(Locale.ROOT);
-            return players.stream()
-                    .filter(p -> query.isEmpty()
-                            || p.name().toLowerCase(Locale.ROOT).contains(query))
-                    .toList();
+            return players.stream().filter(p -> query.isEmpty() || p.name().toLowerCase(Locale.ROOT).contains(query)).toList();
         }
 
-        private void drawPostIt(
-                GuiGraphics g,
-                int x,
-                int y,
-                int width,
-                int height,
-                boolean selected,
-                boolean hovered,
-                int variant
-        ) {
-            ResourceLocation texture = selected
-                    ? PLAYER_ENTRY_SELECTED_TEXTURE
-                    : (hovered ? PLAYER_ENTRY_HOVER_TEXTURE : PLAYER_ENTRY_TEXTURE);
-            drawExactTexture(g, texture, x, y, width, height);
+        private void panel(GuiGraphics g, int x, int y, int width, int height, int fill, int border, int thickness) {
+            g.fill(x, y, x + width, y + height, fill);
+            g.fill(x, y, x + width, y + thickness, border);
+            g.fill(x, y + height - thickness, x + width, y + height, border);
+            g.fill(x, y, x + thickness, y + height, border);
+            g.fill(x + width - thickness, y, x + width, y + height, border);
         }
 
-        private void drawPlayerScrollBar(
-                GuiGraphics g,
-                int x, int y, int height,
-                int total, int visible, int offset,
-                double mouseX, double mouseY
-        ) {
+        private void card(GuiGraphics g, int x, int y, int width, int height, String title) {
+            panel(g, x, y, width, height, PANEL, BORDER, 1);
+            g.fill(x + 1, y + 1, x + 4, y + height - 1, ACCENT);
+            g.drawString(font, title, x + 12, y + 9, TEXT, true);
+        }
+
+        private void statusPill(GuiGraphics g, int x, int y, String label, int color) {
+            int w = font.width(label) + 16;
+            panel(g, x, y, w, 18, 0xFF111820, color, 1);
+            g.drawString(font, label, x + 8, y + 5, color, true);
+        }
+
+        private void buttonSurface(GuiGraphics g, int x, int y, int width, int height, boolean hovered) {
+            panel(g, x, y, width, height, hovered ? 0xFF1F6FEB : 0xFF238636,
+                    hovered ? ACCENT : 0xFF2EA043, 1);
+        }
+
+        private void drawSearchIcon(GuiGraphics g, int x, int y, int color) {
+            g.fill(x, y, x + 7, y + 1, color);
+            g.fill(x, y + 1, x + 1, y + 7, color);
+            g.fill(x + 1, y + 7, x + 6, y + 8, color);
+            g.fill(x + 6, y + 5, x + 7, y + 7, color);
+            g.fill(x + 7, y + 7, x + 10, y + 9, color);
+        }
+
+        private void drawScrollBar(GuiGraphics g, int x, int y, int height,
+                                   int total, int visible, int offset, double mouseX, double mouseY) {
             if (total <= visible || height <= 0) return;
-            drawExactTexture(g, PLAYER_SCROLL_TRACK_TEXTURE, x, y, 8, height);
-
+            g.fill(x, y, x + 4, y + height, 0xFF21262D);
             int maxOffset = total - visible;
-            int thumbHeight = Math.max(12, height * visible / total);
-            int travel = height - thumbHeight;
-            int thumbY = y + (travel * clampScroll(offset, maxOffset) / maxOffset);
-            boolean hovered = mouseX >= x && mouseX <= x + 8
-                    && mouseY >= thumbY && mouseY <= thumbY + thumbHeight;
-
-            drawScaledTexture(
-                    g,
-                    hovered ? PLAYER_SCROLL_THUMB_HOVER_TEXTURE : PLAYER_SCROLL_THUMB_TEXTURE,
-                    x, thumbY, 8, thumbHeight, 8, 42
-            );
+            int thumbHeight = Math.max(18, height * visible / total);
+            int travel = Math.max(0, height - thumbHeight);
+            int thumbY = y + (travel * clampScroll(offset, maxOffset) / Math.max(1, maxOffset));
+            boolean hovered = mouseX >= x - 3 && mouseX <= x + 8 && mouseY >= thumbY && mouseY <= thumbY + thumbHeight;
+            g.fill(x, thumbY, x + 4, thumbY + thumbHeight, hovered ? BORDER_HOVER : MUTED);
         }
 
-        private void drawNotesScrollBar(
-                GuiGraphics g,
-                int x, int y, int height,
-                int total, int visible, int offset,
-                double mouseX, double mouseY
-        ) {
-            if (total <= visible || height <= 0) return;
-            drawExactTexture(g, NOTES_SCROLL_TRACK_TEXTURE, x, y, 8, height);
-
-            int maxOffset = total - visible;
-            int thumbHeight = Math.max(12, height * visible / total);
-            int travel = height - thumbHeight;
-            int thumbY = y + (travel * clampScroll(offset, maxOffset) / maxOffset);
-            boolean hovered = mouseX >= x && mouseX <= x + 8
-                    && mouseY >= thumbY && mouseY <= thumbY + thumbHeight;
-
-            drawScaledTexture(
-                    g,
-                    hovered ? NOTES_SCROLL_THUMB_HOVER_TEXTURE : NOTES_SCROLL_THUMB_TEXTURE,
-                    x, thumbY, 8, thumbHeight, 8, 26
-            );
-        }
-
-        private void drawCreateCard(GuiGraphics g, int x, int y, int width, int height) {
-            ResourceLocation texture;
-            if (width == 270 && height == 88) {
-                texture = WIDGET_270X88_TEXTURE;
-            } else if (width == 270 && height == 80) {
-                texture = WIDGET_270X80_TEXTURE;
-            } else {
-                texture = WIDGET_270X45_TEXTURE;
-            }
-            drawExactTexture(g, texture, x, y, width, height);
-        }
-
-        private void drawExactTexture(
-                GuiGraphics g,
-                ResourceLocation texture,
-                int x, int y,
-                int width, int height
-        ) {
-            drawScaledTexture(g, texture, x, y, width, height, width, height);
-        }
-
-        private void drawScaledTexture(
-                GuiGraphics g,
-                ResourceLocation texture,
-                int x, int y,
-                int width, int height,
-                int textureWidth, int textureHeight
-        ) {
-            g.blit(
-                    texture,
-                    x, y,
-                    0, 0,
-                    width, height,
-                    textureWidth, textureHeight
-            );
-        }
-
-        private void drawAddNoteButton(
-                GuiGraphics g, int x, int y, int width, int height, boolean hovered
-        ) {
-            drawExactTexture(
-                    g,
-                    hovered ? ADD_NOTE_HOVER_TEXTURE : ADD_NOTE_TEXTURE,
-                    x, y, width, height
-            );
-        }
-
-        @Override
-        public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-            // Leave the world/background untouched outside the clipboard.
-            // The GUI surface itself is drawn inside render().
+        private static String fit(String value, int maxWidth, Font font) {
+            if (value == null || value.isEmpty() || font.width(value) <= maxWidth) return value == null ? "" : value;
+            String ellipsis = "...";
+            int available = Math.max(1, maxWidth - font.width(ellipsis));
+            return font.plainSubstrByWidth(value, available) + ellipsis;
         }
 
         private static String text(JsonObject o, String k, String fallback) {
