@@ -197,8 +197,16 @@ final class AdminGuiDetailWidgets {
         ));
 
         JsonArray members = o.getAsJsonArray("members");
-        if (members == null || members.isEmpty()) {
-            lines.add(new DetailLine("Members: 0", 0xFF8B949E, null, null));
+        int memberCount = members == null ? 0 : members.size();
+
+        lines.add(new DetailLine(
+                "Members: " + memberCount,
+                0xFF8B949E,
+                null,
+                null
+        ));
+
+        if (memberCount == 0) {
             return lines;
         }
 
