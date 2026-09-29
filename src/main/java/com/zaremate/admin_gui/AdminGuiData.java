@@ -163,6 +163,7 @@ public final class AdminGuiData {
 
             Object r = opt.get();
             debug.addProperty("tsa.result", "record " + r.getClass().getName());
+            debug.addProperty("tsa.record", String.valueOf(r));
             o.addProperty("playerName", recordString(r, "playerName"));
             o.addProperty("packetChecks", recordLong(r, "packetChecks"));
             o.addProperty("packetPasses", recordLong(r, "packetPasses"));
@@ -206,6 +207,7 @@ public final class AdminGuiData {
 
             Object r = opt.get();
             debug.addProperty("ass.result", "record " + r.getClass().getName());
+            debug.addProperty("ass.record", String.valueOf(r));
             o.addProperty("playerName", recordString(r, "playerName"));
             o.addProperty("status", recordString(r, "status"));
             o.addProperty("clearedDate", recordString(r, "clearedDate"));
@@ -318,6 +320,7 @@ public final class AdminGuiData {
 
             Object team = opt.get();
             debug.addProperty("teams.result", "team " + team.getClass().getName());
+            debug.addProperty("teams.record", String.valueOf(team));
             o.addProperty("available", true);
             o.addProperty("id", firstString(team, "getTeamId", "getId", "getTeamID"));
             o.addProperty("name", firstString(team, "getName", "getTeamName"));
@@ -385,6 +388,7 @@ public final class AdminGuiData {
 
             Object r = opt.get();
             debug.addProperty("discord.result", "record " + r.getClass().getName());
+            debug.addProperty("discord.record", String.valueOf(r));
             o.addProperty("available", true);
             o.addProperty("discordId", recordString(r, "discordId"));
             o.addProperty("discordTag", recordString(r, "discordTag"));
@@ -425,6 +429,7 @@ public final class AdminGuiData {
             }
 
             debug.addProperty("clockin.result", "record " + data.getClass().getName());
+            debug.addProperty("clockin.record", String.valueOf(data));
             o.addProperty("available", true);
             o.addProperty("name", fieldString(data, "name"));
             o.addProperty("clockedIn", fieldBoolean(data, "clockedIn"));
