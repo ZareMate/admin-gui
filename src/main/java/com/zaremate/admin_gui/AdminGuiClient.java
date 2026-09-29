@@ -832,6 +832,15 @@ public final class AdminGuiClient {
         }
     }
 
+    private static final class AdminGuiNetworkClose {
+        static void send() {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.getConnection() != null) {
+                minecraft.getConnection().send(new AdminGuiNetwork.ClosePayload());
+            }
+        }
+    }
+
     private static final class AdminGuiNetworkSelect {
         static void send(String uuid) {
             Minecraft.getInstance().getConnection().send(
