@@ -73,15 +73,15 @@ final class AdminGuiDetailWidgets {
         int tsaX = x + 12;
         int assX = x + 304;
 
-        scrollable(result, tsaLines(detail, font), tsaX, cardY + 33, tsaScroll, font);
-        scrollable(result, assLines(detail, font), assX, cardY + 33, assScroll, font);
+        scrollable(result, tsaLines(detail.getAsJsonObject("tsa"), font), tsaX, cardY + 33, tsaScroll, font);
+        scrollable(result, assLines(detail.getAsJsonObject("ass"), font), assX, cardY + 33, assScroll, font);
 
         cardY += 96;
-        scrollable(result, teamLines(detail, font), tsaX, cardY + 33, teamScroll, font);
-        scrollable(result, discordLines(detail, font), assX, cardY + 33, discordScroll, font);
+        scrollable(result, teamLines(detail.getAsJsonObject("teams"), font), tsaX, cardY + 33, teamScroll, font);
+        scrollable(result, discordLines(detail.getAsJsonObject("discord"), font), assX, cardY + 33, discordScroll, font);
 
         cardY += 88;
-        scrollable(result, clockLines(detail, font), tsaX, cardY + 27, clockScroll, font);
+        scrollable(result, clockLines(detail.getAsJsonObject("clockin"), font), tsaX, cardY + 27, clockScroll, font);
 
         int notesY = top + 370;
         notes(result, detail, x + 12, notesY + 34, font, noteScroll);
@@ -283,11 +283,11 @@ final class AdminGuiDetailWidgets {
     static int lineCount(JsonObject detail, Section section, Font font) {
         if (detail == null) return 0;
         return switch (section) {
-            case TSA -> tsaLines(detail, font).size();
-            case ASS -> assLines(detail, font).size();
-            case TEAM -> teamLines(detail, font).size();
-            case DISCORD -> discordLines(detail, font).size();
-            case CLOCK -> clockLines(detail, font).size();
+            case TSA -> tsaLines(detail.getAsJsonObject("tsa"), font).size();
+            case ASS -> assLines(detail.getAsJsonObject("ass"), font).size();
+            case TEAM -> teamLines(detail.getAsJsonObject("teams"), font).size();
+            case DISCORD -> discordLines(detail.getAsJsonObject("discord"), font).size();
+            case CLOCK -> clockLines(detail.getAsJsonObject("clockin"), font).size();
         };
     }
 
