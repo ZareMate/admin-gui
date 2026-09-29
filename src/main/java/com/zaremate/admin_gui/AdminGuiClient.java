@@ -184,7 +184,7 @@ public final class AdminGuiClient {
             int top = baseTop();
 
             addActionButton(
-                    left + 24, top + 402, 82, 21, "PUNISH",
+                    left + 24, top + 411, 82, 21, "PUNISH",
                     hasPlayer,
                     hasPlayer ? "/punish " + selected.name() + " " : "",
                     hasPlayer ? "Insert /punish " + selected.name() + " into chat." : "Select a player first.",
@@ -192,7 +192,7 @@ public final class AdminGuiClient {
             );
 
             addActionButton(
-                    left + 112, top + 402, 82, 21, "INVSEE",
+                    left + 112, top + 411, 82, 21, "INVSEE",
                     online,
                     "",
                     online ? "Run /invsee " + selected.name() + "." : "Only available for online players.",
@@ -200,7 +200,7 @@ public final class AdminGuiClient {
             );
 
             addActionButton(
-                    left + 200, top + 402, 82, 21, online ? "TP SPEC" : "TP LAST",
+                    left + 200, top + 411, 82, 21, online ? "TP SPEC" : "TP LAST",
                     hasPlayer,
                     "",
                     hasPlayer
@@ -211,7 +211,7 @@ public final class AdminGuiClient {
             );
 
             addActionButton(
-                    left + 24, top + 425, 82, 21, "KICK",
+                    left + 24, top + 434, 82, 21, "KICK",
                     online,
                     online ? "/kick " + selected.name() : "",
                     online ? "Insert /kick " + selected.name() + " into chat."
@@ -220,7 +220,7 @@ public final class AdminGuiClient {
             );
 
             addActionButton(
-                    left + 112, top + 425, 82, 21, "DAMAGE",
+                    left + 112, top + 434, 82, 21, "DAMAGE",
                     online,
                     "",
                     online
@@ -230,7 +230,7 @@ public final class AdminGuiClient {
             );
 
             addActionButton(
-                    left + 200, top + 425, 82, 21, "MSG",
+                    left + 200, top + 434, 82, 21, "MSG",
                     online,
                     online ? "/msg " + selected.name() + " " : "",
                     online
@@ -536,7 +536,7 @@ public final class AdminGuiClient {
             drawSearchIcon(g, left + 32, top + 101, MUTED);
 
             List<PlayerRef> filtered = filteredPlayers();
-            for (int i = 0; i < Math.min(10, filtered.size()); i++) {
+            for (int i = 0; i < Math.min(9, filtered.size()); i++) {
                 PlayerRef p = filtered.get(Math.min(playerScroll + i, filtered.size() - 1));
                 int rowY = top + 126 + i * 29;
                 boolean hovered = logicalX >= left + 24 && logicalX <= left + 282
@@ -552,7 +552,7 @@ public final class AdminGuiClient {
             }
             drawScrollBar(g, left + 286, top + 126, 261, filtered.size(), 9, playerScroll, logicalX, logicalY);
 
-            panel(g, left + 12, top + 398, 282, 63, PANEL, BORDER, 1);
+            panel(g, left + 12, top + 399, 282, 62, PANEL, BORDER, 1);
             g.drawString(font, "PLAYER ACTIONS", left + 24, top + 404, MUTED, true);
 
             for (PlainTextButton action : actionButtons) {
