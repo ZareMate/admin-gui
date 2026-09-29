@@ -105,7 +105,7 @@ public final class AdminGuiClient {
             int left = baseLeft();
             int top = baseTop();
 
-            search = new EditBox(font, left + 24, top + 43, 258, 26, Component.literal("Search players"));
+            search = new EditBox(font, left + 45, top + 43, 237, 26, Component.literal("Search players"));
             search.setHint(Component.literal("Search players..."));
             search.setMaxLength(64);
             search.setBordered(false);
