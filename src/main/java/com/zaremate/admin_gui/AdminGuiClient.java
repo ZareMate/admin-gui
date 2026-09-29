@@ -24,12 +24,22 @@ public final class AdminGuiClient {
         Minecraft.getInstance().execute(() -> {
             screen = new AdminGuiScreen(data);
             Minecraft.getInstance().setScreen(screen);
+
+            if (screen.selectedUuid != null) {
+                AdminGuiNetworkSelect.send(screen.selectedUuid);
+            }
         });
     }
 
     public static void detail(String data) {
         Minecraft.getInstance().execute(() -> {
             if (screen != null) screen.updateDetail(data);
+        });
+    }
+
+    public static void listUpdate(String data) {
+        Minecraft.getInstance().execute(() -> {
+            if (screen != null) screen.updatePlayerList(data);
         });
     }
 
@@ -93,22 +103,60 @@ public final class AdminGuiClient {
 
         public void updateDetail(String data) {
             try {
-                detail = JsonParser.parseString(data).getAsJsonObject();
-                selectedUuid = detail.get("uuid").getAsString();
-                noteScroll = 0;
-                tsaScroll = 0;
-                assScroll = 0;
-                teamScroll = 0;
-                discordScroll = 0;
-                editingNote = null;
-                if (noteInput != null) noteInput.setValue("");
-                boolean notesAvailable = detail.has("notesAvailable") && detail.get("notesAvailable").getAsBoolean();
+                JsonObject next = JsonParser.parseString(data).getAsJsonObject();
+                String nextUuid = next.get("uuid").getAsString();
+                boolean selectionChanged = !Objects.equals(selectedUuid, nextUuid);
+
+                detail = next;
+                selectedUuid = nextUuid;
+
+                if (selectionChanged) {
+                    noteScroll = 0;
+                    tsaScroll = 0;
+                    assScroll = 0;
+                    teamScroll = 0;
+                    discordScroll = 0;
+                    editingNote = null;
+                    if (noteInput != null) noteInput.setValue("");
+                }
+
+                boolean notesAvailable = detail.has("notesAvailable")
+                        && detail.get("notesAvailable").getAsBoolean();
                 if (noteInput != null) noteInput.visible = notesAvailable;
                 if (addNoteButton != null) addNoteButton.visible = notesAvailable;
             } catch (Exception ignored) {}
+
             rebuildPlayerButtons();
             rebuildActionButtons();
             rebuildInfoWidgets();
+        }
+
+        public void updatePlayerList(String data) {
+            String previousSelection = selectedUuid;
+            try {
+                JsonObject root = JsonParser.parseString(data).getAsJsonObject();
+                List<PlayerRef> refreshed = new ArrayList<>();
+                for (JsonElement e : root.getAsJsonArray("players")) {
+                    JsonObject p = e.getAsJsonObject();
+                    refreshed.add(new PlayerRef(
+                            p.get("uuid").getAsString(),
+                            p.get("name").getAsString(),
+                            p.has("online") && p.get("online").getAsBoolean()
+                    ));
+                }
+
+                players.clear();
+                players.addAll(refreshed);
+
+                // Never replace the selected UUID just because the list changed.
+                selectedUuid = previousSelection;
+
+                int maxScroll = Math.max(0, filteredCount() - 9);
+                playerScroll = clampScroll(playerScroll, maxScroll);
+
+                rebuildPlayerButtons();
+                rebuildActionButtons();
+            } catch (Exception ignored) {}
         }
 
         @Override
@@ -715,6 +763,12 @@ public final class AdminGuiClient {
         private static String formatSeconds(long s) {
             long h = s / 3600, m = (s % 3600) / 60, sec = s % 60;
             return h + "h " + String.format("%02dm %02ds", m, sec);
+        }
+
+        @Override
+        public void removed() {
+            AdminGuiNetworkClose.send();
+            super.removed();
         }
 
         @Override
