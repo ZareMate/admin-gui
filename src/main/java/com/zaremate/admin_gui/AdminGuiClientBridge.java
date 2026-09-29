@@ -11,6 +11,10 @@ public final class AdminGuiClientBridge {
         invoke("detail", data);
     }
 
+    public static void listUpdate(String data) {
+        invoke("listUpdate", data);
+    }
+
     private static void invoke(String method, String data) {
         try {
             Class<?> client = Class.forName("com.zaremate.admin_gui.AdminGuiClient");
