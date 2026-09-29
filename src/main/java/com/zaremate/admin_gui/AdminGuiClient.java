@@ -36,14 +36,14 @@ public final class AdminGuiClient {
     public static final class AdminGuiScreen extends Screen {
         private final List<PlayerRef> players = new ArrayList<>();
         private final List<PlainTextButton> playerButtons = new ArrayList<>();
-        private final List<PlainTextButton> actionButtons = new ArrayList<>();
+        private final List<Button> actionButtons = new ArrayList<>();
         private final List<PlainTextButton> noteButtons = new ArrayList<>();
         private final List<PlainTextButton> infoWidgets = new ArrayList<>();
         private String selectedUuid;
         private JsonObject detail;
         private EditBox search;
         private EditBox noteInput;
-        private PlainTextButton addNoteButton;
+        private Button addNoteButton;
         private UUID editingNote;
         private int playerScroll;
         private int noteScroll;
@@ -173,7 +173,7 @@ public final class AdminGuiClient {
         }
 
         private void rebuildActionButtons() {
-            for (PlainTextButton b : actionButtons) removeWidget(b);
+            for (Button b : actionButtons) removeWidget(b);
             actionButtons.clear();
 
             PlayerRef selected = selectedPlayer();
@@ -244,7 +244,7 @@ public final class AdminGuiClient {
                 int x, int y, int width, int height, String label,
                 boolean enabled, String command, String tooltip, boolean insert
         ) {
-            PlainTextButton button = new CenteredTextButton(
+            Button button = new CenteredTextButton(
                     x, y, width, height,
                     Component.literal(label).withStyle(s -> s.withColor(TEXT)),
                     ignored -> {
@@ -554,7 +554,7 @@ public final class AdminGuiClient {
 
             panel(g, left + 12, top + 399, 282, 62, PANEL, BORDER, 1);
 
-            for (PlainTextButton action : actionButtons) {
+            for (Button action : actionButtons) {
                 boolean hovered = action.isHoveredOrFocused();
                 if (action.active) {
                     buttonSurface(g, action.getX(), action.getY(), action.getWidth(), action.getHeight(), hovered);
@@ -595,7 +595,7 @@ public final class AdminGuiClient {
 
             renderWidgetIfVisible(g, search, logicalX, logicalY, partialTick);
             for (PlainTextButton button : playerButtons) renderWidgetIfVisible(g, button, logicalX, logicalY, partialTick);
-            for (PlainTextButton action : actionButtons) renderWidgetIfVisible(g, action, logicalX, logicalY, partialTick);
+            for (Button action : actionButtons) renderWidgetIfVisible(g, action, logicalX, logicalY, partialTick);
             for (PlainTextButton widget : infoWidgets) renderWidgetIfVisible(g, widget, logicalX, logicalY, partialTick);
             for (PlainTextButton button : noteButtons) renderWidgetIfVisible(g, button, logicalX, logicalY, partialTick);
 
