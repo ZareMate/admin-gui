@@ -353,7 +353,6 @@ public final class AdminGuiClient {
                         selected ? ACCENT : (hovered ? BORDER_HOVER : BORDER),
                         1);
                 g.fill(left + 29, rowY + 8, left + 33, rowY + 12, p.online() ? SUCCESS : MUTED);
-                g.drawString(font, p.name(), left + 42, rowY + 8, selected ? TEXT : TEXT, false);
             }
             drawScrollBar(g, left + 286, top + 126, 290, filtered.size(), 10, playerScroll, logicalX, logicalY);
 
@@ -363,13 +362,6 @@ public final class AdminGuiClient {
                 g.drawString(font, "Select a player", left + 330, top + 90, TEXT, true);
                 g.drawString(font, "Player information will appear here.", left + 330, top + 110, MUTED, false);
             } else {
-                g.drawString(font, "PLAYER", left + 325, top + 73, MUTED, true);
-                g.drawString(font, text(detail, "name", "Unknown"), left + 325, top + 90, TEXT, true);
-                String uuid = text(detail, "uuid", "");
-                g.drawString(font, "UUID: " + fit(uuid, 410, font), left + 325, top + 108, MUTED, false);
-                boolean online = bool(detail, "online");
-                statusPill(g, left + 770, top + 82, online ? "ONLINE" : "OFFLINE", online ? SUCCESS : MUTED);
-
                 // Cards are drawn as flat surfaces; detail widgets only render text/actions.
                 card(g, left + 321, top + 128, 272, 86, "TSA ANTICHEAT");
                 card(g, left + 613, top + 128, 272, 86, "AIRPORT SECURITY");
@@ -510,10 +502,6 @@ public final class AdminGuiClient {
             int textWidth = font.width(message);
             int textX = getX() + Math.max(0, (getWidth() - textWidth) / 2);
             int textY = getY() + Math.max(0, (getHeight() - font.lineHeight) / 2);
-
-            // Explicit vertical centering and a subtle shadow for readability
-            // on the textured paper/metal surfaces.
-            g.drawString(font, message, textX + 1, textY + 1, 0x77000000, false);
             g.drawString(font, message, textX, textY, color, false);
         }
     }
