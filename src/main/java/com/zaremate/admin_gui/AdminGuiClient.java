@@ -107,6 +107,7 @@ public final class AdminGuiClient {
                 if (addNoteButton != null) addNoteButton.visible = notesAvailable;
             } catch (Exception ignored) {}
             rebuildPlayerButtons();
+            rebuildActionButtons();
             rebuildInfoWidgets();
         }
 
@@ -412,8 +413,12 @@ public final class AdminGuiClient {
 
             for (PlainTextButton action : actionButtons) {
                 boolean hovered = action.isHoveredOrFocused();
-                buttonSurface(g, action.getX(), action.getY(), action.getWidth(), action.getHeight(),
-                        hovered && action.active);
+                if (action.active) {
+                    buttonSurface(g, action.getX(), action.getY(), action.getWidth(), action.getHeight(), hovered);
+                } else {
+                    panel(g, action.getX(), action.getY(), action.getWidth(), action.getHeight(),
+                            PANEL, BORDER, 1);
+                }
             }
 
             // Detail area
