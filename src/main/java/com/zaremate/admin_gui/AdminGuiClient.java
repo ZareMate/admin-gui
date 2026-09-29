@@ -49,7 +49,6 @@ public final class AdminGuiClient {
         private int assScroll;
         private int teamScroll;
         private int discordScroll;
-        private int clockScroll;
 
         private static final int WIDTH = 900;
         private static final int HEIGHT = 520;
@@ -99,7 +98,6 @@ public final class AdminGuiClient {
                 assScroll = 0;
                 teamScroll = 0;
                 discordScroll = 0;
-                clockScroll = 0;
                 editingNote = null;
                 if (noteInput != null) noteInput.setValue("");
                 boolean notesAvailable = detail.has("notesAvailable") && detail.get("notesAvailable").getAsBoolean();
@@ -194,7 +192,7 @@ public final class AdminGuiClient {
 
             for (int i = 0; i < shown; i++) {
                 JsonObject note = notes.get(start + i).getAsJsonObject();
-                int row = top + 404 + i * 34;
+                int row = top + 346 + i * 34;
                 if (canEditNote(note)) {
                     PlainTextButton edit = new PlainTextButton(
                             left + 782, row + 4, 45, 18,
@@ -308,16 +306,7 @@ public final class AdminGuiClient {
                     return true;
                 }
 
-                if (rx >= 321 && rx < 593 && ry >= 312 && ry < 357) {
-                    clockScroll = clampScroll(
-                            clockScroll - delta,
-                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.CLOCK, font) - 3)
-                    );
-                    rebuildInfoWidgets();
-                    return true;
-                }
-
-                if (rx >= 313 && rx < 885 && ry >= 370 && ry < 488) {
+                if (rx >= 313 && rx < 885 && ry >= 312 && ry < 480) {
                     int noteCount = detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0;
                     noteScroll = clampScroll(
                             noteScroll - delta,
