@@ -566,7 +566,7 @@ public final class AdminGuiClient {
             }
 
             // Detail area
-            panel(g, left + 305, top + 58, 580, 404, BG, BORDER, 1);
+            panel(g, left + 305, top + 58, 580, 422, BG, BORDER, 1);
             if (detail == null) {
                 g.drawString(font, "Select a player", left + 330, top + 90, TEXT, true);
                 g.drawString(font, "Player information will appear here.", left + 330, top + 110, MUTED, false);
