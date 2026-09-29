@@ -71,7 +71,7 @@ final class AdminGuiDetailWidgets {
         clock(result, detail.getAsJsonObject("clockin"), tsaX, cardY + 27, font);
 
         int notesY = top + 370;
-        add(result, x + 8 + CARD_INSET, notesY + 12, CARD_CONTENT_WIDTH, 30,
+        add(result, x, notesY + 8, 200, 18,
                 "ADMIN NOTES", 0xFFF0F3F6, null, null, font);
         notes(result, detail, x + 12, notesY + 34, font, noteScroll);
         return result;
