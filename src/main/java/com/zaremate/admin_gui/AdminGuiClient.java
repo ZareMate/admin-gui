@@ -159,10 +159,8 @@ public final class AdminGuiClient {
             for (int i = start; i < end; i++) {
                 PlayerRef p = filtered.get(i);
                 int y = top + 126 + (i - start) * 29;
-                Component label = Component.literal(p.name())
-                        .withStyle(s -> s.withColor(TEXT));
                 PlainTextButton b = new PlayerListButton(
-                        left + 24, y, 258, 26, label,
+                        left + 24, y, 258, 26, Component.empty(),
                         btn -> selectPlayer(p.uuid()), font);
                 b.setTooltip(Tooltip.create(Component.literal(
                         p.online() ? "Online — click to inspect." : "Offline — click to inspect stored data."
@@ -414,6 +412,7 @@ public final class AdminGuiClient {
                         selected ? ACCENT : (hovered ? BORDER_HOVER : BORDER),
                         1);
                 g.fill(left + 29, rowY + 8, left + 33, rowY + 12, p.online() ? SUCCESS : MUTED);
+                g.drawString(font, p.name(), left + 42, rowY + 8, TEXT, false);
             }
             drawScrollBar(g, left + 286, top + 126, 290, filtered.size(), 10, playerScroll, logicalX, logicalY);
 
@@ -444,7 +443,7 @@ public final class AdminGuiClient {
                         3, discordScroll, logicalX, logicalY);
 
                 panel(g, left + 313, top + 370, 562, 117, PANEL, BORDER, 1);
-                g.drawString(font, "ADMIN NOTES", left + 325, top + 381, MUTED, true);
+                g.drawString(font, "ADMIN NOTES", left + 325, top + 381, MUTED, false);
                 drawScrollBar(g, left + 863, top + 400, 78,
                         detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0, 3, noteScroll, logicalX, logicalY);
             }
@@ -496,7 +495,7 @@ public final class AdminGuiClient {
         private void card(GuiGraphics g, int x, int y, int width, int height, String title) {
             panel(g, x, y, width, height, PANEL, BORDER, 1);
             g.fill(x + 1, y + 1, x + 4, y + height - 1, ACCENT);
-            g.drawString(font, title, x + 12, y + 9, TEXT, true);
+            g.drawString(font, title, x + 12, y + 9, TEXT, false);
         }
 
         private void statusPill(GuiGraphics g, int x, int y, String label, int color) {
