@@ -601,8 +601,8 @@ public final class AdminGuiClient {
             for (PlainTextButton button : noteButtons) renderWidgetIfVisible(g, button, logicalX, logicalY, partialTick);
 
             if (noteInput != null && noteInput.visible) {
-                panel(g, left + 331, top + 495, 424, 26, PANEL_ALT, BORDER, 1);
-                buttonSurface(g, left + 761, top + 495, 110, 26, false);
+                panel(g, left + 325, top + 486, 430, 26, PANEL_ALT, BORDER, 1);
+                buttonSurface(g, left + 765, top + 486, 110, 26, false);
             }
             renderWidgetIfVisible(g, noteInput, logicalX, logicalY, partialTick);
             renderWidgetIfVisible(g, addNoteButton, logicalX, logicalY, partialTick);
@@ -760,12 +760,16 @@ public final class AdminGuiClient {
         }
 
         @Override
-        public void renderString(GuiGraphics g, Font font, int color) {
-            Component message = getMessage();
-            int textWidth = font.width(message);
+        protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+            if (!visible) return;
+
+            int textWidth = font.width(getMessage());
             int textX = getX() + (getWidth() - textWidth) / 2;
             int textY = getY() + (getHeight() - font.lineHeight) / 2;
-            g.drawString(font, message, textX, textY, color, false);
+
+            g.drawString(font, getMessage(), textX, textY, getMessage().getStyle().getColor() != null
+                    ? getMessage().getStyle().getColor().getValue()
+                    : 0xFFFFFFFF, false);
         }
     }
 
