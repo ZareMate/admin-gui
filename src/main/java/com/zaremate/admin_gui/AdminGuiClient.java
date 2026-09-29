@@ -148,7 +148,7 @@ public final class AdminGuiClient {
             int top = baseTop();
             for (int i = start; i < end; i++) {
                 PlayerRef p = filtered.get(i);
-                int y = top + 74 + (i - start) * 29;
+                int y = top + 126 + (i - start) * 29;
                 Component label = Component.literal(p.name())
                         .withStyle(s -> s.withColor(TEXT));
                 PlainTextButton b = new CenteredTextButton(
@@ -343,7 +343,7 @@ public final class AdminGuiClient {
             List<PlayerRef> filtered = filteredPlayers();
             for (int i = 0; i < Math.min(10, filtered.size()); i++) {
                 PlayerRef p = filtered.get(Math.min(playerScroll + i, filtered.size() - 1));
-                int rowY = top + 74 + i * 29;
+                int rowY = top + 126 + i * 29;
                 boolean hovered = logicalX >= left + 24 && logicalX <= left + 282
                         && logicalY >= rowY && logicalY <= rowY + 26;
                 boolean selected = p.uuid().equals(selectedUuid);
@@ -355,7 +355,7 @@ public final class AdminGuiClient {
                 g.fill(left + 29, rowY + 8, left + 33, rowY + 12, p.online() ? SUCCESS : MUTED);
                 g.drawString(font, p.name(), left + 42, rowY + 8, selected ? TEXT : TEXT, false);
             }
-            drawScrollBar(g, left + 286, top + 126, 325, filtered.size(), 10, playerScroll, logicalX, logicalY);
+            drawScrollBar(g, left + 286, top + 126, 290, filtered.size(), 10, playerScroll, logicalX, logicalY);
 
             // Detail area
             panel(g, left + 305, top + 58, 580, 404, BG, BORDER, 1);
