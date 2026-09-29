@@ -294,7 +294,8 @@ final class AdminGuiDetailWidgets {
             return;
         }
 
-        int shown = Math.min(notes.size(), 3);
+        final int visibleNotes = 4;
+        int shown = Math.min(notes.size(), visibleNotes);
         int start = Math.min(Math.max(0, noteScroll), Math.max(0, notes.size() - shown));
         for (int i = 0; i < shown; i++) {
             JsonObject note = notes.get(start + i).getAsJsonObject();
