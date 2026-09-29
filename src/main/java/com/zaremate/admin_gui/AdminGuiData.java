@@ -35,6 +35,7 @@ public final class AdminGuiData {
 
         root.add("players", players);
         root.addProperty("serverPlayers", server.getPlayerList().getPlayerCount());
+        AdminGui.LOGGER.info("Detail diagnostics for {}: {}", uuid, debug);
         return root.toString();
     }
 
@@ -61,13 +62,21 @@ public final class AdminGuiData {
         identity.addProperty("online", online != null);
         root.add("identity", identity);
 
-        root.add("tsa", tsa(uuid));
-        root.add("ass", ass(uuid));
+        JsonObject debug = new JsonObject();
+        root.add("debug", debug);
+        debug.addProperty("tsa.classPresent", classPresent("com.zaremate.tsa_anticheat.api.TsaAnticheatAPI"));
+        debug.addProperty("ass.classPresent", classPresent("com.zaremate.airport_security_system.AirportSecuritySystemAPI"));
+        debug.addProperty("teams.classPresent", classPresent("com.zaremate.ftb_teams_util.FTBTeamsUtilAPI"));
+        debug.addProperty("discord.classPresent", classPresent("com.zaremate.discordlink.DiscordLinkAPI"));
+        debug.addProperty("clockin.classPresent", classPresent("com.zaremate.clockin.ClockInMod"));
+
+        root.add("tsa", tsa(uuid, debug));
+        root.add("ass", ass(uuid, debug));
         root.addProperty("notesAvailable", classAvailable("com.zaremate.admin_notes.AdminNotesAPI"));
         root.add("notes", notes(uuid, viewerUuid));
-        root.add("teams", teams(uuid));
-        root.add("discord", discord(uuid));
-        root.add("clockin", clockin(uuid));
+        root.add("teams", teams(uuid, debug));
+        root.add("discord", discord(uuid, debug));
+        root.add("clockin", clockin(uuid, debug));
 
         return root.toString();
     }
@@ -216,6 +225,15 @@ public final class AdminGuiData {
         return o;
     }
 
+
+    private static boolean classPresent(String name) {
+        try {
+            Class.forName(name);
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
 
     private static boolean classAvailable(String name) {
         try { Class.forName(name); return true; } catch (Throwable ignored) { return false; }
