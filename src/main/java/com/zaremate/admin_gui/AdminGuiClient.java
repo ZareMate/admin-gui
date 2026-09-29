@@ -105,7 +105,7 @@ public final class AdminGuiClient {
             int left = baseLeft();
             int top = baseTop();
 
-            search = new EditBox(font, left + 45, top + 43, 237, 26, Component.literal("Search players"));
+            search = new EditBox(font, left + 45, top + 94, 237, 26, Component.literal("Search players"));
             search.setHint(Component.literal("Search players..."));
             search.setMaxLength(64);
             search.setBordered(false);
@@ -513,7 +513,7 @@ public final class AdminGuiClient {
 
             // Explicit vertical centering and a subtle shadow for readability
             // on the textured paper/metal surfaces.
-            g.drawString(font, message, textX + 1, textY + 1, 0x55301F14, false);
+            g.drawString(font, message, textX + 1, textY + 1, 0x77000000, false);
             g.drawString(font, message, textX, textY, color, false);
         }
     }
