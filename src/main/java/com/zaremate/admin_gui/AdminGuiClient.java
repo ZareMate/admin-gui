@@ -45,6 +45,11 @@ public final class AdminGuiClient {
         private UUID editingNote;
         private int playerScroll;
         private int noteScroll;
+        private int tsaScroll;
+        private int assScroll;
+        private int teamScroll;
+        private int discordScroll;
+        private int clockScroll;
 
         private static final int WIDTH = 900;
         private static final int HEIGHT = 520;
@@ -90,6 +95,11 @@ public final class AdminGuiClient {
                 detail = JsonParser.parseString(data).getAsJsonObject();
                 selectedUuid = detail.get("uuid").getAsString();
                 noteScroll = 0;
+                tsaScroll = 0;
+                assScroll = 0;
+                teamScroll = 0;
+                discordScroll = 0;
+                clockScroll = 0;
                 editingNote = null;
                 if (noteInput != null) noteInput.setValue("");
                 boolean notesAvailable = detail.has("notesAvailable") && detail.get("notesAvailable").getAsBoolean();
@@ -166,7 +176,8 @@ public final class AdminGuiClient {
             for (PlainTextButton widget : infoWidgets) removeWidget(widget);
             infoWidgets.clear();
             AdminGuiDetailWidgets.build(
-                    detail, players.size(), baseLeft(), baseTop(), font, noteScroll
+                    detail, players.size(), baseLeft(), baseTop(), font,
+                    tsaScroll, assScroll, teamScroll, discordScroll, clockScroll, noteScroll
             ).forEach(widget -> {
                 infoWidgets.add(widget);
                 addRenderableWidget(widget);
@@ -185,7 +196,7 @@ public final class AdminGuiClient {
 
             for (int i = 0; i < shown; i++) {
                 JsonObject note = notes.get(start + i).getAsJsonObject();
-                int row = top + 381 + i * 34;
+                int row = top + 404 + i * 34;
                 if (canEditNote(note)) {
                     PlainTextButton edit = new PlainTextButton(
                             left + 782, row + 4, 45, 18,
@@ -258,15 +269,65 @@ public final class AdminGuiClient {
                 return true;
             }
 
-            if (detail != null && logicalX >= left + 305 && logicalX <= left + 885
-                    && logicalY >= top + 349 && logicalY <= top + 488) {
-                int noteCount = detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0;
-                noteScroll = clampScroll(
-                        noteScroll - (int) Math.signum(scrollY),
-                        Math.max(0, noteCount - 3)
-                );
-                rebuildInfoWidgets();
-                return true;
+            if (detail != null) {
+                int delta = (int) Math.signum(scrollY);
+                double rx = logicalX - left;
+                double ry = logicalY - top;
+
+                if (rx >= 321 && rx < 593 && ry >= 128 && ry < 214) {
+                    tsaScroll = clampScroll(
+                            tsaScroll - delta,
+                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TSA, font) - 3)
+                    );
+                    rebuildInfoWidgets();
+                    return true;
+                }
+
+                if (rx >= 613 && rx < 885 && ry >= 128 && ry < 214) {
+                    assScroll = clampScroll(
+                            assScroll - delta,
+                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.ASS, font) - 3)
+                    );
+                    rebuildInfoWidgets();
+                    return true;
+                }
+
+                if (rx >= 321 && rx < 593 && ry >= 224 && ry < 302) {
+                    teamScroll = clampScroll(
+                            teamScroll - delta,
+                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TEAM, font) - 3)
+                    );
+                    rebuildInfoWidgets();
+                    return true;
+                }
+
+                if (rx >= 613 && rx < 885 && ry >= 224 && ry < 302) {
+                    discordScroll = clampScroll(
+                            discordScroll - delta,
+                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.DISCORD, font) - 3)
+                    );
+                    rebuildInfoWidgets();
+                    return true;
+                }
+
+                if (rx >= 321 && rx < 593 && ry >= 312 && ry < 357) {
+                    clockScroll = clampScroll(
+                            clockScroll - delta,
+                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.CLOCK, font) - 3)
+                    );
+                    rebuildInfoWidgets();
+                    return true;
+                }
+
+                if (rx >= 313 && rx < 885 && ry >= 370 && ry < 488) {
+                    int noteCount = detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0;
+                    noteScroll = clampScroll(
+                            noteScroll - delta,
+                            Math.max(0, noteCount - 3)
+                    );
+                    rebuildInfoWidgets();
+                    return true;
+                }
             }
             return super.mouseScrolled(logicalX, logicalY, scrollX, scrollY);
         }
@@ -369,6 +430,19 @@ public final class AdminGuiClient {
                 card(g, left + 613, top + 224, 272, 78, "DISCORD");
                 card(g, left + 321, top + 312, 272, 45, "CLOCK IN");
 
+                drawCardScrollBar(g, left + 585, top + 158, 48,
+                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TSA, font),
+                        3, tsaScroll, logicalX, logicalY);
+                drawCardScrollBar(g, left + 877, top + 158, 48,
+                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.ASS, font),
+                        3, assScroll, logicalX, logicalY);
+                drawCardScrollBar(g, left + 585, top + 254, 42,
+                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TEAM, font),
+                        3, teamScroll, logicalX, logicalY);
+                drawCardScrollBar(g, left + 877, top + 254, 42,
+                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.DISCORD, font),
+                        3, discordScroll, logicalX, logicalY);
+
                 panel(g, left + 313, top + 370, 562, 117, PANEL, BORDER, 1);
                 g.drawString(font, "ADMIN NOTES", left + 325, top + 381, MUTED, true);
                 drawScrollBar(g, left + 863, top + 400, 78,
@@ -442,6 +516,23 @@ public final class AdminGuiClient {
             g.fill(x + 1, y + 7, x + 6, y + 8, color);
             g.fill(x + 6, y + 5, x + 7, y + 7, color);
             g.fill(x + 7, y + 7, x + 10, y + 9, color);
+        }
+
+        private void drawCardScrollBar(GuiGraphics g, int x, int y, int height,
+                                         int total, int visible, int offset,
+                                         double mouseX, double mouseY) {
+            if (total <= visible || height <= 0) return;
+
+            g.fill(x, y, x + 3, y + height, 0xFF21262D);
+            int maxOffset = total - visible;
+            int thumbHeight = Math.max(10, height * visible / total);
+            int travel = Math.max(0, height - thumbHeight);
+            int thumbY = y + (travel * clampScroll(offset, maxOffset) / Math.max(1, maxOffset));
+
+            boolean hovered = mouseX >= x - 3 && mouseX <= x + 7
+                    && mouseY >= thumbY && mouseY <= thumbY + thumbHeight;
+            g.fill(x, thumbY, x + 3, thumbY + thumbHeight,
+                    hovered ? BORDER_HOVER : MUTED);
         }
 
         private void drawScrollBar(GuiGraphics g, int x, int y, int height,
