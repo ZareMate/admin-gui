@@ -377,9 +377,9 @@ public final class AdminGuiClient {
                 card(g, left + 613, top + 224, 272, 78, "DISCORD");
                 card(g, left + 321, top + 312, 272, 45, "CLOCK IN");
 
-                panel(g, left + 313, top + 370, 562, 92, PANEL, BORDER, 1);
+                panel(g, left + 313, top + 370, 562, 117, PANEL, BORDER, 1);
                 g.drawString(font, "ADMIN NOTES", left + 325, top + 381, MUTED, true);
-                drawScrollBar(g, left + 863, top + 400, 54,
+                drawScrollBar(g, left + 863, top + 400, 78,
                         detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0, 3, noteScroll, logicalX, logicalY);
             }
 
