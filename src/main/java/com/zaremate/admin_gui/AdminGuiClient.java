@@ -116,7 +116,7 @@ public final class AdminGuiClient {
             int left = baseLeft();
             int top = baseTop();
 
-            search = new EditBox(font, left + 45, top + 97, 237, 20, Component.literal("Search players"));
+            search = new EditBox(font, left + 51, top + 106, 231, 20, Component.literal("Search players"));
             search.setHint(Component.literal("Search players..."));
             search.setMaxLength(64);
             search.setBordered(false);
@@ -124,7 +124,7 @@ public final class AdminGuiClient {
             search.setTextColorUneditable(MUTED);
             addRenderableWidget(search);
 
-            noteInput = new EditBox(font, left + 325, top + 486, 430, 26, Component.literal("Note"));
+            noteInput = new EditBox(font, left + 331, top + 495, 424, 26, Component.literal("Note"));
             noteInput.setMaxLength(512);
             noteInput.setBordered(false);
             noteInput.setTextColor(TEXT);
@@ -533,7 +533,7 @@ public final class AdminGuiClient {
             panel(g, left + 12, top + 58, 282, 332, PANEL, BORDER, 1);
             g.drawString(font, "PLAYERS", left + 24, top + 69, MUTED, true);
             panel(g, left + 24, top + 94, 258, 26, BG, BORDER, 1);
-            drawSearchIcon(g, left + 32, top + 101, MUTED);
+            drawSearchIcon(g, left + 38, top + 110, MUTED);
 
             List<PlayerRef> filtered = filteredPlayers();
             for (int i = 0; i < Math.min(9, filtered.size()); i++) {
@@ -601,8 +601,8 @@ public final class AdminGuiClient {
             for (PlainTextButton button : noteButtons) renderWidgetIfVisible(g, button, logicalX, logicalY, partialTick);
 
             if (noteInput != null && noteInput.visible) {
-                panel(g, left + 325, top + 486, 430, 26, PANEL_ALT, BORDER, 1);
-                buttonSurface(g, left + 765, top + 486, 110, 26, false);
+                panel(g, left + 331, top + 495, 424, 26, PANEL_ALT, BORDER, 1);
+                buttonSurface(g, left + 761, top + 495, 110, 26, false);
             }
             renderWidgetIfVisible(g, noteInput, logicalX, logicalY, partialTick);
             renderWidgetIfVisible(g, addNoteButton, logicalX, logicalY, partialTick);
