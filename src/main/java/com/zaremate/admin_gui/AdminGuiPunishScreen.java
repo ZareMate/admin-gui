@@ -122,8 +122,11 @@ final class AdminGuiPunishScreen extends Screen {
 
     private void select(OffenseRef offense) {
         var connection = Minecraft.getInstance().getConnection();
-        if (connection != null) {
-            connection.send(new AdminGuiNetwork.PunishActionPayload(targetUuid, offense.id()));
+        if (connection != null && Minecraft.getInstance().player != null) {
+            // Execute the normal /punish command silently. The command's
+            // no-rest form only previews the punishment plan, so -s is used
+            // to enter the actual execution path without opening chat.
+            connection.sendCommand("punish " + targetName + " " + offense.id() + " -s");
         }
         Minecraft.getInstance().setScreen(parent);
     }
