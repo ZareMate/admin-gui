@@ -47,7 +47,7 @@ final class AdminGuiDetailWidgets {
             int clockScroll,
             int noteScroll
     ) {
-        Font safeFont = Objects.requireNonNull(font, "Detail widget font is not initialized");
+        safeFont = Objects.requireNonNull(safeFont, "Detail widget font is not initialized");
         List<PlainTextButton> result = new ArrayList<>();
         int x = left + 325;
 
