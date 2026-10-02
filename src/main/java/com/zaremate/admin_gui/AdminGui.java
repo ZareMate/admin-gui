@@ -58,7 +58,7 @@ public final class AdminGui {
         event.getDispatcher().register(
                 Commands.literal("admin-gui")
                         .requires(source -> source.isPlayer()
-                                && AdminGuiNetwork.hasAdminPermission(source.getPlayerOrException()))
+                                && AdminGuiNetwork.hasAdminPermission(source))
                         .executes(ctx -> open(ctx.getSource().getPlayerOrException()))
         );
     }
