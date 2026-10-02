@@ -8,6 +8,8 @@ import net.minecraft.client.gui.components.PlainTextButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
+import javax.annotation.Nonnull;
+import java.util.Objects;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +26,12 @@ final class AdminGuiDetailWidgets {
         DISCORD
     }
 
-    private record DetailLine(String text, int color, String tooltip, Runnable action) {}
+    private record DetailLine(
+            @Nonnull String text,
+            int color,
+            String tooltip,
+            Runnable action
+    ) {}
 
     private AdminGuiDetailWidgets() {}
 
@@ -33,7 +40,7 @@ final class AdminGuiDetailWidgets {
             int playerCount,
             int left,
             int top,
-            Font font,
+            @Nonnull Font font,
             int tsaScroll,
             int assScroll,
             int teamScroll,
@@ -83,7 +90,7 @@ final class AdminGuiDetailWidgets {
         return result;
     }
 
-    private static List<DetailLine> tsaLines(JsonObject o, Font font) {
+    private static List<DetailLine> tsaLines(JsonObject o, @Nonnull Font font) {
         List<DetailLine> lines = new ArrayList<>();
         if (empty(o)) {
             lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
@@ -137,7 +144,7 @@ final class AdminGuiDetailWidgets {
         return lines;
     }
 
-    private static List<DetailLine> assLines(JsonObject o, Font font) {
+    private static List<DetailLine> assLines(JsonObject o, @Nonnull Font font) {
         List<DetailLine> lines = new ArrayList<>();
         if (empty(o)) {
             lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
@@ -182,7 +189,7 @@ final class AdminGuiDetailWidgets {
         return lines;
     }
 
-    private static List<DetailLine> teamLines(JsonObject o, Font font) {
+    private static List<DetailLine> teamLines(JsonObject o, @Nonnull Font font) {
         List<DetailLine> lines = new ArrayList<>();
         if (empty(o)) {
             lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
@@ -200,18 +207,17 @@ final class AdminGuiDetailWidgets {
         ));
 
         JsonArray members = o.getAsJsonArray("members");
-        int memberCount = members == null ? 0 : members.size();
+        if (members == null || members.isEmpty()) {
+            lines.add(new DetailLine("Members: 0", 0xFF8B949E, null, null));
+            return lines;
+        }
 
         lines.add(new DetailLine(
-                "Members: " + memberCount,
+                "Members: " + members.size(),
                 0xFF8B949E,
                 null,
                 null
         ));
-
-        if (memberCount == 0) {
-            return lines;
-        }
 
         for (JsonElement element : members) {
             JsonObject member = element.getAsJsonObject();
@@ -229,7 +235,7 @@ final class AdminGuiDetailWidgets {
         return lines;
     }
 
-    private static List<DetailLine> discordLines(JsonObject o, Font font) {
+    private static List<DetailLine> discordLines(JsonObject o, @Nonnull Font font) {
         List<DetailLine> lines = new ArrayList<>();
         if (empty(o)) {
             lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
@@ -272,7 +278,7 @@ final class AdminGuiDetailWidgets {
         }
     }
 
-    static int lineCount(JsonObject detail, Section section, Font font) {
+    static int lineCount(JsonObject detail, Section section, @Nonnull Font font) {
         if (detail == null) return 0;
         return switch (section) {
             case TSA -> tsaLines(detail.getAsJsonObject("tsa"), font).size();
@@ -287,7 +293,7 @@ final class AdminGuiDetailWidgets {
             JsonObject detail,
             int x,
             int y,
-            Font font,
+            @Nonnull Font font,
             int noteScroll
     ) {
         if (!bool(detail, "notesAvailable")) {
@@ -400,12 +406,6 @@ final class AdminGuiDetailWidgets {
         return fit(display, CARD_CONTENT_WIDTH, font);
     }
 
-    private static String formatSeconds(long seconds) {
-        long h = seconds / 3600;
-        long m = (seconds % 3600) / 60;
-        long s = seconds % 60;
-        return h + "h " + String.format("%02dm %02ds", m, s);
-    }
 
     private static void copy(String value) {
         if (value != null && !value.isBlank()) {
