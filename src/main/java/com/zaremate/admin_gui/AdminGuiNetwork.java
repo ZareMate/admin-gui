@@ -38,6 +38,9 @@ public final class AdminGuiNetwork {
     public static final CustomPacketPayload.Type<NoteActionPayload> NOTE_ACTION_TYPE =
             new CustomPacketPayload.Type<>(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(AdminGui.MOD_ID, "note_action"));
 
+    public static final CustomPacketPayload.Type<PunishActionPayload> PUNISH_ACTION_TYPE =
+            new CustomPacketPayload.Type<>(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(AdminGui.MOD_ID, "punish_action"));
+
     private static final StreamCodec<ByteBuf, String> STRING_CODEC = ByteBufCodecs.STRING_UTF8;
 
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenPayload> OPEN_CODEC =
@@ -54,6 +57,13 @@ public final class AdminGuiNetwork {
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SelectPayload> SELECT_CODEC =
             StreamCodec.composite(STRING_CODEC, SelectPayload::uuid, SelectPayload::new);
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, PunishActionPayload> PUNISH_ACTION_CODEC =
+            StreamCodec.composite(
+                    STRING_CODEC, PunishActionPayload::playerUuid,
+                    STRING_CODEC, PunishActionPayload::offense,
+                    PunishActionPayload::new
+            );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, NoteActionPayload> NOTE_ACTION_CODEC =
             StreamCodec.composite(
@@ -87,6 +97,14 @@ public final class AdminGuiNetwork {
                         UUID selected = parseUuid(payload.uuid());
                         OPEN_GUI_SELECTIONS.put(player.getUUID(), selected);
                         sendDetail(player, selected);
+                    }
+                }));
+        registrar.playToServer(PUNISH_ACTION_TYPE, PUNISH_ACTION_CODEC, (payload, context) ->
+                context.enqueueWork(() -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && hasAdminPermission(player)
+                            && clientHasAdminGui(player)) {
+                        handlePunishAction(player, payload);
                     }
                 }));
         registrar.playToServer(NOTE_ACTION_TYPE, NOTE_ACTION_CODEC, (payload, context) ->
@@ -174,6 +192,59 @@ public final class AdminGuiNetwork {
         }
     }
 
+    private static void handlePunishAction(ServerPlayer player, PunishActionPayload payload) {
+        UUID target = parseUuid(payload.playerUuid());
+        UUID selected = OPEN_GUI_SELECTIONS.get(player.getUUID());
+        if (target == null || !Objects.equals(target, selected) || payload.offense().isBlank()) return;
+
+        try {
+            Class<?> api = Class.forName("com.zaremate.punish.api.PunishApi");
+            java.lang.reflect.Method method = api.getMethod(
+                    "addPunishment",
+                    net.minecraft.server.MinecraftServer.class,
+                    UUID.class,
+                    String.class,
+                    String.class,
+                    String.class
+            );
+
+            String name = resolveTargetName(player.server, target);
+            Object result = method.invoke(null, player.server, target, name, payload.offense(),
+                    player.getGameProfile().getName());
+            int created = result instanceof java.util.Collection<?> collection ? collection.size() : 0;
+
+            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    "Punish: applied " + payload.offense() + " to " + name
+                            + (created > 0 ? " (" + created + " case(s))." : ".")));
+            sendDetail(player, target);
+        } catch (Throwable ex) {
+            Throwable cause = rootCause(ex);
+            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    "Punish: could not apply " + payload.offense() + ": "
+                            + cause.getClass().getSimpleName() + ": " + String.valueOf(cause.getMessage())));
+            AdminGui.LOGGER.warn("Admin GUI Punish action failed for {} / {}", target, payload.offense(), cause);
+        }
+    }
+
+    private static String resolveTargetName(net.minecraft.server.MinecraftServer server, UUID uuid) {
+        ServerPlayer online = server.getPlayerList().getPlayer(uuid);
+        if (online != null) return online.getGameProfile().getName();
+        try {
+            var cache = server.getProfileCache();
+            if (cache != null) {
+                var profile = cache.get(uuid);
+                if (profile.isPresent()) return profile.get().getName();
+            }
+        } catch (Throwable ignored) {}
+        return uuid.toString();
+    }
+
+    private static Throwable rootCause(Throwable throwable) {
+        Throwable current = throwable;
+        while (current.getCause() != null && current.getCause() != current) current = current.getCause();
+        return current;
+    }
+
     private static void handleNoteAction(ServerPlayer player, NoteActionPayload payload) {
         UUID target = parseUuid(payload.playerUuid());
         if (target == null) return;
@@ -229,6 +300,11 @@ public final class AdminGuiNetwork {
 
     public record SelectPayload(String uuid) implements CustomPacketPayload {
         @Override public Type<? extends CustomPacketPayload> type() { return SELECT_TYPE; }
+    }
+
+    public record PunishActionPayload(String playerUuid, String offense)
+            implements CustomPacketPayload {
+        @Override public Type<? extends CustomPacketPayload> type() { return PUNISH_ACTION_TYPE; }
     }
 
     public record NoteActionPayload(String action, String playerUuid, String noteId, String text)
