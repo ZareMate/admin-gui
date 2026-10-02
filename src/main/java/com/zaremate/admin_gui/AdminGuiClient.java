@@ -164,7 +164,7 @@ public final class AdminGuiClient {
             int left = baseLeft();
             int top = baseTop();
 
-            Font guiFont = nonNullFont();
+            Font guiFont = nonNullFont(font);
             search = new EditBox(guiFont, left + 51, top + 106, 231, 20, literal("Search players"));
             search.setHint(literal("Search players..."));
             search.setMaxLength(64);
@@ -773,7 +773,7 @@ public final class AdminGuiClient {
         return Objects.requireNonNull(Component.literal(text).withStyle(style -> style.withColor(color)));
     }
 
-    private Font nonNullFont() {
+    private static Font nonNullFont(Font font) {
         return Objects.requireNonNull(font, "Screen font is not initialized");
     }
 
