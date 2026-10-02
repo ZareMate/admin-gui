@@ -211,7 +211,7 @@ public final class AdminGuiClient {
                 int y = top + 126 + (i - start) * 29;
                 PlainTextButton b = new PlayerListButton(
                         left + 24, y, 258, 26, literal(""),
-                        btn -> selectPlayer(p.uuid()), nonNullFont());
+                        btn -> selectPlayer(p.uuid()), nonNullFont(font));
                 b.setTooltip(Tooltip.create(literal(
                         p.online() ? "Online — click to inspect." : "Offline — click to inspect stored data."
                 )));
@@ -349,6 +349,11 @@ public final class AdminGuiClient {
             return player.online();
         }
 
+        private static boolean bool(JsonObject object, String key) {
+            return object != null && object.has(key) && object.get(key).getAsBoolean();
+        }
+
+
         private void openChat(@Nonnull String command) {
             if (command.isBlank()) return;
             String safeCommand = Objects.requireNonNull(command);
@@ -367,7 +372,7 @@ public final class AdminGuiClient {
             for (PlainTextButton widget : infoWidgets) removeWidget(Objects.requireNonNull(widget));
             infoWidgets.clear();
             AdminGuiDetailWidgets.build(
-                    detail, players.size(), baseLeft(), baseTop(), nonNullFont(),
+                    detail, players.size(), baseLeft(), baseTop(), nonNullFont(font),
                     tsaScroll, assScroll, teamScroll, discordScroll, 0, noteScroll
             ).forEach(widget -> {
                 infoWidgets.add(widget);
@@ -392,11 +397,11 @@ public final class AdminGuiClient {
                     PlainTextButton edit = new PlainTextButton(
                             left + 782, row + 4, 45, 18,
                             colored("EDIT", ACCENT),
-                            b -> editNote(note), nonNullFont());
+                            b -> editNote(note), nonNullFont(font));
                     PlainTextButton remove = new PlainTextButton(
                             left + 832, row + 4, 35, 18,
                             colored("DEL", DANGER),
-                            b -> removeNote(note), nonNullFont());
+                            b -> removeNote(note), nonNullFont(font));
                     edit.setTooltip(Tooltip.create(literal("Edit your note.")));
                     remove.setTooltip(Tooltip.create(literal("Remove your note.")));
                     noteButtons.add(edit);
@@ -456,7 +461,7 @@ public final class AdminGuiClient {
 
         @Override
         public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-            Font guiFont = nonNullFont();
+            Font guiFont = nonNullFont(font);
             double logicalX = logicalMouseX(mouseX);
             double logicalY = logicalMouseY(mouseY);
             int left = baseLeft();
@@ -570,7 +575,7 @@ public final class AdminGuiClient {
 
         @Override
         public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-            Font guiFont = nonNullFont();
+            Font guiFont = nonNullFont(font);
             double scale = uiScale();
             int left = baseLeft();
             int top = baseTop();
@@ -703,7 +708,7 @@ public final class AdminGuiClient {
         private void card(@Nonnull GuiGraphics g, int x, int y, int width, int height, @Nonnull String title) {
             panel(g, x, y, width, height, PANEL, BORDER, 1);
             g.fill(x + 1, y + 1, x + 4, y + height - 1, ACCENT);
-            g.drawString(nonNullFont(), title, x + 12, y + 9, TEXT, false);
+            g.drawString(nonNullFont(font), title, x + 12, y + 9, TEXT, false);
         }
 
 
