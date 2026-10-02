@@ -230,15 +230,23 @@ public final class AdminGuiClient {
             boolean hasPlayer = selected != null;
             boolean online = selected != null && isPlayerOnline(selected);
             String selectedName = selected == null ? "" : selected.name();
+            JsonObject punishData = detail == null ? null : detail.getAsJsonObject("punish");
+            boolean punishAvailable = hasPlayer
+                    && punishData != null
+                    && bool(punishData, "available")
+                    && punishData.has("offenses")
+                    && !punishData.getAsJsonArray("offenses").isEmpty();
 
             int left = baseLeft();
             int top = baseTop();
 
             addActionButton(
                     left + 24, top + 411, 82, 21, "PUNISH",
-                    hasPlayer,
+                    punishAvailable,
                     "",
-                    hasPlayer ? "Select an offense to punish " + selectedName + "." : "Select a player first.",
+                    punishAvailable
+                            ? "Select an offense to punish " + selectedName + "."
+                            : (hasPlayer ? "Punish mod is not installed / no offenses are available." : "Select a player first."),
                     false
             );
 
