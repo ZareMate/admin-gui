@@ -121,7 +121,10 @@ final class AdminGuiPunishScreen extends Screen {
     }
 
     private void select(OffenseRef offense) {
-        AdminGuiNetworkPunish.send(targetUuid, offense.id());
+        var connection = Minecraft.getInstance().getConnection();
+        if (connection != null) {
+            connection.send(new AdminGuiNetwork.PunishActionPayload(targetUuid, offense.id()));
+        }
         Minecraft.getInstance().setScreen(parent);
     }
 
