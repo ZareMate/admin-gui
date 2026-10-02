@@ -9,8 +9,6 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 
-import javax.annotation.Nonnull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -28,7 +26,7 @@ final class AdminGuiDetailWidgets {
     }
 
     private record DetailLine(
-            @Nonnull String text,
+            String text,
             int color,
             String tooltip,
             Runnable action
@@ -41,7 +39,7 @@ final class AdminGuiDetailWidgets {
             int playerCount,
             int left,
             int top,
-            @Nonnull Font font,
+            Font safeFont,
             int tsaScroll,
             int assScroll,
             int teamScroll,
@@ -49,12 +47,13 @@ final class AdminGuiDetailWidgets {
             int clockScroll,
             int noteScroll
     ) {
+        Font safeFont = Objects.requireNonNull(safeFont, "Detail widget safeFont is not initialized");
         List<PlainTextButton> result = new ArrayList<>();
         int x = left + 325;
 
-        add(result, x, top + 68, 150, 18, "PLAYER DETAILS", 0xFF8B949E, null, null, font);
+        add(result, x, top + 68, 150, 18, "PLAYER DETAILS", 0xFF8B949E, null, null, safeFont);
         add(result, left + 205, top + 68, 80, 18,
-                playerCount + " players", 0xFF8B949E, null, null, font);
+                playerCount + " players", 0xFF8B949E, null, null, safeFont);
 
         if (detail == null) {
             return result;
@@ -65,29 +64,29 @@ final class AdminGuiDetailWidgets {
         boolean online = bool(detail, "online");
 
         add(result, x, top + 91, 390, 24, name, 0xFFF0F3F6,
-                "Click to copy player name.", () -> copy(name), font);
+                "Click to copy player name.", () -> copy(name), safeFont);
 
-        String uuidDisplay = fit("UUID: " + uuid, 500, font);
+        String uuidDisplay = fit("UUID: " + uuid, 500, safeFont);
         add(result, x, top + 113, 540, 18, uuidDisplay, 0xFF8B949E,
-                "Click to copy player UUID.\n\n" + uuid, () -> copy(uuid), font);
+                "Click to copy player UUID.\n\n" + uuid, () -> copy(uuid), safeFont);
 
         add(result, x + 430, top + 91, 130, 18,
                 online ? "● ONLINE" : "○ OFFLINE",
-                online ? 0xFF3FB950 : 0xFF8B949E, null, null, font);
+                online ? 0xFF3FB950 : 0xFF8B949E, null, null, safeFont);
 
         int cardY = top + 128;
         int tsaX = x + 12;
         int assX = x + 304;
 
-        scrollable(result, tsaLines(detail.getAsJsonObject("tsa"), font), tsaX, cardY + 33, tsaScroll, font);
-        scrollable(result, assLines(detail.getAsJsonObject("ass"), font), assX, cardY + 33, assScroll, font);
+        scrollable(result, tsaLines(detail.getAsJsonObject("tsa"), safeFont), tsaX, cardY + 33, tsaScroll, safeFont);
+        scrollable(result, assLines(detail.getAsJsonObject("ass"), safeFont), assX, cardY + 33, assScroll, safeFont);
 
         cardY += 96;
-        scrollable(result, teamLines(detail.getAsJsonObject("teams"), font), tsaX, cardY + 33, teamScroll, font);
-        scrollable(result, discordLines(detail.getAsJsonObject("discord"), font), assX, cardY + 33, discordScroll, font);
+        scrollable(result, teamLines(detail.getAsJsonObject("teams"), safeFont), tsaX, cardY + 33, teamScroll, safeFont);
+        scrollable(result, discordLines(detail.getAsJsonObject("discord"), safeFont), assX, cardY + 33, discordScroll, safeFont);
 
         int notesY = top + 312;
-        notes(result, detail, x + 12, notesY + 34, font, noteScroll);
+        notes(result, detail, x + 12, notesY + 34, safeFont, noteScroll);
         return result;
     }
 
@@ -208,13 +207,19 @@ final class AdminGuiDetailWidgets {
         ));
 
         JsonArray members = o.getAsJsonArray("members");
-        if (members == null || members.isEmpty()) {
+        if (members == null) {
+            lines.add(new DetailLine("Members: 0", 0xFF8B949E, null, null));
+            return lines;
+        }
+
+        int memberCount = members.size();
+        if (memberCount == 0) {
             lines.add(new DetailLine("Members: 0", 0xFF8B949E, null, null));
             return lines;
         }
 
         lines.add(new DetailLine(
-                "Members: " + members.size(),
+                "Members: " + memberCount,
                 0xFF8B949E,
                 null,
                 null
@@ -329,35 +334,32 @@ final class AdminGuiDetailWidgets {
             int y,
             int width,
             int height,
-            @Nonnull String value,
+            String value,
             int color,
             String tooltip,
             Runnable action,
-            @Nonnull Font font
+            Font font
     ) {
+        String safeValue = Objects.requireNonNull(value, "Widget text cannot be null");
+        Font safeFont = Objects.requireNonNull(font, "Widget font cannot be null");
         Component component = Objects.requireNonNull(
-                Component.literal(value).withStyle(style -> style.withColor(color))
+                Component.literal(safeValue).withStyle(style -> style.withColor(color))
         );
 
+        Runnable safeAction = action == null ? () -> {} : action;
         PlainTextButton button = new PlainTextButton(
                 x,
                 y,
                 width,
                 height,
                 component,
-                ignored -> {
-                    if (action != null) {
-                        action.run();
-                    }
-                },
-                font
+                ignored -> safeAction.run(),
+                safeFont
         );
 
         if (tooltip != null && !tooltip.isBlank()) {
-            String safeTooltip = Objects.requireNonNull(tooltip);
-            button.setTooltip(
-                    Tooltip.create(Objects.requireNonNull(Component.literal(safeTooltip)))
-            );
+            Component tooltipComponent = Objects.requireNonNull(Component.literal(tooltip));
+            button.setTooltip(Tooltip.create(tooltipComponent));
         }
 
         out.add(button);
@@ -368,13 +370,17 @@ final class AdminGuiDetailWidgets {
     }
 
     @Nonnull
-    private static String fit(String value, int maxWidth, @Nonnull Font font) {
-        if (value == null || value.isEmpty() || font.width(value) <= maxWidth) {
-            return value == null ? "" : value;
+    private static String fit(String value, int maxWidth, Font font) {
+        String safeValue = Objects.requireNonNull(value, "Text to fit cannot be null");
+        Font safeFont = Objects.requireNonNull(font, "Font to fit text cannot be null");
+
+        if (safeValue.isEmpty() || safeFont.width(safeValue) <= maxWidth) {
+            return safeValue;
         }
+
         String ellipsis = "...";
-        int available = Math.max(1, maxWidth - font.width(ellipsis));
-        return font.plainSubstrByWidth(value, available) + ellipsis;
+        int available = Math.max(1, maxWidth - safeFont.width(ellipsis));
+        return safeFont.plainSubstrByWidth(safeValue, available) + ellipsis;
     }
 
     private static String text(JsonObject o, String key, String fallback) {
