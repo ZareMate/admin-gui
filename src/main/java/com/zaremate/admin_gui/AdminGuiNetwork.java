@@ -82,7 +82,7 @@ public final class AdminGuiNetwork {
         registrar.playToServer(SELECT_TYPE, SELECT_CODEC, (payload, context) ->
                 context.enqueueWork(() -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.hasPermissions(3)
+                            && hasAdminPermission(player)
                             && clientHasAdminGui(player)) {
                         UUID selected = parseUuid(payload.uuid());
                         OPEN_GUI_SELECTIONS.put(player.getUUID(), selected);
@@ -92,11 +92,17 @@ public final class AdminGuiNetwork {
         registrar.playToServer(NOTE_ACTION_TYPE, NOTE_ACTION_CODEC, (payload, context) ->
                 context.enqueueWork(() -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.hasPermissions(3)
+                            && hasAdminPermission(player)
                             && clientHasAdminGui(player)) {
                         handleNoteAction(player, payload);
                     }
                 }));
+    }
+
+    public static boolean hasAdminPermission(ServerPlayer player) {
+        return player != null
+                && (player.hasPermissions(3)
+                    || LuckPermsPermissions.hasPermission(player, "admin_gui.use"));
     }
 
     public static boolean clientHasAdminGui(ServerPlayer player) {
