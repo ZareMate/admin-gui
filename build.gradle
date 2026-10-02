@@ -17,7 +17,10 @@ runs {
     server { systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id; argument '--nogui' }
 }
 configurations { runtimeClasspath.extendsFrom localRuntime }
-dependencies { implementation "net.neoforged:neoforge:" + neo_version }
+dependencies {
+    implementation "net.neoforged:neoforge:" + neo_version
+    compileOnly "net.luckperms:api:5.5"
+}
 tasks.withType(ProcessResources).configureEach {
     def replaceProperties = [minecraft_version:minecraft_version, minecraft_version_range:minecraft_version_range, neo_version:neo_version, loader_version_range:loader_version_range, mod_id:mod_id, mod_name:mod_name, mod_license:mod_license, mod_version:mod_version]
     inputs.properties replaceProperties
