@@ -22,7 +22,8 @@ final class AdminGuiDetailWidgets {
         TSA,
         ASS,
         TEAM,
-        DISCORD
+        DISCORD,
+        PUNISH
     }
 
     private record DetailLine(
@@ -44,6 +45,7 @@ final class AdminGuiDetailWidgets {
             int assScroll,
             int teamScroll,
             int discordScroll,
+            int punishScroll,
             int clockScroll,
             int noteScroll
     ) {
@@ -86,7 +88,8 @@ final class AdminGuiDetailWidgets {
         scrollable(result, discordLines(detail.getAsJsonObject("discord"), safeFont), assX, cardY + 33, discordScroll, safeFont);
 
         int notesY = top + 312;
-        notes(result, detail, x + 12, notesY + 34, safeFont, noteScroll);
+        scrollable(result, punishLines(detail.getAsJsonObject("punish"), safeFont), x + 12, notesY + 34, punishScroll, safeFont);
+        notes(result, detail, x + 304, notesY + 34, safeFont, noteScroll);
         return result;
     }
 
@@ -185,6 +188,43 @@ final class AdminGuiDetailWidgets {
                         () -> copy(category)
                 ));
             }
+        }
+        return lines;
+    }
+
+    private static List<DetailLine> punishLines(JsonObject o, Font font) {
+        List<DetailLine> lines = new ArrayList<>();
+        if (empty(o) || !bool(o, "available")) {
+            lines.add(new DetailLine("Punish is not installed / unavailable", 0xFF8B949E, null, null));
+            return lines;
+        }
+
+        JsonArray history = o.getAsJsonArray("history");
+        if (history == null || history.isEmpty()) {
+            lines.add(new DetailLine("No recorded offenses.", 0xFF8B949E, null, null));
+            return lines;
+        }
+
+        for (JsonElement element : history) {
+            JsonObject record = element.getAsJsonObject();
+            String offense = text(record, "offense", "unknown");
+            long number = num(record, "offenseNumber");
+            String type = text(record, "type", "").toLowerCase(Locale.ROOT);
+            String date = timestamp(num(record, "at"));
+            String line = "#" + num(record, "id") + "  " + offense + " #" + number + "  " + date;
+            int color = bool(record, "active") ? 0xFFF85149 : 0xFFF0F3F6;
+            String tooltip = "Offense: " + offense
+                    + "\\nOffense number: " + number
+                    + "\\nPunishment: " + type
+                    + "\\nBy: " + text(record, "by", "Unknown")
+                    + "\\nDate: " + date
+                    + "\\nReason: " + text(record, "reason", "No reason given");
+            lines.add(new DetailLine(
+                    fit(line, CARD_CONTENT_WIDTH, font),
+                    color,
+                    tooltip,
+                    () -> copy(tooltip.replace("\\n", " | "))
+            ));
         }
         return lines;
     }
@@ -290,6 +330,7 @@ final class AdminGuiDetailWidgets {
             case ASS -> assLines(detail.getAsJsonObject("ass"), font).size();
             case TEAM -> teamLines(detail.getAsJsonObject("teams"), font).size();
             case DISCORD -> discordLines(detail.getAsJsonObject("discord"), font).size();
+            case PUNISH -> punishLines(detail.getAsJsonObject("punish"), font).size();
         };
     }
 
@@ -301,13 +342,13 @@ final class AdminGuiDetailWidgets {
             int noteScroll
     ) {
         if (!bool(detail, "notesAvailable")) {
-            add(out, x, y, 405, 18, "Admin Notes is not installed.", 0xFF8B949E, null, null, font);
+            add(out, x, y, 175, 18, "Admin Notes unavailable.", 0xFF8B949E, null, null, font);
             return;
         }
 
         JsonArray notes = detail.getAsJsonArray("notes");
         if (notes == null || notes.isEmpty()) {
-            add(out, x, y, 405, 18, "No notes for this player.", 0xFF8B949E, null, null, font);
+            add(out, x, y, 175, 18, "No notes.", 0xFF8B949E, null, null, font);
             return;
         }
 
@@ -319,8 +360,8 @@ final class AdminGuiDetailWidgets {
             String author = text(note, "author", "");
             if (author.isBlank()) author = "System";
             String value = text(note, "text", "");
-            String display = fit(author + " — " + value, 385, font);
-            add(out, x, y + i * 34, 405, 26, display, 0xFFF0F3F6,
+            String display = fit(author + " — " + value, 175, font);
+            add(out, x, y + i * 34, 175, 26, display, 0xFFF0F3F6,
                     "Click to copy the full note.\n\n" + author + " — " + value,
                     () -> copy(value), font);
         }
@@ -407,6 +448,14 @@ final class AdminGuiDetailWidgets {
             unique.put(identity.toLowerCase(Locale.ROOT), raw);
         }
         return List.copyOf(unique.values());
+    }
+
+    private static String timestamp(long millis) {
+        if (millis <= 0) return "-";
+        return java.time.Instant.ofEpochMilli(millis)
+                .atZone(java.time.ZoneId.systemDefault())
+                .toLocalDateTime()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
 
     private static String compactDate(String value) {
