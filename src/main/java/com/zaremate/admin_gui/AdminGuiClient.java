@@ -11,7 +11,9 @@ import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+
+import javax.annotation.Nonnull;
+import java.util.Objects;
 
 import java.util.*;
 
@@ -77,11 +79,10 @@ public final class AdminGuiClient {
         private static final int MUTED = 0xFF8B949E;
         private static final int ACCENT = 0xFF58A6FF;
         private static final int SUCCESS = 0xFF3FB950;
-        private static final int WARNING = 0xFFD29922;
         private static final int DANGER = 0xFFF85149;
 
         public AdminGuiScreen(String data) {
-            super(Component.literal("Admin GUI"));
+            super(literal("Admin GUI"));
             loadList(data);
         }
 
@@ -164,20 +165,21 @@ public final class AdminGuiClient {
             int left = baseLeft();
             int top = baseTop();
 
-            search = new EditBox(font, left + 51, top + 106, 231, 20, Component.literal("Search players"));
-            search.setHint(Component.literal("Search players..."));
+            Font guiFont = nonNullFont();
+            search = new EditBox(guiFont, left + 51, top + 106, 231, 20, literal("Search players"));
+            search.setHint(literal("Search players..."));
             search.setMaxLength(64);
             search.setBordered(false);
             search.setTextColor(TEXT);
             search.setTextColorUneditable(MUTED);
-            addRenderableWidget(search);
+            addRenderableWidget(Objects.requireNonNull(search));
 
-            noteInput = new EditBox(font, left + 331, top + 495, 424, 26, Component.literal("Note"));
+            noteInput = new EditBox(guiFont, left + 331, top + 495, 424, 26, literal("Note"));
             noteInput.setMaxLength(512);
             noteInput.setBordered(false);
             noteInput.setTextColor(TEXT);
             noteInput.setTextColorUneditable(MUTED);
-            addRenderableWidget(noteInput);
+            addRenderableWidget(Objects.requireNonNull(noteInput));
 
             addNoteButton = new CenteredTextButton(
                     left + 765, top + 486, 110, 26,
@@ -185,7 +187,7 @@ public final class AdminGuiClient {
                     b -> saveNote(),
                     font
             );
-            addRenderableWidget(addNoteButton);
+            addRenderableWidget(Objects.requireNonNull(addNoteButton));
             noteInput.visible = false;
             addNoteButton.visible = false;
 
@@ -195,7 +197,7 @@ public final class AdminGuiClient {
         }
 
         private void rebuildPlayerButtons() {
-            for (PlainTextButton b : playerButtons) removeWidget(b);
+            for (PlainTextButton b : playerButtons) removeWidget(Objects.requireNonNull(b));
             playerButtons.clear();
             if (search == null) return;
 
@@ -216,7 +218,7 @@ public final class AdminGuiClient {
                         p.online() ? "Online — click to inspect." : "Offline — click to inspect stored data."
                 )));
                 playerButtons.add(b);
-                addRenderableWidget(b);
+                addRenderableWidget(Objects.requireNonNull(b));
             }
         }
 
@@ -226,7 +228,8 @@ public final class AdminGuiClient {
 
             PlayerRef selected = selectedPlayer();
             boolean hasPlayer = selected != null;
-            boolean online = hasPlayer && isPlayerOnline(selected);
+            boolean online = selected != null && isPlayerOnline(selected);
+            String selectedName = selected == null ? "" : selected.name();
 
             int left = baseLeft();
             int top = baseTop();
@@ -234,8 +237,8 @@ public final class AdminGuiClient {
             addActionButton(
                     left + 24, top + 411, 82, 21, "PUNISH",
                     hasPlayer,
-                    hasPlayer ? "/punish " + selected.name() + " " : "",
-                    hasPlayer ? "Insert /punish " + selected.name() + " into chat." : "Select a player first.",
+                    hasPlayer ? "/punish " + selectedName + " " : "",
+                    hasPlayer ? "Insert /punish " + selectedName + " into chat." : "Select a player first.",
                     true
             );
 
@@ -243,7 +246,7 @@ public final class AdminGuiClient {
                     left + 112, top + 411, 82, 21, "INVSEE",
                     online,
                     "",
-                    online ? "Run /invsee " + selected.name() + "." : "Only available for online players.",
+                    online ? "Run /invsee " + selectedName + "." : "Only available for online players.",
                     false
             );
 
@@ -252,8 +255,8 @@ public final class AdminGuiClient {
                     hasPlayer,
                     "",
                     hasPlayer
-                            ? (online ? "Run /tp_spec " + selected.name() + "."
-                                      : "Run /teleport_last " + selected.name() + ".")
+                            ? (online ? "Run /tp_spec " + selectedName + "."
+                                      : "Run /teleport_last " + selectedName + ".")
                             : "Select a player first.",
                     false
             );
@@ -261,8 +264,8 @@ public final class AdminGuiClient {
             addActionButton(
                     left + 24, top + 434, 82, 21, "KICK",
                     online,
-                    online ? "/kick " + selected.name() : "",
-                    online ? "Insert /kick " + selected.name() + " into chat."
+                    online ? "/kick " + selectedName : "",
+                    online ? "Insert /kick " + selectedName + " into chat."
                            : "Only available for online players.",
                     true
             );
@@ -272,7 +275,7 @@ public final class AdminGuiClient {
                     online,
                     "",
                     online
-                            ? "Run /damage " + selected.name() + " 0.1 minecraft:player_attack."
+                            ? "Run /damage " + selectedName + " 0.1 minecraft:player_attack."
                             : "Only available for online players.",
                     false
             );
@@ -280,21 +283,21 @@ public final class AdminGuiClient {
             addActionButton(
                     left + 200, top + 434, 82, 21, "MSG",
                     online,
-                    online ? "/msg " + selected.name() + " " : "",
+                    online ? "/msg " + selectedName + " " : "",
                     online
-                            ? "Insert /msg " + selected.name() + " into chat."
+                            ? "Insert /msg " + selectedName + " into chat."
                             : "Only available for online players.",
                     true
             );
         }
 
         private void addActionButton(
-                int x, int y, int width, int height, String label,
-                boolean enabled, String command, String tooltip, boolean insert
+                int x, int y, int width, int height, @Nonnull String label,
+                boolean enabled, @Nonnull String command, @Nonnull String tooltip, boolean insert
         ) {
             Button button = new CenteredTextButton(
                     x, y, width, height,
-                    Component.literal(label).withStyle(s -> s.withColor(TEXT)),
+                    colored(label, TEXT),
                     ignored -> {
                         PlayerRef selected = selectedPlayer();
                         if (selected == null) return;
@@ -322,15 +325,14 @@ public final class AdminGuiClient {
                         if (!runCommand.isBlank()) {
                             runClientCommand(runCommand);
                         }
-                    },
-                    font
+                    }
             );
             button.active = enabled;
             if (tooltip != null && !tooltip.isBlank()) {
-                button.setTooltip(Tooltip.create(Component.literal(tooltip)));
+                button.setTooltip(Tooltip.create(literal(tooltip)));
             }
             actionButtons.add(button);
-            addRenderableWidget(button);
+            addRenderableWidget(Objects.requireNonNull(button));
         }
 
         private PlayerRef selectedPlayer() {
@@ -349,12 +351,13 @@ public final class AdminGuiClient {
             return player.online();
         }
 
-        private void openChat(String command) {
-            if (command == null || command.isBlank()) return;
-            Minecraft.getInstance().setScreen(new ChatScreen(command));
+        private void openChat(@Nonnull String command) {
+            if (command.isBlank()) return;
+            String safeCommand = Objects.requireNonNull(command);
+            Minecraft.getInstance().setScreen(new ChatScreen(safeCommand));
         }
 
-        private void runClientCommand(String command) {
+        private void runClientCommand(@Nonnull String command) {
             Minecraft minecraft = Minecraft.getInstance();
             if (minecraft.player != null && minecraft.getConnection() != null) {
                 minecraft.getConnection().sendCommand(command);
@@ -362,17 +365,17 @@ public final class AdminGuiClient {
         }
 
         private void rebuildInfoWidgets() {
-            for (PlainTextButton widget : infoWidgets) removeWidget(widget);
+            for (PlainTextButton widget : infoWidgets) removeWidget(Objects.requireNonNull(widget));
             infoWidgets.clear();
             AdminGuiDetailWidgets.build(
-                    detail, players.size(), baseLeft(), baseTop(), font,
+                    detail, players.size(), baseLeft(), baseTop(), nonNullFont(),
                     tsaScroll, assScroll, teamScroll, discordScroll, 0, noteScroll
             ).forEach(widget -> {
                 infoWidgets.add(widget);
                 addRenderableWidget(widget);
             });
 
-            for (PlainTextButton button : noteButtons) removeWidget(button);
+            for (PlainTextButton button : noteButtons) removeWidget(Objects.requireNonNull(button));
             noteButtons.clear();
 
             if (detail == null || !bool(detail, "notesAvailable") || !detail.has("notes")) return;
@@ -389,43 +392,52 @@ public final class AdminGuiClient {
                 if (canEditNote(note)) {
                     PlainTextButton edit = new PlainTextButton(
                             left + 782, row + 4, 45, 18,
-                            Component.literal("EDIT").withStyle(s -> s.withColor(ACCENT)),
+                            colored("EDIT", ACCENT),
                             b -> editNote(note), font);
                     PlainTextButton remove = new PlainTextButton(
                             left + 832, row + 4, 35, 18,
-                            Component.literal("DEL").withStyle(s -> s.withColor(DANGER)),
+                            colored("DEL", DANGER),
                             b -> removeNote(note), font);
-                    edit.setTooltip(Tooltip.create(Component.literal("Edit your note.")));
-                    remove.setTooltip(Tooltip.create(Component.literal("Remove your note.")));
+                    edit.setTooltip(Tooltip.create(literal("Edit your note.")));
+                    remove.setTooltip(Tooltip.create(literal("Remove your note.")));
                     noteButtons.add(edit);
                     noteButtons.add(remove);
-                    addRenderableWidget(edit);
-                    addRenderableWidget(remove);
+                    addRenderableWidget(Objects.requireNonNull(edit));
+                    addRenderableWidget(Objects.requireNonNull(remove));
                 }
             }
         }
 
-        private void selectPlayer(String uuid) {
+        private void selectPlayer(@Nonnull String uuid) {
             selectedUuid = uuid;
             rebuildActionButtons();
             AdminGuiNetworkSelect.send(uuid);
         }
 
         private void saveNote() {
-            if (detail == null || noteInput.getValue().isBlank()) return;
+            if (detail == null) return;
+            EditBox input = Objects.requireNonNull(noteInput);
+            String value = input.getValue();
+            if (value.isBlank()) return;
+
             String action = editingNote == null ? "add" : "edit";
             String noteId = editingNote == null ? "" : editingNote.toString();
-            AdminGuiNetworkNote.send(action, detail.get("uuid").getAsString(), noteId, noteInput.getValue());
+            AdminGuiNetworkNote.send(action, detail.get("uuid").getAsString(), noteId, value);
             editingNote = null;
-            noteInput.setValue("");
-            if (addNoteButton != null) addNoteButton.setMessage(Component.literal("ADD NOTE").withStyle(s -> s.withColor(TEXT)));
+            input.setValue("");
+            if (addNoteButton != null) {
+                Objects.requireNonNull(addNoteButton).setMessage(colored("ADD NOTE", TEXT));
+            }
         }
 
         private void editNote(JsonObject note) {
             editingNote = UUID.fromString(note.get("id").getAsString());
-            noteInput.setValue(note.get("text").getAsString());
-            if (addNoteButton != null) addNoteButton.setMessage(Component.literal("UPDATE").withStyle(s -> s.withColor(TEXT)));
-            noteInput.setFocused(true);
+            EditBox input = Objects.requireNonNull(noteInput);
+            input.setValue(note.get("text").getAsString());
+            if (addNoteButton != null) {
+                Objects.requireNonNull(addNoteButton).setMessage(colored("UPDATE", TEXT));
+            }
+            input.setFocused(true);
         }
 
         private void removeNote(JsonObject note) {
@@ -557,7 +569,8 @@ public final class AdminGuiClient {
         private int filteredCount() { return filteredPlayers().size(); }
 
         @Override
-        public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+            Font guiFont = nonNullFont();
             double scale = uiScale();
             int left = baseLeft();
             int top = baseTop();
@@ -574,12 +587,12 @@ public final class AdminGuiClient {
             // Main shell
             panel(g, left, top, WIDTH, HEIGHT, BG, BORDER, 1);
             panel(g, left + 1, top + 1, WIDTH - 2, 46, PANEL_ALT, BORDER, 1);
-            g.drawString(font, "ADMIN GUI", left + 22, top + 17, TEXT, true);
-            g.drawString(font, "Server administration", left + 110, top + 17, MUTED, false);
+            g.drawString(guiFont, "ADMIN GUI", left + 22, top + 17, TEXT, true);
+            g.drawString(guiFont, "Server administration", left + 110, top + 17, MUTED, false);
 
             // Player sidebar
             panel(g, left + 12, top + 58, 282, 332, PANEL, BORDER, 1);
-            g.drawString(font, "PLAYERS", left + 24, top + 69, MUTED, true);
+            g.drawString(guiFont, "PLAYERS", left + 24, top + 69, MUTED, true);
             panel(g, left + 24, top + 94, 258, 26, BG, BORDER, 1);
             drawSearchIcon(g, left + 32, top + 101, MUTED);
 
@@ -596,7 +609,7 @@ public final class AdminGuiClient {
                         selected ? ACCENT : (hovered ? BORDER_HOVER : BORDER),
                         1);
                 g.fill(left + 29, rowY + 8, left + 33, rowY + 12, p.online() ? SUCCESS : MUTED);
-                g.drawString(font, p.name(), left + 42, rowY + 8, TEXT, false);
+                g.drawString(guiFont, p.name(), left + 42, rowY + 8, TEXT, false);
             }
             drawScrollBar(g, left + 286, top + 126, 261, filtered.size(), 9, playerScroll, logicalX, logicalY);
 
@@ -615,8 +628,8 @@ public final class AdminGuiClient {
             // Detail area
             panel(g, left + 305, top + 58, 580, 422, BG, BORDER, 1);
             if (detail == null) {
-                g.drawString(font, "Select a player", left + 330, top + 90, TEXT, true);
-                g.drawString(font, "Player information will appear here.", left + 330, top + 110, MUTED, false);
+                g.drawString(guiFont, "Select a player", left + 330, top + 90, TEXT, true);
+                g.drawString(guiFont, "Player information will appear here.", left + 330, top + 110, MUTED, false);
             } else {
                 // Cards are drawn as flat surfaces; detail widgets only render text/actions.
                 card(g, left + 321, top + 128, 272, 86, "TSA ANTICHEAT");
@@ -624,19 +637,19 @@ public final class AdminGuiClient {
                 card(g, left + 321, top + 224, 272, 78, "FTB TEAM");
                 card(g, left + 613, top + 224, 272, 78, "DISCORD");
                 drawCardScrollBar(g, left + 586, top + 158, 48,
-                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TSA, font),
+                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TSA, guiFont),
                         3, tsaScroll, logicalX, logicalY);
                 drawCardScrollBar(g, left + 878, top + 158, 48,
-                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.ASS, font),
+                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.ASS, guiFont),
                         3, assScroll, logicalX, logicalY);
                 drawCardScrollBar(g, left + 586, top + 254, 42,
-                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TEAM, font),
+                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TEAM, guiFont),
                         3, teamScroll, logicalX, logicalY);
                 drawCardScrollBar(g, left + 878, top + 254, 42,
-                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.DISCORD, font),
+                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.DISCORD, guiFont),
                         3, discordScroll, logicalX, logicalY);
                 panel(g, left + 313, top + 312, 562, 168, PANEL, BORDER, 1);
-                g.drawString(font, "ADMIN NOTES", left + 325, top + 323, MUTED, false);
+                g.drawString(guiFont, "ADMIN NOTES", left + 325, top + 323, MUTED, false);
                 drawScrollBar(g, left + 863, top + 342, 126,
                         detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0, 4, noteScroll, logicalX, logicalY);
             }
@@ -657,7 +670,7 @@ public final class AdminGuiClient {
             g.pose().popPose();
         }
 
-        private void renderWidgetIfVisible(GuiGraphics g, net.minecraft.client.gui.components.AbstractWidget widget,
+        private void renderWidgetIfVisible(@Nonnull GuiGraphics g, net.minecraft.client.gui.components.AbstractWidget widget,
                                            double mouseX, double mouseY, float partialTick) {
             if (widget != null && widget.visible) {
                 widget.render(g, (int) Math.round(mouseX), (int) Math.round(mouseY), partialTick);
@@ -668,8 +681,9 @@ public final class AdminGuiClient {
             if (note == null || !note.has("authorUuid")) return false;
             if (note.has("system") && note.get("system").getAsBoolean()) return false;
             if (note.has("canEdit")) return note.get("canEdit").getAsBoolean();
-            return Minecraft.getInstance().player != null
-                    && Minecraft.getInstance().player.getUUID().toString().equalsIgnoreCase(note.get("authorUuid").getAsString());
+            var player = Minecraft.getInstance().player;
+            return player != null
+                    && player.getUUID().toString().equalsIgnoreCase(note.get("authorUuid").getAsString());
         }
 
         private List<PlayerRef> filteredPlayers() {
@@ -744,26 +758,6 @@ public final class AdminGuiClient {
             g.fill(x, thumbY, x + 4, thumbY + thumbHeight, hovered ? BORDER_HOVER : MUTED);
         }
 
-        private static String fit(String value, int maxWidth, Font font) {
-            if (value == null || value.isEmpty() || font.width(value) <= maxWidth) return value == null ? "" : value;
-            String ellipsis = "...";
-            int available = Math.max(1, maxWidth - font.width(ellipsis));
-            return font.plainSubstrByWidth(value, available) + ellipsis;
-        }
-
-        private static String text(JsonObject o, String k, String fallback) {
-            return o != null && o.has(k) ? o.get(k).getAsString() : fallback;
-        }
-        private static boolean bool(JsonObject o, String k) {
-            return o != null && o.has(k) && o.get(k).getAsBoolean();
-        }
-        private static long num(JsonObject o, String k) {
-            return o != null && o.has(k) ? o.get(k).getAsLong() : 0L;
-        }
-        private static String formatSeconds(long s) {
-            long h = s / 3600, m = (s % 3600) / 60, sec = s % 60;
-            return h + "h " + String.format("%02dm %02ds", m, sec);
-        }
 
         @Override
         public void removed() {
@@ -775,6 +769,18 @@ public final class AdminGuiClient {
         public boolean isPauseScreen() { return false; }
 
         private record PlayerRef(String uuid, String name, boolean online) {}
+    }
+
+    private static Component literal(@Nonnull String text) {
+        return Objects.requireNonNull(Component.literal(text));
+    }
+
+    private static Component colored(@Nonnull String text, int color) {
+        return Objects.requireNonNull(Component.literal(text).withStyle(style -> style.withColor(color)));
+    }
+
+    private Font nonNullFont() {
+        return Objects.requireNonNull(font, "Screen font is not initialized");
     }
 
     private static final class PlayerListButton extends PlainTextButton {
@@ -791,7 +797,7 @@ public final class AdminGuiClient {
         }
 
         @Override
-        public void renderString(GuiGraphics g, Font font, int color) {
+        public void renderString(@Nonnull GuiGraphics g, @Nonnull Font font, int color) {
             Component message = getMessage();
             int textX = getX() + 18;
             int textY = getY() + Math.max(0, (getHeight() - font.lineHeight) / 2);
@@ -813,30 +819,35 @@ public final class AdminGuiClient {
         }
 
         @Override
-        public void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        public void renderWidget(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
             if (!visible) return;
 
-            Component message = getMessage();
-            int textWidth = Minecraft.getInstance().font.width(message);
+            Component message = Objects.requireNonNull(getMessage());
+            Font guiFont = Objects.requireNonNull(Minecraft.getInstance().font, "Minecraft font is not initialized");
+            int textWidth = guiFont.width(message);
             int textX = getX() + (getWidth() - textWidth) / 2;
-            int textY = getY() + (getHeight() - Minecraft.getInstance().font.lineHeight) / 2;
+            int textY = getY() + (getHeight() - guiFont.lineHeight) / 2;
 
             int color = 0xFFFFFFFF;
             if (!active) {
                 color = 0xFF6E7681;
-            } else if (message.getStyle().getColor() != null) {
-                color = message.getStyle().getColor().getValue();
+            } else {
+                var messageColor = message.getStyle().getColor();
+                if (messageColor != null) {
+                    color = messageColor.getValue();
+                }
             }
 
-            g.drawString(Minecraft.getInstance().font, message, textX, textY, color, false);
+            g.drawString(guiFont, message, textX, textY, color, false);
         }
     }
 
     private static final class AdminGuiNetworkClose {
         static void send() {
             Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.getConnection() != null) {
-                minecraft.getConnection().send(new AdminGuiNetwork.ClosePayload());
+            var connection = minecraft.getConnection();
+            if (connection != null) {
+                connection.send(new AdminGuiNetwork.ClosePayload());
             }
         }
     }
