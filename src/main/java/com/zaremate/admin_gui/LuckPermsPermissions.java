@@ -2,10 +2,18 @@ package com.zaremate.admin_gui;
 
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
 
 public final class LuckPermsPermissions {
     private LuckPermsPermissions() {}
+
+    public static boolean hasPermission(CommandSourceStack source, String permission) {
+        if (!(source.getEntity() instanceof ServerPlayer player)) {
+            return true;
+        }
+        return hasPermission(player, permission);
+    }
 
     public static boolean hasPermission(ServerPlayer player, String permission) {
         try {
