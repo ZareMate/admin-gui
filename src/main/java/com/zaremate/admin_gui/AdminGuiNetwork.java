@@ -142,7 +142,7 @@ public final class AdminGuiNetwork {
             Map.Entry<UUID, UUID> entry = iterator.next();
             ServerPlayer viewer = server.getPlayerList().getPlayer(entry.getKey());
 
-            if (viewer == null || !clientHasAdminGui(viewer)) {
+            if (viewer == null || !hasAdminPermission(viewer) || !clientHasAdminGui(viewer)) {
                 iterator.remove();
                 continue;
             }
