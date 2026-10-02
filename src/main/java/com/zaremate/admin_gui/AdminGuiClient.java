@@ -62,6 +62,7 @@ public final class AdminGuiClient {
         private int assScroll;
         private int teamScroll;
         private int discordScroll;
+        private int punishScroll;
 
         private static final int WIDTH = 900;
         private static final int HEIGHT = 520;
@@ -116,6 +117,7 @@ public final class AdminGuiClient {
                     assScroll = 0;
                     teamScroll = 0;
                     discordScroll = 0;
+                    punishScroll = 0;
                     editingNote = null;
                     if (noteInput != null) noteInput.setValue("");
                 }
@@ -235,9 +237,9 @@ public final class AdminGuiClient {
             addActionButton(
                     left + 24, top + 411, 82, 21, "PUNISH",
                     hasPlayer,
-                    hasPlayer ? "/punish " + selectedName + " " : "",
-                    hasPlayer ? "Insert /punish " + selectedName + " into chat." : "Select a player first.",
-                    true
+                    "",
+                    hasPlayer ? "Select an offense to punish " + selectedName + "." : "Select a player first.",
+                    false
             );
 
             addActionButton(
@@ -306,7 +308,12 @@ public final class AdminGuiClient {
                             return;
                         }
 
-                        if (label.equals("PUNISH") || label.equals("KICK") || label.equals("MSG")) {
+                        if (label.equals("PUNISH")) {
+                            openPunishModal();
+                            return;
+                        }
+
+                        if (label.equals("KICK") || label.equals("MSG")) {
                             openChat(command);
                             return;
                         }
@@ -373,7 +380,7 @@ public final class AdminGuiClient {
             infoWidgets.clear();
             AdminGuiDetailWidgets.build(
                     detail, players.size(), baseLeft(), baseTop(), nonNullFont(font),
-                    tsaScroll, assScroll, teamScroll, discordScroll, 0, noteScroll
+                    tsaScroll, assScroll, teamScroll, discordScroll, punishScroll, 0, noteScroll
             ).forEach(widget -> {
                 infoWidgets.add(widget);
                 addRenderableWidget(Objects.requireNonNull(widget));
@@ -395,11 +402,11 @@ public final class AdminGuiClient {
                 int row = top + 346 + i * 34;
                 if (canEditNote(note)) {
                     PlainTextButton edit = new PlainTextButton(
-                            left + 782, row + 4, 45, 18,
+                            left + 817, row + 4, 32, 18,
                             colored("EDIT", ACCENT),
                             b -> editNote(note), nonNullFont(font));
                     PlainTextButton remove = new PlainTextButton(
-                            left + 832, row + 4, 35, 18,
+                            left + 853, row + 4, 27, 18,
                             colored("DEL", DANGER),
                             b -> removeNote(note), nonNullFont(font));
                     edit.setTooltip(Tooltip.create(literal("Edit your note.")));
@@ -410,6 +417,25 @@ public final class AdminGuiClient {
                     addRenderableWidget(Objects.requireNonNull(remove));
                 }
             }
+        }
+
+        private void openPunishModal() {
+            if (detail == null || !detail.has("punish")) return;
+            JsonObject punish = detail.getAsJsonObject("punish");
+            if (punish == null || !bool(punish, "available")) return;
+
+            JsonArray offenses = punish.getAsJsonArray("offenses");
+            if (offenses == null || offenses.isEmpty()) return;
+
+            PlayerRef selected = selectedPlayer();
+            if (selected == null) return;
+
+            Minecraft.getInstance().setScreen(new AdminGuiPunishScreen(
+                    this,
+                    selected.uuid(),
+                    selected.name(),
+                    offenses
+            ));
         }
 
         private void selectPlayer(@Nonnull String uuid) {
@@ -518,7 +544,17 @@ public final class AdminGuiClient {
                     return true;
                 }
 
-                if (rx >= 313 && rx < 885 && ry >= 312 && ry < 480) {
+                if (rx >= 313 && rx < 593 && ry >= 312 && ry < 480) {
+                    punishScroll = clampScroll(
+                            punishScroll - delta,
+                            Math.max(0, AdminGuiDetailWidgets.lineCount(
+                                    detail, AdminGuiDetailWidgets.Section.PUNISH, guiFont) - 3)
+                    );
+                    rebuildInfoWidgets();
+                    return true;
+                }
+
+                if (rx >= 593 && rx < 885 && ry >= 312 && ry < 480) {
                     int noteCount = detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0;
                     noteScroll = clampScroll(
                             noteScroll - delta,
@@ -653,10 +689,15 @@ public final class AdminGuiClient {
                 drawCardScrollBar(g, left + 878, top + 254, 42,
                         AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.DISCORD, guiFont),
                         3, discordScroll, logicalX, logicalY);
-                panel(g, left + 313, top + 312, 562, 168, PANEL, BORDER, 1);
-                g.drawString(guiFont, "ADMIN NOTES", left + 325, top + 323, MUTED, false);
-                drawScrollBar(g, left + 863, top + 342, 126,
-                        detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0, 4, noteScroll, logicalX, logicalY);
+                card(g, left + 321, top + 312, 272, 168, "RECORDED OFFENSES");
+                card(g, left + 613, top + 312, 272, 168, "ADMIN NOTES");
+
+                drawCardScrollBar(g, left + 586, top + 342, 126,
+                        AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.PUNISH, guiFont),
+                        3, punishScroll, logicalX, logicalY);
+                drawCardScrollBar(g, left + 878, top + 342, 126,
+                        detail.has("notes") ? detail.getAsJsonArray("notes").size() : 0,
+                        4, noteScroll, logicalX, logicalY);
             }
 
             renderWidgetIfVisible(g, search, logicalX, logicalY, partialTick);
@@ -838,6 +879,15 @@ public final class AdminGuiClient {
             }
 
             g.drawString(guiFont, message, textX, textY, color, false);
+        }
+    }
+
+    private static final class AdminGuiNetworkPunish {
+        static void send(@Nonnull String playerUuid, @Nonnull String offense) {
+            var connection = Minecraft.getInstance().getConnection();
+            if (connection != null) {
+                connection.send(new AdminGuiNetwork.PunishActionPayload(playerUuid, offense));
+            }
         }
     }
 
