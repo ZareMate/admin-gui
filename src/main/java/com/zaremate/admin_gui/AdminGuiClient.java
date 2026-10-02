@@ -13,7 +13,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nonnull;
-import java.util.Objects;
 
 import java.util.*;
 
@@ -183,9 +182,8 @@ public final class AdminGuiClient {
 
             addNoteButton = new CenteredTextButton(
                     left + 765, top + 486, 110, 26,
-                    Component.literal("ADD NOTE").withStyle(s -> s.withColor(0xFFFFFFFF)),
-                    b -> saveNote(),
-                    font
+                    colored("ADD NOTE", 0xFFFFFFFF),
+                    b -> saveNote()
             );
             addRenderableWidget(Objects.requireNonNull(addNoteButton));
             noteInput.visible = false;
@@ -212,9 +210,9 @@ public final class AdminGuiClient {
                 PlayerRef p = filtered.get(i);
                 int y = top + 126 + (i - start) * 29;
                 PlainTextButton b = new PlayerListButton(
-                        left + 24, y, 258, 26, Component.empty(),
-                        btn -> selectPlayer(p.uuid()), font);
-                b.setTooltip(Tooltip.create(Component.literal(
+                        left + 24, y, 258, 26, literal(""),
+                        btn -> selectPlayer(p.uuid()), nonNullFont());
+                b.setTooltip(Tooltip.create(literal(
                         p.online() ? "Online — click to inspect." : "Offline — click to inspect stored data."
                 )));
                 playerButtons.add(b);
@@ -223,7 +221,7 @@ public final class AdminGuiClient {
         }
 
         private void rebuildActionButtons() {
-            for (Button b : actionButtons) removeWidget(b);
+            for (Button b : actionButtons) removeWidget(Objects.requireNonNull(b));
             actionButtons.clear();
 
             PlayerRef selected = selectedPlayer();
@@ -372,7 +370,7 @@ public final class AdminGuiClient {
                     tsaScroll, assScroll, teamScroll, discordScroll, 0, noteScroll
             ).forEach(widget -> {
                 infoWidgets.add(widget);
-                addRenderableWidget(widget);
+                addRenderableWidget(Objects.requireNonNull(widget));
             });
 
             for (PlainTextButton button : noteButtons) removeWidget(Objects.requireNonNull(button));
@@ -393,11 +391,11 @@ public final class AdminGuiClient {
                     PlainTextButton edit = new PlainTextButton(
                             left + 782, row + 4, 45, 18,
                             colored("EDIT", ACCENT),
-                            b -> editNote(note), font);
+                            b -> editNote(note), nonNullFont());
                     PlainTextButton remove = new PlainTextButton(
                             left + 832, row + 4, 35, 18,
                             colored("DEL", DANGER),
-                            b -> removeNote(note), font);
+                            b -> removeNote(note), nonNullFont());
                     edit.setTooltip(Tooltip.create(literal("Edit your note.")));
                     remove.setTooltip(Tooltip.create(literal("Remove your note.")));
                     noteButtons.add(edit);
@@ -457,6 +455,7 @@ public final class AdminGuiClient {
 
         @Override
         public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+            Font guiFont = nonNullFont();
             double logicalX = logicalMouseX(mouseX);
             double logicalY = logicalMouseY(mouseY);
             int left = baseLeft();
@@ -480,7 +479,7 @@ public final class AdminGuiClient {
                 if (rx >= 321 && rx < 593 && ry >= 128 && ry < 214) {
                     tsaScroll = clampScroll(
                             tsaScroll - delta,
-                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TSA, font) - 3)
+                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TSA, guiFont) - 3)
                     );
                     rebuildInfoWidgets();
                     return true;
@@ -489,7 +488,7 @@ public final class AdminGuiClient {
                 if (rx >= 613 && rx < 885 && ry >= 128 && ry < 214) {
                     assScroll = clampScroll(
                             assScroll - delta,
-                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.ASS, font) - 3)
+                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.ASS, guiFont) - 3)
                     );
                     rebuildInfoWidgets();
                     return true;
@@ -498,7 +497,7 @@ public final class AdminGuiClient {
                 if (rx >= 321 && rx < 593 && ry >= 224 && ry < 302) {
                     teamScroll = clampScroll(
                             teamScroll - delta,
-                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TEAM, font) - 3)
+                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.TEAM, guiFont) - 3)
                     );
                     rebuildInfoWidgets();
                     return true;
@@ -507,7 +506,7 @@ public final class AdminGuiClient {
                 if (rx >= 613 && rx < 885 && ry >= 224 && ry < 302) {
                     discordScroll = clampScroll(
                             discordScroll - delta,
-                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.DISCORD, font) - 3)
+                            Math.max(0, AdminGuiDetailWidgets.lineCount(detail, AdminGuiDetailWidgets.Section.DISCORD, guiFont) - 3)
                     );
                     rebuildInfoWidgets();
                     return true;
@@ -692,7 +691,7 @@ public final class AdminGuiClient {
             return players.stream().filter(p -> query.isEmpty() || p.name().toLowerCase(Locale.ROOT).contains(query)).toList();
         }
 
-        private void panel(GuiGraphics g, int x, int y, int width, int height, int fill, int border, int thickness) {
+        private void panel(@Nonnull GuiGraphics g, int x, int y, int width, int height, int fill, int border, int thickness) {
             g.fill(x, y, x + width, y + height, fill);
             g.fill(x, y, x + width, y + thickness, border);
             g.fill(x, y + height - thickness, x + width, y + height, border);
@@ -700,24 +699,19 @@ public final class AdminGuiClient {
             g.fill(x + width - thickness, y, x + width, y + height, border);
         }
 
-        private void card(GuiGraphics g, int x, int y, int width, int height, String title) {
+        private void card(@Nonnull GuiGraphics g, int x, int y, int width, int height, @Nonnull String title) {
             panel(g, x, y, width, height, PANEL, BORDER, 1);
             g.fill(x + 1, y + 1, x + 4, y + height - 1, ACCENT);
-            g.drawString(font, title, x + 12, y + 9, TEXT, false);
+            g.drawString(nonNullFont(), title, x + 12, y + 9, TEXT, false);
         }
 
-        private void statusPill(GuiGraphics g, int x, int y, String label, int color) {
-            int w = font.width(label) + 16;
-            panel(g, x, y, w, 18, 0xFF111820, color, 1);
-            g.drawString(font, label, x + 8, y + 5, color, true);
-        }
 
-        private void buttonSurface(GuiGraphics g, int x, int y, int width, int height, boolean hovered) {
+        private void buttonSurface(@Nonnull GuiGraphics g, int x, int y, int width, int height, boolean hovered) {
             panel(g, x, y, width, height, hovered ? 0xFF1F6FEB : 0xFF238636,
                     hovered ? ACCENT : 0xFF2EA043, 1);
         }
 
-        private void drawSearchIcon(GuiGraphics g, int x, int y, int color) {
+        private void drawSearchIcon(@Nonnull GuiGraphics g, int x, int y, int color) {
             // Small pixel-art magnifying glass.
             g.fill(x + 2, y, x + 7, y + 1, color);
             g.fill(x + 1, y + 1, x + 8, y + 2, color);
@@ -789,16 +783,16 @@ public final class AdminGuiClient {
                 int y,
                 int width,
                 int height,
-                Component text,
-                Button.OnPress onPress,
-                Font font
+                @Nonnull Component text,
+                @Nonnull Button.OnPress onPress,
+                @Nonnull Font font
         ) {
             super(x, y, width, height, text, onPress, font);
         }
 
         @Override
         public void renderString(@Nonnull GuiGraphics g, @Nonnull Font font, int color) {
-            Component message = getMessage();
+            Component message = Objects.requireNonNull(getMessage());
             int textX = getX() + 18;
             int textY = getY() + Math.max(0, (getHeight() - font.lineHeight) / 2);
             g.drawString(font, message, textX, textY, color, false);
@@ -811,9 +805,8 @@ public final class AdminGuiClient {
                 int y,
                 int width,
                 int height,
-                Component text,
-                Button.OnPress onPress,
-                Font font
+                @Nonnull Component text,
+                @Nonnull Button.OnPress onPress
         ) {
             super(x, y, width, height, text, onPress, Button.DEFAULT_NARRATION);
         }
@@ -853,18 +846,25 @@ public final class AdminGuiClient {
     }
 
     private static final class AdminGuiNetworkSelect {
-        static void send(String uuid) {
-            Minecraft.getInstance().getConnection().send(
-                    new AdminGuiNetwork.SelectPayload(uuid)
-            );
+        static void send(@Nonnull String uuid) {
+            var connection = Minecraft.getInstance().getConnection();
+            if (connection != null) {
+                connection.send(new AdminGuiNetwork.SelectPayload(uuid));
+            }
         }
     }
 
     private static final class AdminGuiNetworkNote {
-        static void send(String action, String player, String note, String text) {
-            Minecraft.getInstance().getConnection().send(
-                    new AdminGuiNetwork.NoteActionPayload(action, player, note, text)
-            );
+        static void send(
+                @Nonnull String action,
+                @Nonnull String player,
+                @Nonnull String note,
+                @Nonnull String text
+        ) {
+            var connection = Minecraft.getInstance().getConnection();
+            if (connection != null) {
+                connection.send(new AdminGuiNetwork.NoteActionPayload(action, player, note, text));
+            }
         }
     }
 }
