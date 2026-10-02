@@ -1,0 +1,26 @@
+package com.zaremate.admin_gui;
+
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.minecraft.server.level.ServerPlayer;
+
+public final class LuckPermsPermissions {
+    private LuckPermsPermissions() {}
+
+    public static boolean hasPermission(ServerPlayer player, String permission) {
+        try {
+            LuckPerms luckPerms = LuckPermsProvider.get();
+            return luckPerms.getPlayerAdapter(ServerPlayer.class)
+                    .getPermissionData(player)
+                    .checkPermission(permission)
+                    .asBoolean();
+        } catch (IllegalStateException e) {
+            AdminGui.LOGGER.warn(
+                    "LuckPerms is not available; denying permission '{}' for {}.",
+                    permission,
+                    player.getGameProfile().getName()
+            );
+            return false;
+        }
+    }
+}
