@@ -48,7 +48,8 @@ public final class AdminGui {
 
     private void registerCommands(RegisterCommandsEvent event) {
         var command = Commands.literal("adm-gui")
-                .requires(source -> source.isPlayer() && source.hasPermission(3))
+                .requires(source -> source.isPlayer()
+                        && AdminGuiNetwork.hasAdminPermission(source.getPlayerOrException()))
                 .executes(ctx -> open(ctx.getSource().getPlayerOrException()))
                 .then(Commands.literal("open")
                         .executes(ctx -> open(ctx.getSource().getPlayerOrException())));
