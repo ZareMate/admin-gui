@@ -63,6 +63,7 @@ public final class AdminGuiClient {
         private int teamScroll;
         private int discordScroll;
         private int punishScroll;
+        private boolean switchingToPunish;
 
         private static final int WIDTH = 900;
         private static final int HEIGHT = 520;
@@ -163,6 +164,7 @@ public final class AdminGuiClient {
 
         @Override
         protected void init() {
+            switchingToPunish = false;
             int left = baseLeft();
             int top = baseTop();
 
@@ -438,6 +440,9 @@ public final class AdminGuiClient {
             PlayerRef selected = selectedPlayer();
             if (selected == null) return;
 
+            // Switching to the modal removes this screen temporarily. Do not send
+            // CLOSE in removed(), otherwise the server forgets which player is selected.
+            switchingToPunish = true;
             Minecraft.getInstance().setScreen(new AdminGuiPunishScreen(
                     this,
                     selected.uuid(),
@@ -810,7 +815,9 @@ public final class AdminGuiClient {
 
         @Override
         public void removed() {
-            AdminGuiNetworkClose.send();
+            if (!switchingToPunish) {
+                AdminGuiNetworkClose.send();
+            }
             super.removed();
         }
 
