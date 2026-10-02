@@ -105,6 +105,12 @@ public final class AdminGuiNetwork {
                     || LuckPermsPermissions.hasPermission(player, "admin_gui.use"));
     }
 
+    public static boolean hasAdminPermission(net.minecraft.commands.CommandSourceStack source) {
+        return source != null
+                && (source.hasPermission(3)
+                    || LuckPermsPermissions.hasPermission(source, "admin_gui.use"));
+    }
+
     public static boolean clientHasAdminGui(ServerPlayer player) {
         return player != null && player.connection.hasChannel(OPEN_TYPE.id());
     }
