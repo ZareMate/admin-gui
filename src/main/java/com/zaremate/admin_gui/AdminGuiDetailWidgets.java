@@ -369,7 +369,6 @@ final class AdminGuiDetailWidgets {
         return o == null || o.entrySet().isEmpty();
     }
 
-    @Nonnull
     private static String fit(String value, int maxWidth, Font font) {
         String safeValue = Objects.requireNonNull(value, "Text to fit cannot be null");
         Font safeFont = Objects.requireNonNull(font, "Font to fit text cannot be null");
