@@ -357,8 +357,9 @@ public final class AdminGuiClient {
 
         private void runClientCommand(@Nonnull String command) {
             Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.player != null && minecraft.getConnection() != null) {
-                minecraft.getConnection().sendCommand(command);
+            var connection = minecraft.getConnection();
+            if (minecraft.player != null && connection != null) {
+                connection.sendCommand(command);
             }
         }
 
