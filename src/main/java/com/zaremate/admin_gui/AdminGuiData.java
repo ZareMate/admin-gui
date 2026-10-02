@@ -67,6 +67,7 @@ public final class AdminGuiData {
         debug.addProperty("teams.classPresent", classPresent("com.zaremate.ftb_teams_util.FTBTeamsUtilAPI"));
         debug.addProperty("discord.classPresent", classPresent("com.zaremate.discordlink.DiscordLinkAPI"));
         debug.addProperty("clockin.classPresent", classPresent("com.zaremate.clockin.ClockInMod"));
+        debug.addProperty("punish.classPresent", classPresent("com.zaremate.punish.api.PunishApi"));
 
         root.add("tsa", tsa(uuid, debug));
         root.add("ass", ass(uuid, debug));
@@ -75,6 +76,7 @@ public final class AdminGuiData {
         root.add("teams", teams(uuid, debug));
         root.add("discord", discord(uuid, debug));
         root.add("clockin", clockin(uuid, debug));
+        root.add("punish", punish(uuid, server, debug));
 
         AdminGui.LOGGER.info("Detail diagnostics for {}: {}", uuid, debug);
         return root.toString();
@@ -226,6 +228,75 @@ public final class AdminGuiData {
         return o;
     }
 
+
+    private static JsonObject punish(UUID uuid, MinecraftServer server, JsonObject debug) {
+        JsonObject o = new JsonObject();
+        JsonArray offenses = new JsonArray();
+        JsonArray history = new JsonArray();
+
+        try {
+            Class<?> api = Class.forName("com.zaremate.punish.api.PunishApi");
+            debug.addProperty("punish.class", api.getName());
+
+            Object rawOffenses = api.getMethod("getOffenses", MinecraftServer.class).invoke(null, server);
+            if (rawOffenses instanceof Iterable<?> it) {
+                for (Object offense : it) {
+                    JsonObject value = new JsonObject();
+                    value.addProperty("id", recordString(offense, "id"));
+                    value.addProperty("group", recordString(offense, "group"));
+                    value.addProperty("name", recordString(offense, "name"));
+                    value.add("steps", stringListJson(recordAccessor(offense, "steps")));
+                    value.add("aliases", stringListJson(recordAccessor(offense, "aliases")));
+                    offenses.add(value);
+                }
+            }
+
+            Object rawHistory = api.getMethod("getRecordedOffenses", MinecraftServer.class, UUID.class)
+                    .invoke(null, server, uuid);
+            if (rawHistory instanceof Iterable<?> it) {
+                for (Object punishment : it) {
+                    JsonObject value = new JsonObject();
+                    value.addProperty("id", recordLong(punishment, "id"));
+                    value.addProperty("offense", recordString(punishment, "offense"));
+                    value.addProperty("offenseNumber", recordLong(punishment, "offenseNumber"));
+                    value.addProperty("type", enumName(recordAccessor(punishment, "type")));
+                    value.addProperty("reason", recordString(punishment, "reason"));
+                    value.addProperty("by", recordString(punishment, "by"));
+                    value.addProperty("at", recordLong(punishment, "at"));
+                    value.addProperty("until", recordLong(punishment, "until"));
+                    value.addProperty("active", Boolean.TRUE.equals(recordAccessor(punishment, "active")));
+                    history.add(value);
+                }
+            }
+
+            o.addProperty("available", true);
+            o.add("offenses", offenses);
+            o.add("history", history);
+            return o;
+        } catch (Throwable ex) {
+            Throwable cause = rootCause(ex);
+            String msg = cause.getClass().getSimpleName() + ": " + String.valueOf(cause.getMessage());
+            debug.addProperty("punish.error", msg);
+            AdminGui.LOGGER.warn("Admin GUI Punish API failed for {}", uuid, cause);
+            o.addProperty("available", false);
+            o.add("offenses", offenses);
+            o.add("history", history);
+            return o;
+        }
+    }
+
+    private static JsonArray stringListJson(Object value) {
+        JsonArray array = new JsonArray();
+        if (value instanceof Iterable<?> it) {
+            for (Object element : it) array.add(String.valueOf(element));
+        }
+        return array;
+    }
+
+    private static String enumName(Object value) {
+        if (value instanceof Enum<?> e) return e.name();
+        return value == null ? "" : String.valueOf(value);
+    }
 
     private static boolean classPresent(String name) {
         try {
