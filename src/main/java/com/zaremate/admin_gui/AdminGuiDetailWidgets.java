@@ -8,12 +8,13 @@ import net.minecraft.client.gui.components.PlainTextButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
+
 import javax.annotation.Nonnull;
-import java.util.Objects;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 final class AdminGuiDetailWidgets {
     private static final int CARD_CONTENT_WIDTH = 246;
@@ -265,7 +266,7 @@ final class AdminGuiDetailWidgets {
             int x,
             int y,
             int scroll,
-            Font font
+            @Nonnull Font font
     ) {
         int maxScroll = Math.max(0, lines.size() - VISIBLE_LINES);
         int start = Math.min(Math.max(0, scroll), maxScroll);
@@ -322,15 +323,43 @@ final class AdminGuiDetailWidgets {
         }
     }
 
-    private static void add(List<PlainTextButton> out, int x, int y, int width, int height,
-                            String value, int color, String tooltip, Runnable action, Font font) {
-        Component component = Component.literal(value)
-                .withStyle(style -> style.withColor(color));
-        PlainTextButton button = new PlainTextButton(x, y, width, height, component,
-                ignored -> { if (action != null) action.run(); }, font);
+    private static void add(
+            List<PlainTextButton> out,
+            int x,
+            int y,
+            int width,
+            int height,
+            @Nonnull String value,
+            int color,
+            String tooltip,
+            Runnable action,
+            @Nonnull Font font
+    ) {
+        Component component = Objects.requireNonNull(
+                Component.literal(value).withStyle(style -> style.withColor(color))
+        );
+
+        PlainTextButton button = new PlainTextButton(
+                x,
+                y,
+                width,
+                height,
+                component,
+                ignored -> {
+                    if (action != null) {
+                        action.run();
+                    }
+                },
+                font
+        );
+
         if (tooltip != null && !tooltip.isBlank()) {
-            button.setTooltip(Tooltip.create(Component.literal(tooltip)));
+            String safeTooltip = Objects.requireNonNull(tooltip);
+            button.setTooltip(
+                    Tooltip.create(Objects.requireNonNull(Component.literal(safeTooltip)))
+            );
         }
+
         out.add(button);
     }
 
@@ -338,7 +367,8 @@ final class AdminGuiDetailWidgets {
         return o == null || o.entrySet().isEmpty();
     }
 
-    private static String fit(String value, int maxWidth, Font font) {
+    @Nonnull
+    private static String fit(String value, int maxWidth, @Nonnull Font font) {
         if (value == null || value.isEmpty() || font.width(value) <= maxWidth) {
             return value == null ? "" : value;
         }
