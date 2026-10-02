@@ -7,7 +7,12 @@ Open it with:
     /adm-gui
     /admin-gui
 
-Requires operator permission level 3.
+Requires operator permission level 3, or the LuckPerms permission `admin_gui.use`.
+If LuckPerms is installed, grant it with:
+
+    /lp group <group> permission set admin_gui.use true
+
+Operator level 3 always has access.
 
 ## Dashboard
 
