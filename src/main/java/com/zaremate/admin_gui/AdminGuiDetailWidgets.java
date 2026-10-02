@@ -47,7 +47,7 @@ final class AdminGuiDetailWidgets {
             int clockScroll,
             int noteScroll
     ) {
-        Font safeFont = Objects.requireNonNull(safeFont, "Detail widget safeFont is not initialized");
+        Font safeFont = Objects.requireNonNull(font, "Detail widget font is not initialized");
         List<PlainTextButton> result = new ArrayList<>();
         int x = left + 325;
 
@@ -90,7 +90,7 @@ final class AdminGuiDetailWidgets {
         return result;
     }
 
-    private static List<DetailLine> tsaLines(JsonObject o, @Nonnull Font font) {
+    private static List<DetailLine> tsaLines(JsonObject o, Font font) {
         List<DetailLine> lines = new ArrayList<>();
         if (empty(o)) {
             lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
@@ -144,7 +144,7 @@ final class AdminGuiDetailWidgets {
         return lines;
     }
 
-    private static List<DetailLine> assLines(JsonObject o, @Nonnull Font font) {
+    private static List<DetailLine> assLines(JsonObject o, Font font) {
         List<DetailLine> lines = new ArrayList<>();
         if (empty(o)) {
             lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
@@ -189,7 +189,7 @@ final class AdminGuiDetailWidgets {
         return lines;
     }
 
-    private static List<DetailLine> teamLines(JsonObject o, @Nonnull Font font) {
+    private static List<DetailLine> teamLines(JsonObject o, Font font) {
         List<DetailLine> lines = new ArrayList<>();
         if (empty(o)) {
             lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
@@ -241,7 +241,7 @@ final class AdminGuiDetailWidgets {
         return lines;
     }
 
-    private static List<DetailLine> discordLines(JsonObject o, @Nonnull Font font) {
+    private static List<DetailLine> discordLines(JsonObject o, Font font) {
         List<DetailLine> lines = new ArrayList<>();
         if (empty(o)) {
             lines.add(new DetailLine("Not installed / no data", 0xFF8B949E, null, null));
@@ -270,8 +270,7 @@ final class AdminGuiDetailWidgets {
             List<DetailLine> lines,
             int x,
             int y,
-            int scroll,
-            @Nonnull Font font
+            int scroll, Font font
     ) {
         int maxScroll = Math.max(0, lines.size() - VISIBLE_LINES);
         int start = Math.min(Math.max(0, scroll), maxScroll);
@@ -284,7 +283,7 @@ final class AdminGuiDetailWidgets {
         }
     }
 
-    static int lineCount(JsonObject detail, Section section, @Nonnull Font font) {
+    static int lineCount(JsonObject detail, Section section, Font font) {
         if (detail == null) return 0;
         return switch (section) {
             case TSA -> tsaLines(detail.getAsJsonObject("tsa"), font).size();
@@ -298,8 +297,7 @@ final class AdminGuiDetailWidgets {
             List<PlainTextButton> out,
             JsonObject detail,
             int x,
-            int y,
-            @Nonnull Font font,
+            int y, Font font,
             int noteScroll
     ) {
         if (!bool(detail, "notesAvailable")) {
